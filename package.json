@@ -1,7 +1,7 @@
 {
   "name": "kasta-social-backend",
   "version": "1.0.0",
-  "description": "Social Media Backend",
+  "description": "Backend for social network",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,7 +12,7 @@
     "mongoose": "^7.0.0",
     "dotenv": "^16.0.0",
     "cors": "^2.8.5",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.0"
   }
 }
