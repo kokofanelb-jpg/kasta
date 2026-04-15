@@ -1,6 +1,18 @@
-"dependencies": {
-  "express": "^4.18.2",
-  "mongoose": "^7.0.0",
-  "dotenv": "^16.0.0",
-  "cors": "^2.8.5"
+{
+  "name": "kasta-social-backend",
+  "version": "1.0.0",
+  "description": "Social Media Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "npm install"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
+    "dotenv": "^16.0.0",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0"
+  }
 }
