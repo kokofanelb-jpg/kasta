@@ -1,190 +1,98 @@
-const authScreen = document.getElementById('auth-screen');
-const mainScreen = document.getElementById('main-screen');
-const tabFeed = document.getElementById('tab-feed');
-const tabProfile = document.getElementById('tab-profile');
-const feed = document.getElementById('feed');
-const myPosts = document.getElementById('my-posts');
-const authMessage = document.getElementById('authMessage');
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const path = require('path');
+const multer = require('multer');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// Проверяем токен при загрузке
-let currentUser = localStorage.getItem('currentUser');
-let token = localStorage.getItem('token');
+dotenv.config();
+const app = express();
 
-if (token && currentUser) showMainScreen();
+// --- НАСТРОЙКИ (Чтобы всё работало) ---
+app.use(express.json());
+app.use(cors()); // Разрешаем запросы с любого адреса
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Доступ к картинкам
 
-// Функция для запросов авторизации (вход/регистрация)
-async function authUser(url) {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+// Базовая проверка, что сервер живой
+app.get('/', (req, res) => {
+    res.send('Бэкенд Kasta работает! 🚀');
+});
 
-    const res = await fetch(`http://localhost:3000/${url}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-    
-    const data = await res.json();
-
-    if (res.ok) {
-        if (url === 'login') {
-            // Если вошли - сохраняем токен и имя в память
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('currentUser', data.username);
-            token = data.token;
-            currentUser = data.username;
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            showMainScreen();
-        } else {
-            authMessage.style.color = "green";
-            authMessage.innerText = "Регистрация успешна! Теперь войдите.";
-        }
-    } else {
-        authMessage.style.color = "red";
-        authMessage.innerText = data.message;
+// --- НАСТРОЙКА ХРАНИЛИЩА КАРТИНОК ---
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
     }
-}
+});
+const upload = multer({ storage });
 
-document.getElementById('btnLogin').onclick = () => authUser('login');
-document.getElementById('btnRegister').onclick = () => authUser('register');
+// --- МОДЕЛИ ДАННЫХ ---
+const User = mongoose.model('User', new mongoose.Schema({
+    username: { type: String, unique: true, required: true },
+    password: { type: String, required: true }
+}));
 
-// Выход
-document.getElementById('nav-logout').onclick = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('currentUser');
-    token = null;
-    currentUser = null;
-    mainScreen.classList.add('hidden');
-    authScreen.classList.remove('hidden');
-};
+const Post = mongoose.model('Post', new mongoose.Schema({
+    author: String,
+    text: String,
+    imageUrl: String,
+    createdAt: { type: Date, default: Date.now }
+}));
 
-// Навигация
-document.getElementById('nav-feed').onclick = () => {
-    tabFeed.classList.remove('hidden'); tabProfile.classList.add('hidden'); loadPosts();
-};
-document.getElementById('nav-profile').onclick = () => {
-    tabFeed.classList.add('hidden'); tabProfile.classList.remove('hidden');
-    document.getElementById('profile-name').innerText = currentUser; loadPosts();
-};
-
-// Загрузка постов
-async function loadPosts() {
-    const res = await fetch('http://localhost:3000/posts');
-    const data = await res.json();
-    
-    const renderPost = (post) => `
-        <div class="post">
-            <b>${post.author}</b>
-            <p>${post.text}</p>
-            ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%; border-radius:8px;">` : ''}
-        </div>
-    `;
-
-    feed.innerHTML = data.map(renderPost).join('');
-    myPosts.innerHTML = data.filter(p => p.author === currentUser).map(renderPost).join('');
-}
-
-// Отправка поста (теперь ЗАЩИЩЕННАЯ с токеном)
-document.getElementById('postForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const textInput = document.getElementById('postText');
-    const fileInput = document.getElementById('postFile');
-
-    const formData = new FormData();
-    formData.append('text', textInput.value);
-    if (fileInput.files[0]) formData.append('photo', fileInput.files[0]);
-
-    await fetch('http://localhost:3000/posts', {
-        method: 'POST',
-        headers: { 
-            // Прикладываем пропуск (токен) к запросу!
-            'Authorization': `Bearer ${token}` 
-        },
-        body: formData
-    });
-
-    textInput.value = ''; fileInput.value = '';
-    loadPosts();
-};
-
-function showMainScreen() {
-    authScreen.classList.add('hidden');
-    mainScreen.classList.remove('hidden');
-    loadPosts();
-}
-document.getElementById('postForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const textInput = document.getElementById('postText');
-    const fileInput = document.getElementById('postFile'); // Проверь, что этот ID совпадает с HTML!
-
-    const formData = new FormData();
-    formData.append('text', textInput.value);
-    
-    // Безопасная проверка файла
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append('photo', fileInput.files[0]);
-    }
-
-    const res = await fetch('http://localhost:3000/posts', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-    });
-
-    if (res.ok) {
-        textInput.value = '';
-        if (fileInput) fileInput.value = '';
-        loadPosts();
-    } else {
-        alert("Ошибка при публикации. Проверь консоль сервера.");
-    }
-};
-// Загрузка постов
-async function loadPosts() {
+// --- РОУТЫ (АВТОРИЗАЦИЯ) ---
+app.post('/register', async (req, res) => {
     try {
-        const res = await fetch('http://localhost:3000/posts');
-        const data = await res.json();
-        
-        const renderPost = (post) => `
-            <div class="post">
-                <b>${post.author}</b>
-                <p>${post.text}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%; border-radius:8px;">` : ''}
-            </div>
-        `;
-
-        const feedEl = document.getElementById('feed');
-        const myPostsEl = document.getElementById('my-posts');
-
-        if (feedEl) feedEl.innerHTML = data.map(renderPost).join('');
-        if (myPostsEl) myPostsEl.innerHTML = data.filter(p => p.author === currentUser).map(renderPost).join('');
-    } catch (err) {
-        console.error("Ошибка загрузки постов:", err);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const user = new User({ username: req.body.username, password: hashedPassword });
+        await user.save();
+        res.status(201).json({ message: "Успех!" });
+    } catch (e) {
+        res.status(400).json({ message: "Такой юзер уже есть" });
     }
-}
+});
 
-// Навигация (исправленная)
-const btnFeed = document.getElementById('nav-feed');
-const btnProfile = document.getElementById('nav-profile');
+app.post('/login', async (req, res) => {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+        return res.status(400).json({ message: "Неверный логин или пароль" });
+    }
+    const token = jwt.sign({ username: user.username }, 'SECRET_KEY');
+    res.json({ token, username: user.username });
+});
 
-if (btnFeed) {
-    btnFeed.onclick = () => {
-        const tf = document.getElementById('tab-feed');
-        const tp = document.getElementById('tab-profile');
-        if (tf) tf.classList.remove('hidden'); 
-        if (tp) tp.classList.add('hidden'); 
-        loadPosts();
-    };
-}
+// --- РОУТЫ (ПОСТЫ) ---
+app.get('/posts', async (req, res) => {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json(posts);
+});
 
-if (btnProfile) {
-    btnProfile.onclick = () => {
-        const tf = document.getElementById('tab-feed');
-        const tp = document.getElementById('tab-profile');
-        const pName = document.getElementById('profile-name');
-        if (tf) tf.classList.add('hidden'); 
-        if (tp) tp.classList.remove('hidden');
-        if (pName) pName.innerText = currentUser; 
-        loadPosts();
-    };
-}
+app.post('/posts', upload.single('photo'), async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: "Нужен токен" });
+        
+        const decoded = jwt.verify(token, 'SECRET_KEY');
+        const imageUrl = req.file ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` : null;
+        
+        const post = new Post({
+            author: decoded.username,
+            text: req.body.text,
+            imageUrl: imageUrl
+        });
+        await post.save();
+        res.json(post);
+    } catch (e) {
+        res.status(401).json({ message: "Ошибка" });
+    }
+});
+
+// --- ЗАПУСК ---
+const PORT = process.env.PORT || 10000;
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        app.listen(PORT, () => console.log(`Сервер на порту ${PORT}`));
+    })
+    .catch(err => console.log("Ошибка БД:", err));
