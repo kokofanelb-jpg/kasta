@@ -1,6 +1,5 @@
-// ВАЖНО: Замени эту ссылку на свою ссылку от Render!
-const API_URL = "https://kasta-l49s.onrender.com"; 
 
+const API_URL = "https://kasta-l49s.onrender.com";
 let currentUser = localStorage.getItem('currentUser');
 let token = localStorage.getItem('token');
 let currentChatPartner = null;
@@ -11,34 +10,44 @@ async function authUser(type) {
     const userField = document.getElementById('login-username');
     const passField = document.getElementById('login-password');
     
-    const response = await fetch(`${API_URL}/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: userField.value, password: passField.value })
-    });
+    if (!userField.value || !passField.value) return alert("Заполните поля!");
 
-    const data = await response.json();
+    try {
+        const response = await fetch(`${API_URL}/${type}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: userField.value, password: passField.value })
+        });
 
-    if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', userField.value);
-        location.reload(); // Перезагружаем, чтобы всё подтянулось
-    } else {
-        alert(data.message || "Ошибка!");
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', userField.value);
+            location.reload(); 
+        } else {
+            alert(data.message || "Ошибка!");
+        }
+    } catch (err) {
+        alert("Сервер недоступен. Проверьте ссылку в script.js");
     }
 }
 
 function showRegister() {
-    const btn = document.querySelector('#auth-screen button');
-    const title = document.querySelector('#auth-screen h2');
+    const btn = document.getElementById('auth-submit-btn');
+    const title = document.getElementById('auth-title');
+    const linkText = document.getElementById('switch-auth-link');
+    
     if(btn.innerText === "Войти") {
         btn.innerText = "Создать аккаунт";
-        btn.setAttribute('onclick', "authUser('register')");
-        title.innerText = "Регистрация в Kasta";
+        btn.onclick = () => authUser('register');
+        title.innerText = "Регистрация";
+        linkText.innerText = "Уже есть аккаунт? Войти";
     } else {
         btn.innerText = "Войти";
-        btn.setAttribute('onclick', "authUser('login')");
+        btn.onclick = () => authUser('login');
         title.innerText = "Вход в Kasta";
+        linkText.innerText = "Нет аккаунта? Зарегистрироваться";
     }
 }
 
@@ -58,7 +67,6 @@ function showTab(tab) {
     document.getElementById('tab-' + tab).classList.remove('hidden');
     
     if (tab === 'chats') loadChatsList();
-    if (tab === 'feed') loadPosts();
 }
 
 // --- ЧАТЫ ---
@@ -68,11 +76,11 @@ async function loadChatsList() {
     });
     const partners = await res.json();
     const container = document.getElementById('active-chats-list');
-    container.innerHTML = '';
+    container.innerHTML = partners.length ? '' : '<p style="color:gray; padding:20px;">У вас пока нет чатов</p>';
     
     partners.forEach(user => {
         container.insertAdjacentHTML('beforeend', `
-            <div style="padding:15px; background:white; border:1px solid #dbdbdb; border-radius:10px; cursor:pointer;" onclick="openChat('${user}')">
+            <div style="padding:15px; background:white; border:1px solid #dbdbdb; border-radius:10px; cursor:pointer; margin-bottom:10px;" onclick="openChat('${user}')">
                 <b>@${user}</b>
             </div>
         `);
@@ -129,7 +137,7 @@ async function sendMessage() {
     renderMessages();
 }
 
-// --- ПРОВЕРКА ВХОДА ПРИ ЗАГРУЗКЕ ---
+// ПРОВЕРКА ВХОДА
 if (token) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-screens').classList.remove('hidden');
