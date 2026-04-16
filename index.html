@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasta - Connect</title>
+    <title>Kasta</title>
     <style>
         :root { 
             --accent: #0095f6; 
@@ -11,7 +11,6 @@
             --border: #dbdbdb; 
             --sidebar: #ffffff; 
             --text: #262626; 
-            --glass: rgba(255, 255, 255, 0.8);
         }
         
         body { 
@@ -26,7 +25,7 @@
 
         .hidden { display: none !important; }
 
-        /* БОКОВАЯ ПАНЕЛЬ (Glassmorphism style) */
+        /* БОКОВАЯ ПАНЕЛЬ */
         .sidebar { 
             width: 70px; 
             background: var(--sidebar); 
@@ -45,9 +44,8 @@
             padding: 0 20px; 
             margin-bottom: 30px; 
             font-weight: bold; 
-            font-size: 22px; 
+            font-size: 20px; 
             color: var(--accent); 
-            letter-spacing: 1px;
         }
 
         .sidebar-user { 
@@ -65,11 +63,8 @@
             object-fit: cover; 
             margin-right: 15px; 
             background: #eee; 
-            border: 2px solid var(--accent);
         }
-        .sidebar-user-info { display: flex; flex-direction: column; overflow: hidden; }
-        .sidebar-user-info b { font-size: 14px; }
-        .sidebar-user-info small { color: gray; font-size: 12px; }
+        .sidebar-user-info { display: flex; flex-direction: column; }
 
         .nav-item { 
             padding: 15px 20px; 
@@ -78,9 +73,8 @@
             cursor: pointer; 
             transition: 0.2s; 
             color: var(--text); 
-            text-decoration: none;
         }
-        .nav-item:hover { background: rgba(0, 149, 246, 0.1); color: var(--accent); }
+        .nav-item:hover { background: #f0f0f0; }
         .nav-icon { font-size: 24px; min-width: 30px; text-align: center; }
         .nav-text { margin-left: 15px; font-weight: 500; opacity: 0; transition: opacity 0.2s; }
         .sidebar:hover .nav-text { opacity: 1; }
@@ -89,35 +83,34 @@
         .main-content { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 600px; }
 
-        /* ЧАТЫ */
+        /* СТИЛИ ЧАТА */
         #messages-container { 
-            height: 450px; 
+            height: 400px; 
             overflow-y: auto; 
             border: 1px solid var(--border); 
             padding: 15px; 
             border-radius: 12px; 
-            background: #fff; 
+            background: white; 
             margin-bottom: 15px; 
             display: flex; 
             flex-direction: column; 
             gap: 10px; 
         }
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; position: relative; font-size: 14px; }
-        .msg.sent { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
-        .msg.received { align-self: flex-start; background: #efefef; color: black; border-bottom-left-radius: 2px; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 14px; }
+        .msg.sent { align-self: flex-end; background: var(--accent); color: white; }
+        .msg.received { align-self: flex-start; background: #eee; color: black; }
 
-        /* КНОПКИ И ИНПУТЫ */
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-main:hover { opacity: 0.8; }
+        /* КНОПКИ И ПОЛЯ */
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
         .btn-outline { background: transparent; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
 
-        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+        /* МОБИЛЬНАЯ ВЕРСИЯ */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar { 
                 width: 100% !important; 
-                height: 65px; 
+                height: 60px; 
                 flex-direction: row; 
                 justify-content: space-around; 
                 padding: 0; 
@@ -128,9 +121,8 @@
                 background: var(--sidebar); 
             }
             .sidebar-header, .sidebar-user, .nav-text { display: none !important; }
-            .nav-item { padding: 10px; flex: 1; justify-content: center; flex-direction: column; }
-            .nav-icon { font-size: 22px; }
-            .main-content { padding-bottom: 80px; height: calc(100vh - 65px); }
+            .nav-item { padding: 10px; flex: 1; justify-content: center; }
+            .main-content { padding-bottom: 70px; height: calc(100vh - 60px); }
         }
     </style>
 </head>
@@ -142,7 +134,7 @@
         <div class="sidebar-user" onclick="showTab('profile')">
             <img id="nav-avatar" src="https://via.placeholder.com/40" alt="Avatar">
             <div class="sidebar-user-info">
-                <b id="nav-display-name">Загрузка...</b>
+                <b id="nav-display-name">Имя</b>
                 <small id="nav-username">@username</small>
             </div>
         </div>
@@ -159,8 +151,7 @@
         <div class="nav-item" onclick="showTab('settings')">
             <span class="nav-icon">⚙️</span><span class="nav-text">Настройки</span>
         </div>
-        
-        <div class="nav-item" onclick="logout()" style="color: #ff3b30; margin-top: auto;">
+        <div class="nav-item" onclick="logout()" style="color: red; margin-top: auto;">
             <span class="nav-icon">🚪</span><span class="nav-text">Выйти</span>
         </div>
     </aside>
@@ -170,86 +161,60 @@
             
             <div id="auth-screen">
                 <div style="text-align: center; margin-top: 50px; background: white; padding: 40px; border-radius: 20px; border: 1px solid var(--border);">
-                    <h2>Вход в Kasta</h2>
+                    <h2 id="auth-title">Вход в Kasta</h2>
                     <input type="text" id="login-username" placeholder="Юзернейм">
                     <input type="password" id="login-password" placeholder="Пароль">
-                    <button class="btn-main" onclick="authUser('login')">Войти</button>
-                    <p style="font-size: 14px; margin-top: 20px;">Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a></p>
+                    <button id="auth-submit-btn" class="btn-main" onclick="authUser('login')">Войти</button>
+                    <p style="font-size: 14px; margin-top: 20px;">
+                        Нет аккаунта? <a href="javascript:void(0)" onclick="showRegister()">Зарегистрироваться</a>
+                    </p>
                 </div>
             </div>
 
             <div id="main-screens" class="hidden">
                 
                 <div id="tab-feed">
-                    <h2 id="lang-feed-title">Лента</h2>
+                    <h2>Лента</h2>
                     <div id="all-posts"></div>
                 </div>
 
                 <div id="tab-chats" class="hidden">
                     <div id="chats-list-view">
-                        <h2 id="lang-chats-title">Мои сообщения</h2>
-                        <div id="active-chats-list" style="display: flex; flex-direction: column; gap: 10px;">
-                            </div>
+                        <h2>Сообщения</h2>
+                        <div id="active-chats-list"></div>
                     </div>
 
                     <div id="chat-window" class="hidden">
-                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
-                            <button class="btn-outline" onclick="backToChatsList()">← Назад</button>
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                            <button class="btn-outline" onclick="backToChatsList()">←</button>
                             <h3 id="chat-with-name" style="margin:0;">Чат</h3>
                         </div>
                         <div id="messages-container"></div>
-                        <div style="display:flex; gap:10px; align-items: center;">
-                            <button class="btn-outline" onclick="document.getElementById('chat-file').click()">🖼️</button>
-                            <input type="file" id="chat-file" hidden accept="image/*">
-                            <input type="text" id="chat-input" placeholder="Напишите сообщение..." style="margin:0;">
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="chat-input" placeholder="Сообщение..." style="margin:0;">
                             <button onclick="sendMessage()" class="btn-main" style="width: auto;">Отправить</button>
                         </div>
                     </div>
                 </div>
 
-                <div id="tab-friends" class="hidden">
-                    <h2>Друзья</h2>
-                    <p style="color: gray;">Здесь будут отображаться люди, с которыми у вас взаимная подписка.</p>
-                    <div id="friends-list"></div>
-                </div>
-
                 <div id="tab-settings" class="hidden">
                     <h2>Настройки</h2>
-                    <div style="background: white; padding: 25px; border-radius: 15px; border: 1px solid var(--border);">
-                        <h4>🌐 Язык / Language</h4>
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                        <h4>Язык</h4>
                         <select id="lang-select">
                             <option value="ru">Русский</option>
                             <option value="en">English</option>
                         </select>
-                        
-                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-                        
-                        <h4>🔒 Конфиденциальность</h4>
-                        <label>Кто видит статус "В сети":</label>
-                        <select id="privacy-online">
-                            <option value="all">Все</option>
-                            <option value="friends">Только друзья</option>
-                            <option value="none">Никто</option>
-                        </select>
-                        
-                        <label>Кто видит аватарку:</label>
-                        <select id="privacy-avatar">
-                            <option value="all">Все</option>
-                            <option value="friends">Только друзья</option>
-                        </select>
-
-                        <button class="btn-main" style="margin-top: 25px;" onclick="saveSettings()">Сохранить изменения</button>
+                        <button class="btn-main" style="margin-top: 20px;">Сохранить</button>
                     </div>
                 </div>
 
                 <div id="tab-profile" class="hidden">
-                    <h2 id="profile-display-title">Профиль</h2>
-                    <div id="my-profile-info" style="text-align: center; margin-bottom: 30px;">
-                        </div>
+                    <h2>Мой профиль</h2>
+                    <div id="profile-info"></div>
                 </div>
 
             </div>
-
         </div>
     </main>
 
