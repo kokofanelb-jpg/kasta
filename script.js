@@ -1,125 +1,113 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const API_URL = 'https://kasta-l49s.onrender.com'; 
+let token = localStorage.getItem('token');
+let currentUser = localStorage.getItem('currentUser');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Создаем папку для фото, если её нет
-if (!fs.existsSync('uploads')) { fs.mkdirSync('uploads'); }
-
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ База данных подключена'))
-    .catch((err) => console.log('❌ Ошибка БД:', err));
-
-// СХЕМЫ (Лайки и комменты теперь тут)
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    handle: { type: String, unique: true },
-    bio: { type: String, default: '' }
-});
-const User = mongoose.model('User', userSchema);
-
-const postSchema = new mongoose.Schema({
-    author: String,
-    text: String,
-    imageUrl: String,
-    likes: { type: [String], default: [] },
-    comments: [{
-        author: String,
-        text: String,
-        createdAt: { type: Date, default: Date.now }
-    }],
-    createdAt: { type: Date, default: Date.now }
-});
-const Post = mongoose.model('Post', postSchema);
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage: storage });
-
-// РЕГИСТРАЦИЯ И ВХОД
-app.post('/register', async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const user = new User({ 
-            username: req.body.username, 
-            password: hashedPassword,
-            handle: req.body.username.toLowerCase() 
-        });
-        await user.save();
-        res.json({ message: 'Успех!' });
-    } catch (err) { res.status(400).json({ message: 'Имя уже занято!' }); }
-});
-
-app.post('/login', async (req, res) => {
-    const user = await User.findOne({ username: req.body.username });
-    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-        return res.status(400).json({ message: 'Ошибка входа' });
-    }
-    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET);
-    res.json({ token, username: user.username });
-});
-
-const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
-    if (!token) return res.status(401).send('Нет пропуска');
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).send('Ошибка токена');
-        req.user = user;
-        next();
-    });
-};
-
-// ПОИСК, ЛАЙКИ И КОММЕНТЫ
-app.get('/users/search', async (req, res) => {
-    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).select('username handle');
-    res.json(users);
-});
-
-app.post('/posts/:id/like', verifyToken, async (req, res) => {
-    const post = await Post.findById(req.params.id);
-    if (post.likes.includes(req.user.username)) {
-        post.likes = post.likes.filter(name => name !== req.user.username);
+// ПЕРЕКЛЮЧАТЕЛЬ АВТОРИЗАЦИИ
+function switchAuth(mode) {
+    const title = document.getElementById('auth-title');
+    const btn = document.getElementById('authBtn');
+    const toggle = document.getElementById('toggleText');
+    if (mode === 'reg') {
+        title.innerText = "Регистрация";
+        btn.innerText = "Создать аккаунт";
+        btn.onclick = () => authUser('register');
+        toggle.innerHTML = 'Уже есть аккаунт? <a href="#" onclick="switchAuth(\'login\')">Войти</a>';
     } else {
-        post.likes.push(req.user.username);
+        title.innerText = "Вход";
+        btn.innerText = "Войти";
+        btn.onclick = () => authUser('login');
+        toggle.innerHTML = 'Нет аккаунта? <a href="#" onclick="switchAuth(\'reg\')">Зарегистрироваться</a>';
     }
-    await post.save();
-    res.json(post);
-});
+}
 
-app.post('/posts/:id/comment', verifyToken, async (req, res) => {
-    const post = await Post.findById(req.params.id);
-    post.comments.push({ author: req.user.username, text: req.body.text });
-    await post.save();
-    res.json(post);
-});
-
-app.get('/posts', async (req, res) => {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.json(posts);
-});
-
-app.post('/posts', verifyToken, upload.single('photo'), async (req, res) => {
-    const host = req.get('host');
-    const newPost = new Post({
-        author: req.user.username,
-        text: req.body.text,
-        imageUrl: req.file ? `${req.protocol}://${host}/uploads/${req.file.filename}` : null
+async function authUser(type) {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const res = await fetch(`${API_URL}/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
     });
-    await newPost.save();
-    res.json(newPost);
-});
+    const data = await res.json();
+    if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('currentUser', data.username);
+        location.reload();
+    } else {
+        document.getElementById('authMessage').innerText = data.message;
+    }
+}
 
-app.listen(process.env.PORT || 10000);
+// ЛОГИКА ПОСТОВ
+async function loadPosts() {
+    const res = await fetch(`${API_URL}/posts`);
+    const posts = await res.json();
+    const container = document.getElementById('posts-container');
+    container.innerHTML = '';
+    posts.forEach(post => {
+        const isLiked = post.likes?.includes(currentUser);
+        container.insertAdjacentHTML('beforeend', `
+            <div class="post">
+                <b>${post.author}</b> <small>${new Date(post.createdAt).toLocaleString()}</small>
+                <p>${post.text}</p>
+                ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%">` : ''}
+                <button onclick="likePost('${post._id}')">${isLiked ? '❤️' : '🤍'} ${post.likes?.length || 0}</button>
+                <div class="comment-section">
+                    ${post.comments?.map(c => `<div><b>${c.author}:</b> ${c.text}</div>`).join('') || ''}
+                    <input type="text" id="com-${post._id}" placeholder="Коммент...">
+                    <button onclick="addComment('${post._id}')">➜</button>
+                </div>
+            </div>
+        `);
+    });
+}
+
+async function likePost(id) {
+    await fetch(`${API_URL}/posts/${id}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    loadPosts();
+}
+
+async function addComment(id) {
+    const text = document.getElementById(`com-${id}`).value;
+    await fetch(`${API_URL}/posts/${id}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ text })
+    });
+    loadPosts();
+}
+
+async function searchUsers() {
+    const q = document.getElementById('searchInput').value;
+    if (q.length < 2) return;
+    const res = await fetch(`${API_URL}/users/search?q=${q}`);
+    const users = await res.json();
+    document.getElementById('searchResults').innerHTML = users.map(u => `<div>@${u.handle} (<b>${u.username}</b>)</div>`).join('');
+}
+
+function showTab(tab) {
+    ['tab-feed', 'tab-search', 'tab-profile'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+}
+
+function logout() { localStorage.clear(); location.reload(); }
+
+if (token) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-screen').classList.remove('hidden');
+    document.getElementById('profile-name').innerText = currentUser;
+    document.getElementById('profile-handle').innerText = '@' + currentUser.toLowerCase();
+    loadPosts();
+}
+
+document.getElementById('postForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('text', document.getElementById('postText').value);
+    if (document.getElementById('postFile').files[0]) formData.append('photo', document.getElementById('postFile').files[0]);
+    await fetch(`${API_URL}/posts`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+    location.reload();
+});
