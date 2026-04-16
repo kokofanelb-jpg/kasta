@@ -1,116 +1,110 @@
-const API_URL = 'https://kasta-l49s.onrender.com'; // ПРОВЕРЬ ЭТОТ АДРЕС
+const API_URL = 'https://kasta-l49s.onrender.com';
 let token = localStorage.getItem('token');
 let currentUser = localStorage.getItem('currentUser');
 
-// 1. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ
-function checkAuth() {
-    const authScreen = document.getElementById('auth-screen');
-    const mainScreen = document.getElementById('main-screen');
-
+// 1. ПРОВЕРКА ВХОДА
+function init() {
     if (token) {
-        authScreen.classList.add('hidden'); // Прячем вход
-        mainScreen.classList.remove('hidden'); // Показываем сайт
-        document.getElementById('profile-name').innerText = currentUser;
-        loadPosts();
-    } else {
-        authScreen.classList.remove('hidden'); // Показываем вход
-        mainScreen.classList.add('hidden'); // Прячем сайт
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        document.getElementById('disp-username').innerText = currentUser;
+        document.getElementById('disp-handle').innerText = '@' + currentUser.toLowerCase();
+        loadAllPosts();
     }
 }
 
-// 2. РЕГИСТРАЦИЯ И ВХОД
-function switchAuth(mode) {
-    const title = document.getElementById('auth-title');
-    const btn = document.getElementById('authBtn');
-    const toggle = document.getElementById('toggleText');
-    
-    if (mode === 'reg') {
-        title.innerText = "Регистрация";
-        btn.innerText = "Создать аккаунт";
-        btn.onclick = () => authUser('register');
-        toggle.innerHTML = 'Уже есть аккаунт? <a href="#" onclick="switchAuth(\'login\')">Войти</a>';
-    } else {
-        title.innerText = "Kasta";
-        btn.innerText = "Войти";
-        btn.onclick = () => authUser('login');
-        toggle.innerHTML = 'Нет аккаунта? <a href="#" onclick="switchAuth(\'reg\')">Зарегистрироваться</a>';
-    }
-}
-
-async function authUser(type) {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    if(!username || !password) return alert("Заполни все поля!");
-
-    try {
-        const res = await fetch(`${API_URL}/${type}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('currentUser', data.username);
-            token = data.token;
-            currentUser = data.username;
-            checkAuth(); // Переключаем экран без перезагрузки
-        } else {
-            document.getElementById('authMessage').innerText = data.message || "Ошибка";
-        }
-    } catch (err) {
-        document.getElementById('authMessage').innerText = "Сервер не отвечает";
-    }
-}
-
-// 3. ЛЕНТА
-async function loadPosts() {
+// 2. ЗАГРУЗКА ЛЕНТЫ
+async function loadAllPosts() {
     const res = await fetch(`${API_URL}/posts`);
     const posts = await res.json();
-    const container = document.getElementById('posts-container');
-    container.innerHTML = '';
+    
+    const allContainer = document.getElementById('all-posts');
+    const myContainer = document.getElementById('my-posts');
+    
+    allContainer.innerHTML = '';
+    myContainer.innerHTML = '';
 
     posts.forEach(post => {
-        container.insertAdjacentHTML('beforeend', `
-            <div class="post">
-                <b>${post.author}</b>
-                <p>${post.text}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" style="width:100%; border-radius:5px;">` : ''}
+        const postHtml = `
+            <div class="post-card">
+                <div class="post-header">${post.author}</div>
+                ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-img">` : ''}
+                <div class="post-info">
+                    <span class="post-author">${post.author}</span> ${post.text}
+                </div>
+                <div class="actions">
+                    <span class="like-btn" onclick="likePost('${post._id}')">🤍</span>
+                    <small style="font-size:12px; color:gray">${new Date(post.createdAt).toLocaleTimeString()}</small>
+                </div>
             </div>
-        `);
+        `;
+
+        // Добавляем в общую ленту
+        allContainer.insertAdjacentHTML('beforeend', postHtml);
+
+        // Если автор — ты, добавляем еще и в профиль
+        if (post.author === currentUser) {
+            myContainer.insertAdjacentHTML('beforeend', postHtml);
+        }
     });
 }
 
-function showTab(tab) {
-    ['tab-feed', 'tab-search', 'tab-profile'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-    });
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-}
-
-function logout() {
-    localStorage.clear();
-    location.reload();
-}
-
-// Запускаем проверку при загрузке страницы
-checkAuth();
-
-// Обработка формы поста
-document.getElementById('postForm')?.addEventListener('submit', async (e) => {
+// 3. ПОСТИНГ
+document.getElementById('postForm').onsubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('text', document.getElementById('postText').value);
     const file = document.getElementById('postFile').files[0];
     if (file) formData.append('photo', file);
 
-    await fetch(`${API_URL}/posts`, {
+    const res = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
     });
-    document.getElementById('postText').value = '';
-    loadPosts();
-});
+    
+    if(res.ok) {
+        alert("Опубликовано!");
+        location.reload();
+    }
+};
+
+// 4. НАВИГАЦИЯ
+function showTab(tab) {
+    document.getElementById('tab-feed').classList.add('hidden');
+    document.getElementById('tab-search').classList.add('hidden');
+    document.getElementById('tab-profile').classList.add('hidden');
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    if(tab === 'feed' || tab === 'profile') loadAllPosts();
+}
+
+// 5. ПОИСК И ПРОЧЕЕ
+async function searchUsers() {
+    const q = document.getElementById('searchInput').value;
+    if(q.length < 2) return;
+    const res = await fetch(`${API_URL}/users/search?q=${q}`);
+    const users = await res.json();
+    document.getElementById('searchResults').innerHTML = users.map(u => `
+        <div style="padding:15px; border-bottom:1px solid #eee;"><b>${u.username}</b> (@${u.handle})</div>
+    `).join('');
+}
+
+async function authUser(type) {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const res = await fetch(`${API_URL}/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('currentUser', data.username);
+        location.reload();
+    } else { alert(data.message); }
+}
+
+function logout() { localStorage.clear(); location.reload(); }
+
+init();
