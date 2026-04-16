@@ -1,8 +1,8 @@
-const API_URL = 'https://kasta-l49s.onrender.com'; // ПРОВЕРЬ: тут должен быть ТВОЙ адрес с Render
+const API_URL = 'https://kasta-l49s.onrender.com'; 
 let token = localStorage.getItem('token');
 let currentUser = localStorage.getItem('currentUser');
 
-// 1. АВТОРИЗАЦИЯ И ПЕРЕКЛЮЧАТЕЛЬ
+// 1. ПЕРЕКЛЮЧАТЕЛЬ ВХОД / РЕГИСТРАЦИЯ
 function switchAuth(mode) {
     const title = document.getElementById('auth-title');
     const btn = document.getElementById('authBtn');
@@ -24,22 +24,28 @@ function switchAuth(mode) {
 async function authUser(type) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const res = await fetch(`${API_URL}/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', data.username);
-        location.reload();
-    } else {
-        document.getElementById('authMessage').innerText = data.message;
+    
+    try {
+        const res = await fetch(`${API_URL}/${type}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', data.username);
+            location.reload();
+        } else {
+            document.getElementById('authMessage').innerText = data.message || "Ошибка";
+        }
+    } catch (e) {
+        document.getElementById('authMessage').innerText = "Сервер не отвечает";
     }
 }
 
-// 2. РАБОТА С ПОСТАМИ (ЛАЙКИ И КОММЕНТЫ)
+// 2. ЛЕНТА, ЛАЙКИ И КОММЕНТАРИИ
 async function loadPosts() {
     const res = await fetch(`${API_URL}/posts`);
     const posts = await res.json();
@@ -54,18 +60,21 @@ async function loadPosts() {
             <div class="post">
                 <p><b>${post.author}</b> <small>${postDate}</small></p>
                 <p>${post.text}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%">` : ''}
-                <div class="actions">
+                ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%; border-radius:8px;">` : ''}
+                <div style="margin-top:10px;">
                     <button onclick="likePost('${post._id}')">${isLiked ? '❤️' : '🤍'} ${post.likes?.length || 0}</button>
                 </div>
-                <div class="comments">
+                <div style="background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 5px;">
                     ${post.comments?.map(c => `
-                        <div class="comment">
-                            <b>${c.author}:</b> ${c.text} <small>(${new Date(c.createdAt).toLocaleTimeString()})</small>
+                        <div style="font-size: 0.9em; margin-bottom: 5px;">
+                            <b>${c.author}:</b> ${c.text} <br>
+                            <small style="color: gray;">${new Date(c.createdAt).toLocaleTimeString()}</small>
                         </div>
-                    `).join('') || ''}
-                    <input type="text" id="com-${post._id}" placeholder="Написать коммент...">
-                    <button onclick="addComment('${post._id}')">➜</button>
+                    `).join('') || '<p><small>Нет комментариев</small></p>'}
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <input type="text" id="com-${post._id}" placeholder="Комментировать..." style="flex:1">
+                        <button onclick="addComment('${post._id}')">➜</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -76,18 +85,19 @@ async function loadPosts() {
 async function likePost(id) {
     await fetch(`${API_URL}/posts/${id}/like`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${token}` }
     });
     loadPosts();
 }
 
 async function addComment(id) {
     const text = document.getElementById(`com-${id}`).value;
+    if (!text) return;
     await fetch(`${API_URL}/posts/${id}/comment`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify({ text })
     });
@@ -101,15 +111,16 @@ async function searchUsers() {
     const res = await fetch(`${API_URL}/users/search?q=${q}`);
     const users = await res.json();
     document.getElementById('searchResults').innerHTML = users.map(u => `
-        <div class="user-item">@${u.handle} (<b>${u.username}</b>)</div>
+        <div style="padding: 10px; border-bottom: 1px solid #eee;">
+            <b>${u.username}</b> <span style="color:gray">@${u.handle || u.username.toLowerCase()}</span>
+        </div>
     `).join('');
 }
 
-// ЛОГИКА ЭКРАНОВ
+// 4. НАВИГАЦИЯ
 function showTab(tab) {
-    document.getElementById('tab-feed').classList.add('hidden');
-    document.getElementById('tab-search').classList.add('hidden');
-    document.getElementById('tab-profile').classList.add('hidden');
+    const tabs = ['tab-feed', 'tab-search', 'tab-profile'];
+    tabs.forEach(t => document.getElementById(t).classList.add('hidden'));
     document.getElementById('tab-' + tab).classList.remove('hidden');
 }
 
@@ -118,7 +129,7 @@ function logout() {
     location.reload();
 }
 
-// ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+// ПРОВЕРКА ВХОДА ПРИ ЗАГРУЗКЕ
 if (token) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
@@ -126,7 +137,7 @@ if (token) {
     loadPosts();
 }
 
-// Обработка формы поста
+// ФОРМА ПОСТА
 document.getElementById('postForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -134,10 +145,14 @@ document.getElementById('postForm')?.addEventListener('submit', async (e) => {
     const file = document.getElementById('postFile').files[0];
     if (file) formData.append('photo', file);
 
-    await fetch(`${API_URL}/posts`, {
+    const res = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
     });
-    location.reload();
+    if (res.ok) {
+        document.getElementById('postText').value = '';
+        document.getElementById('postFile').value = '';
+        loadPosts();
+    }
 });
