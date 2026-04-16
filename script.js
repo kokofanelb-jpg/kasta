@@ -1,115 +1,74 @@
-const API_URL = 'https://kasta-l49s.onrender.com';
-let token = localStorage.getItem('token');
-let currentUser = localStorage.getItem('currentUser');
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// ПРОВЕРКА ВХОДА
-function checkAuth() {
-    const authScreen = document.getElementById('auth-screen');
-    const mainScreen = document.getElementById('main-screen');
-    
-    if (token) {
-        authScreen.classList.add('hidden');
-        mainScreen.classList.remove('hidden');
-        // Вот тут мы проверяем наличие элементов перед записью
-        if(document.getElementById('profile-name')) {
-            document.getElementById('profile-name').innerText = currentUser;
-            document.getElementById('profile-handle').innerText = '@' + currentUser.toLowerCase();
-        }
-        loadPosts();
-    } else {
-        authScreen.classList.remove('hidden');
-        mainScreen.classList.add('hidden');
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+if (!fs.existsSync('uploads')) { fs.mkdirSync('uploads'); }
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('✅ БД подключена'))
+    .catch((err) => console.log('❌ Ошибка БД:', err));
+
+// ОБНОВЛЕННАЯ СХЕМА ПОЛЬЗОВАТЕЛЯ (Подписки, язык, lastSeen)
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    displayName: { type: String, default: '' },
+    bio: { type: String, default: '' },
+    avatarUrl: { type: String, default: '' },
+    following: { type: [String], default: [] }, // На кого подписан
+    followers: { type: [String], default: [] }, // Кто подписан на него
+    language: { type: String, default: 'ru' },
+    lastSeen: { type: Date, default: Date.now },
+    privacy: {
+        lastSeen: { type: String, default: 'all' }, // all, friends, nobody
+        avatar: { type: String, default: 'all' }
     }
-}
+});
+const User = mongoose.model('User', userSchema);
 
-// ЗАГРУЗКА ПОСТОВ (И В ЛЕНТУ, И В ПРОФИЛЬ)
-async function loadPosts() {
-    const res = await fetch(`${API_URL}/posts`);
-    const posts = await res.json();
+const postSchema = new mongoose.Schema({
+    author: String,
+    text: String,
+    imageUrl: String,
+    likes: { type: [String], default: [] },
+    comments: [{ author: String, text: String, createdAt: { type: Date, default: Date.now } }],
+    createdAt: { type: Date, default: Date.now }
+});
+const Post = mongoose.model('Post', postSchema);
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage: storage });
+
+// --- БАЗОВЫЕ РОУТЫ АВТОРИЗАЦИИ И ПОСТОВ ОСТАЮТСЯ ТЕМИ ЖЕ ---
+// (Вставь сюда свои роуты /login, /register, /posts из прошлого шага)
+
+// НОВЫЙ РОУТ: Подписка на пользователя
+app.post('/users/:username/follow', async (req, res) => {
+    // Для безопасности тут нужна проверка токена (verifyToken)
+    // Это базовый каркас для Этапа 1
+    const targetUser = req.params.username;
+    const currentUser = req.body.currentUser; // Временно берем из body
+
+    if(targetUser === currentUser) return res.status(400).json({message: 'Нельзя подписаться на себя'});
+
+    await User.findOneAndUpdate({ username: currentUser }, { $addToSet: { following: targetUser } });
+    await User.findOneAndUpdate({ username: targetUser }, { $addToSet: { followers: currentUser } });
     
-    const allContainer = document.getElementById('all-posts');
-    const myContainer = document.getElementById('my-posts');
-    
-    if(!allContainer || !myContainer) return;
-
-    allContainer.innerHTML = '';
-    myContainer.innerHTML = '';
-
-    posts.forEach(post => {
-        const postHtml = `
-            <div class="post">
-                <div class="post-header">${post.author}</div>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-img">` : ''}
-                <div class="post-content">
-                    <b>${post.author}</b> ${post.text}
-                    <div style="font-size: 10px; color: gray; margin-top: 5px;">${new Date(post.createdAt).toLocaleString()}</div>
-                </div>
-            </div>
-        `;
-
-        allContainer.insertAdjacentHTML('beforeend', postHtml);
-
-        // Если автор поста - ты, добавляем его в "Мои посты"
-        if (post.author === currentUser) {
-            myContainer.insertAdjacentHTML('beforeend', postHtml);
-        }
-    });
-}
-
-// НАВИГАЦИЯ
-function showTab(tab) {
-    document.getElementById('tab-feed').classList.add('hidden');
-    document.getElementById('tab-search').classList.add('hidden');
-    document.getElementById('tab-profile').classList.add('hidden');
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-}
-
-// АВТОРИЗАЦИЯ
-async function authUser(type) {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    const res = await fetch(`${API_URL}/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    
-    if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', data.username);
-        location.reload();
-    } else {
-        document.getElementById('authMessage').innerText = data.message;
-    }
-}
-
-// ОБНОВЛЕНИЕ НИКА (фронтенд часть)
-function updateProfile() {
-    const newName = document.getElementById('new-username').value;
-    if(newName) {
-        localStorage.setItem('currentUser', newName);
-        location.reload();
-    }
-}
-
-// ОТПРАВКА ПОСТА
-document.getElementById('postForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('text', document.getElementById('postText').value);
-    const file = document.getElementById('postFile').files[0];
-    if (file) formData.append('photo', file);
-
-    await fetch(`${API_URL}/posts`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-    });
-    location.reload();
+    res.json({ message: 'Подписка оформлена' });
 });
 
-function logout() { localStorage.clear(); location.reload(); }
-
-checkAuth();
+app.listen(process.env.PORT || 10000);
