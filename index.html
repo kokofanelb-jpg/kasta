@@ -4,38 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasta</title>
-    <style>
-        /* Базовые стили для красоты и скрытия блоков */
-        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
-        .hidden { display: none !important; }
-        .post { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-        nav { display: flex; gap: 15px; margin-bottom: 20px; background: #f0f0f0; padding: 10px; border-radius: 8px;}
-        nav a { cursor: pointer; color: blue; text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="auth-screen">
+        <h2 id="auth-title">Вход в Kasta</h2>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button id="authBtn" onclick="authUser('login')">Войти</button>
+        <p id="toggleText">Нет аккаунта? <a href="#" onclick="switchAuth('reg')">Зарегистрироваться</a></p>
+        <p id="authMessage" style="color: red;"></p>
+    </div>
 
-<body>
-<div id="auth-screen">
-    <h2 id="auth-title">Вход в kasta</h2>
-    <input type="text" id="username" placeholder="Логин">
-    <input type="password" id="password" placeholder="Пароль">
-    <button id="authBtn" onclick="authUser('login')">Войти</button>
-    <p id="toggleText">Нет аккаунта? <a href="#" onclick="switchAuth('reg')">Зарегистрироваться</a></p>
-    <p id="authMessage" style="color: red;"></p>
-</div>
     <div id="main-screen" class="hidden">
         <nav>
-            <a onclick="showTab('feed')">Лента</a>
-            <a onclick="showTab('search')">Поиск</a>
-            <a onclick="showTab('profile')">Аккаунт</a>
-            <a onclick="logout()" style="color: red;">Выйти</a>
+            <button onclick="showTab('feed')">Лента</button>
+            <button onclick="showTab('search')">Поиск</button>
+            <button onclick="showTab('profile')">Аккаунт</button>
+            <button onclick="logout()" style="color: red;">Выйти</button>
         </nav>
 
         <div id="tab-feed">
             <form id="postForm">
                 <textarea id="postText" placeholder="Что нового?"></textarea>
-                <input type="file" id="postFile">
+                <input type="file" id="postFile" accept="image/*">
                 <button type="submit">Опубликовать</button>
             </form>
             <div id="posts-container"></div>
@@ -47,15 +39,12 @@
         </div>
 
         <div id="tab-profile" class="hidden">
-            <div class="profile-header">
-                <h3 id="profile-name"></h3>
-                <p id="profile-handle"></p>
-                <textarea id="bioInput" placeholder="О себе..."></textarea>
-                <button onclick="updateProfile()">Сохранить</button>
-            </div>
+            <h3>Мой аккаунт</h3>
+            <p>Логин: <b id="profile-name"></b></p>
+            <p>Handle: <span id="profile-handle" style="color: gray;"></span></p>
+            <p>Здесь скоро будет аватарка и описание!</p>
         </div>
     </div>
     <script src="script.js"></script>
-</body>
 </body>
 </html>
