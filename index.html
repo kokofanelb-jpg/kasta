@@ -15,42 +15,48 @@
 </head>
 <body>
 
-<div id="auth-screen">
-        <h2>Добро пожаловать!</h2>
-        <form id="authForm">
-            <input type="text" id="username" placeholder="Никнейм" required>
-            <input type="password" id="password" placeholder="Пароль" required>
-            <br><br>
-            <button type="button" id="btnLogin">Войти</button>
-            <button type="button" id="btnRegister">Регистрация</button>
-        </form>
-        <p id="authMessage" style="color: rgb(180, 72, 72);"></p>
+<body>
+    <div id="auth-screen">
+        <h2 id="auth-title">Вход в Kasta</h2>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button id="authBtn" onclick="authUser('login')">Войти</button>
+        <p id="toggleText">Нет аккаунта? <a href="#" onclick="switchAuth('reg')">Зарегистрироваться</a></p>
+        <p id="authMessage" style="color: red;"></p>
     </div>
 
     <div id="main-screen" class="hidden">
-        
         <nav>
-            <a id="nav-feed">Лента</a>
-            <a id="nav-profile">Мой профиль</a>
-            <a id="nav-logout" style="color: red;">Выйти</a>
+            <a onclick="showTab('feed')">Лента</a>
+            <a onclick="showTab('search')">Поиск</a>
+            <a onclick="showTab('profile')">Аккаунт</a>
+            <a onclick="logout()" style="color: red;">Выйти</a>
         </nav>
 
-<form id="postForm">
-    <textarea id="postText" placeholder="Что нового?" required></textarea>
-    <br>
-    <input type="file" id="postFile" accept="image/*"> <br><br>
-    <button type="submit">Опубликовать</button>
-</form>
-
-        <div id="tab-profile" class="hidden">
-            <h3>Мой профиль</h3>
-            <p>Имя пользователя: <b id="profile-name"></b></p>
-            <p>Мои публикации:</p>
-            <div id="my-posts"></div>
+        <div id="tab-feed">
+            <form id="postForm">
+                <textarea id="postText" placeholder="Что нового?"></textarea>
+                <input type="file" id="postFile">
+                <button type="submit">Опубликовать</button>
+            </form>
+            <div id="posts-container"></div>
         </div>
 
-    </div>
+        <div id="tab-search" class="hidden">
+            <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск @юзера...">
+            <div id="searchResults"></div>
+        </div>
 
+        <div id="tab-profile" class="hidden">
+            <div class="profile-header">
+                <h3 id="profile-name"></h3>
+                <p id="profile-handle"></p>
+                <textarea id="bioInput" placeholder="О себе..."></textarea>
+                <button onclick="updateProfile()">Сохранить</button>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
+</body>
 </body>
 </html>
