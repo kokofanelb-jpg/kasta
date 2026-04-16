@@ -3,51 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasta</title>
+    <title>Kasta Connect</title>
     <style>
         :root { --accent: #0095f6; --bg: #fafafa; --border: #dbdbdb; --sidebar: #ffffff; --text: #262626; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
-
-        /* САЙДБАР */
-        .sidebar { width: 70px; background: var(--sidebar); border-right: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding: 20px 0; white-space: nowrap; overflow: hidden; z-index: 1000; }
-        .sidebar:hover { width: 250px; }
-        .sidebar-header { padding: 0 20px; margin-bottom: 20px; font-weight: bold; font-size: 18px; color: var(--accent); }
-        .menu-label { padding: 10px 20px; font-size: 12px; color: gray; text-transform: uppercase; font-weight: bold; opacity: 0; transition: 0.2s; }
-        .sidebar:hover .menu-label { opacity: 1; }
-
-        .sidebar-user { display: flex; align-items: center; padding: 10px 15px; border-top: 1px solid var(--border); margin-top: auto; cursor: pointer; }
-        .sidebar-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #eee; }
         
-        .nav-item { padding: 15px 20px; display: flex; align-items: center; cursor: pointer; transition: 0.2s; color: var(--text); text-decoration: none; }
+        /* Меню */
+        .sidebar { width: 70px; background: var(--sidebar); border-right: 1px solid var(--border); transition: 0.3s; display: flex; flex-direction: column; padding: 20px 0; overflow: hidden; z-index: 1000; }
+        .sidebar:hover { width: 250px; }
+        .sidebar-header { padding: 0 20px; margin-bottom: 20px; font-weight: bold; color: var(--accent); font-size: 18px; }
+        .nav-item { padding: 15px 20px; display: flex; align-items: center; cursor: pointer; text-decoration: none; color: var(--text); }
         .nav-item:hover { background: #f0f0f0; }
         .nav-icon { font-size: 24px; min-width: 30px; text-align: center; }
-        .nav-text { margin-left: 15px; font-weight: 500; opacity: 0; transition: 0.2s; }
+        .nav-text { margin-left: 15px; opacity: 0; transition: 0.2s; font-weight: 500; }
         .sidebar:hover .nav-text { opacity: 1; }
 
-        /* КОНТЕНТ */
+        /* Контент */
         .main-content { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 600px; }
 
-        /* ПОСТЫ */
-        .post { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-        .post img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+        /* Профиль */
+        .profile-card { background: white; border: 1px solid var(--border); border-radius: 15px; padding: 30px; text-align: center; margin-bottom: 20px; }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px; }
+        .stats { display: flex; justify-content: space-around; margin: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; }
+        .stat-item b { display: block; font-size: 18px; }
 
-        /* ЧАТ */
-        #messages-container { height: 400px; overflow-y: auto; border: 1px solid var(--border); padding: 15px; border-radius: 12px; background: white; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 14px; }
-        .msg.sent { align-self: flex-end; background: var(--accent); color: white; }
-        .msg.received { align-self: flex-start; background: #eee; }
-
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100% !important; height: 65px; flex-direction: row; justify-content: space-around; padding: 0; position: fixed; bottom: 0; border-right: none; border-top: 1px solid var(--border); }
-            .sidebar-header, .menu-label, .sidebar-user, .nav-text { display: none !important; }
-            .main-content { padding-bottom: 75px; }
-        }
+        /* Кнопки и формы */
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+        
+        /* Поиск */
+        .search-container { padding: 0 10px 20px; }
+        #search-results { background: white; border: 1px solid var(--border); border-radius: 8px; position: absolute; width: 200px; max-height: 300px; overflow-y: auto; z-index: 100; }
+        .search-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -55,99 +44,79 @@
     <aside class="sidebar hidden" id="app-sidebar">
         <div class="sidebar-header" id="panel-title">Your panel</div>
         
-        <div class="menu-label">Меню</div>
-        <div class="nav-item" onclick="showTab('feed')"><span class="nav-icon">🏠</span><span class="nav-text" id="nav-home">Дом</span></div>
-        <div class="nav-item" onclick="showTab('chats')"><span class="nav-icon">💬</span><span class="nav-text" id="nav-chats">Мои чаты</span></div>
-        <div class="nav-item" onclick="showTab('friends')"><span class="nav-icon">👥</span><span class="nav-text" id="nav-friends">Друзья</span></div>
-        <div class="nav-item" onclick="showTab('settings')"><span class="nav-icon">⚙️</span><span class="nav-text" id="nav-settings">Настройки</span></div>
-        <div class="nav-item" onclick="logout()" style="color:red;"><span class="nav-icon">🚪</span><span class="nav-text" id="nav-exit">Выход</span></div>
-
-        <div class="sidebar-user" onclick="showTab('profile')">
-            <img id="nav-avatar" src="https://via.placeholder.com/40">
-            <div class="sidebar-user-info">
-                <b id="nav-display-name">User</b><br>
-                <small id="nav-username">@username</small>
-            </div>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="🔍 Поиск..." oninput="searchUsers(this.value)">
+            <div id="search-results" class="hidden"></div>
         </div>
+
+        <div class="nav-item" onclick="showTab('feed')"><span class="nav-icon">🏠</span><span class="nav-text" id="txt-home">Дом</span></div>
+        <div class="nav-item" onclick="showTab('chats')"><span class="nav-icon">💬</span><span class="nav-text" id="txt-chats">Мои чаты</span></div>
+        <div class="nav-item" onclick="showTab('friends')"><span class="nav-icon">👥</span><span class="nav-text" id="txt-friends">Друзья</span></div>
+        <div class="nav-item" onclick="showTab('settings')"><span class="nav-icon">⚙️</span><span class="nav-text" id="txt-settings">Настройки</span></div>
+        <div class="nav-item" onclick="logout()" style="color:red; margin-top:auto;"><span class="nav-icon">🚪</span><span class="nav-text" id="txt-exit">Выход</span></div>
     </aside>
 
     <main class="main-content">
         <div class="container">
+            
             <div id="auth-screen">
-                <div style="background:white; padding:40px; border-radius:20px; border:1px solid var(--border); text-align:center; margin-top:50px;">
+                <div style="background:white; padding:40px; border-radius:20px; border:1px solid var(--border); text-align:center;">
                     <h2 id="auth-title">Вход в Kasta</h2>
                     <input type="text" id="login-username" placeholder="Юзернейм">
                     <input type="password" id="login-password" placeholder="Пароль">
-                    <button id="auth-submit-btn" class="btn-main" onclick="authUser('login')">Войти</button>
-                    <p><a href="javascript:void(0)" id="switch-auth-link" onclick="showRegister()">Регистрация</a></p>
+                    <button id="auth-btn" class="btn-main" onclick="authUser('login')">Войти</button>
+                    <p><a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-link">Нет аккаунта? Зарегистрироваться</a></p>
                 </div>
             </div>
 
             <div id="main-screens" class="hidden">
-                
                 <div id="tab-feed">
                     <div style="background:white; padding:15px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
-                        <textarea id="postText" placeholder="Что нового?"></textarea>
-                        <input type="file" id="postFile">
+                        <textarea id="post-text" placeholder="Что нового?"></textarea>
+                        <input type="text" id="post-img" placeholder="Ссылка на фото (URL)">
                         <button class="btn-main" onclick="createPost()">Опубликовать</button>
                     </div>
-                    <div id="all-posts"></div>
+                    <div id="feed-container"></div>
                 </div>
 
                 <div id="tab-profile" class="hidden">
-                    <div id="user-profile-card" style="text-align:center; background:white; padding:30px; border-radius:12px; border:1px solid var(--border);">
-                        <img id="profile-avatar" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent);">
-                        <h2 id="profile-name"></h2>
-                        <p id="profile-bio" style="color:gray;"></p>
-                        <div id="profile-actions"></div>
-                        <hr>
-                        <h3>Мои публикации</h3>
-                        <div id="user-posts"></div>
+                    <div class="profile-card">
+                        <img id="p-avatar" src="" class="profile-avatar">
+                        <h2 id="p-display-name"></h2>
+                        <p id="p-username" style="color:gray;"></p>
+                        <div class="stats">
+                            <div class="stat-item"><b id="s-posts">0</b>посты</div>
+                            <div class="stat-item"><b id="s-subs">0</b>подписчики</div>
+                            <div class="stat-item"><b id="s-following">0</b>подписки</div>
+                        </div>
+                        <div id="p-actions"></div>
                     </div>
                 </div>
 
                 <div id="tab-settings" class="hidden">
                     <h2>Настройки</h2>
                     <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border);">
-                        <h4>Профиль</h4>
-                        <input type="text" id="set-display-name" placeholder="Никнейм">
-                        <input type="text" id="set-avatar-url" placeholder="Ссылка на аватар">
-                        
-                        <h4>Конфиденциальность</h4>
-                        <label>Кто видит статус "в сети":</label>
-                        <select id="set-privacy-online">
-                            <option value="all">Все</option>
-                            <option value="friends">Друзья</option>
-                            <option value="none">Никто</option>
-                        </select>
-                        
-                        <label>Кто видит аватарку:</label>
-                        <select id="set-privacy-avatar">
-                            <option value="all">Все</option>
-                            <option value="friends">Друзья</option>
-                        </select>
-
-                        <h4>Язык / Language</h4>
-                        <select id="lang-select" onchange="changeLanguage(this.value)">
+                        <label>Никнейм:</label><input type="text" id="st-name">
+                        <label>Ссылка на аватарку:</label><input type="text" id="st-avatar">
+                        <label>Язык:</label>
+                        <select id="lang-select" onchange="changeLang(this.value)">
                             <option value="ru">Русский</option>
                             <option value="en">English</option>
                         </select>
-
-                        <button class="btn-main" onclick="saveSettings()">Сохранить всё</button>
+                        <button class="btn-main" onclick="saveProfile()">Сохранить</button>
                     </div>
                 </div>
 
                 <div id="tab-chats" class="hidden">
-                    <div id="chats-list-view"><h2>Сообщения</h2><div id="active-chats-list"></div></div>
+                    <div id="chat-list"><h2>Мои чаты</h2><div id="chats-container"></div></div>
                     <div id="chat-window" class="hidden">
-                        <button onclick="backToChatsList()">← Назад</button>
-                        <h3 id="chat-with-name"></h3>
-                        <div id="messages-container"></div>
-                        <input type="text" id="chat-input" placeholder="Сообщение...">
-                        <button onclick="sendMessage()" class="btn-main">Отправить</button>
+                        <button onclick="backToChats()">← Назад</button>
+                        <h3 id="chat-target"></h3>
+                        <div id="msg-box" style="height:300px; overflow-y:auto; border:1px solid #ddd; padding:10px; background:#fff; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;"></div>
+                        <input type="text" id="msg-input" placeholder="Сообщение...">
+                        <button class="btn-main" onclick="sendMsg()">Отправить</button>
                     </div>
                 </div>
-                <div id="tab-friends" class="hidden"><h2>Друзья</h2><div id="friends-list"></div></div>
             </div>
         </div>
     </main>
