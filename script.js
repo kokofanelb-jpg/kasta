@@ -1,62 +1,79 @@
-// Основная логика навигации для нового UI
-function showTab(tab) {
-    // Скрываем все вкладки
-    document.getElementById('tab-feed').classList.add('hidden');
-    // document.getElementById('tab-search').classList.add('hidden'); // Раскомментируй, когда добавишь HTML
-    // document.getElementById('tab-profile').classList.add('hidden'); // Раскомментируй, когда добавишь HTML
-    document.getElementById('tab-chats').classList.add('hidden');
-    document.getElementById('tab-friends').classList.add('hidden');
-    document.getElementById('tab-settings').classList.add('hidden');
-    
-    // Показываем нужную
-    const target = document.getElementById('tab-' + tab);
-    if(target) target.classList.remove('hidden');
+// ВАЖНО: Замени эту ссылку на свою ссылку от Render!
+const API_URL = "https://kasta-l49s.onrender.com"; 
 
-    // Если на мобилке открыли вкладку, "сворачиваем" боковое меню программно (оно и так снизу, но для логики полезно)
-}
-
-// Заглушка для проверки входа (интегрируй со своей старой функцией checkAuth)
-function checkAuth() {
-    let token = localStorage.getItem('token');
-    if (token) {
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('main-screens').classList.remove('hidden');
-        document.getElementById('app-sidebar').classList.remove('hidden');
-        
-        // Заполняем сайдбар данными юзера
-        let user = localStorage.getItem('currentUser');
-        document.getElementById('nav-display-name').innerText = user;
-        document.getElementById('nav-username').innerText = '@' + user;
-        
-        showTab('feed');
-    }
-}
-
-// Заглушка кнопки подписки (используй на странице чужого профиля)
-async function followUser(targetUsername) {
-    let currentUser = localStorage.getItem('currentUser');
-    await fetch(`https://kasta-l49s.onrender.com/users/${targetUsername}/follow`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentUser: currentUser })
-    });
-    alert('Вы подписались на ' + targetUsername);
-}
-
-checkAuth();
+let currentUser = localStorage.getItem('currentUser');
+let token = localStorage.getItem('token');
 let currentChatPartner = null;
 let chatInterval = null;
 
+// --- АВТОРИЗАЦИЯ ---
+async function authUser(type) {
+    const userField = document.getElementById('login-username');
+    const passField = document.getElementById('login-password');
+    
+    const response = await fetch(`${API_URL}/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: userField.value, password: passField.value })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('currentUser', userField.value);
+        location.reload(); // Перезагружаем, чтобы всё подтянулось
+    } else {
+        alert(data.message || "Ошибка!");
+    }
+}
+
+function showRegister() {
+    const btn = document.querySelector('#auth-screen button');
+    const title = document.querySelector('#auth-screen h2');
+    if(btn.innerText === "Войти") {
+        btn.innerText = "Создать аккаунт";
+        btn.setAttribute('onclick', "authUser('register')");
+        title.innerText = "Регистрация в Kasta";
+    } else {
+        btn.innerText = "Войти";
+        btn.setAttribute('onclick', "authUser('login')");
+        title.innerText = "Вход в Kasta";
+    }
+}
+
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
+
+// --- НАВИГАЦИЯ ---
+function showTab(tab) {
+    const tabs = ['feed', 'chats', 'friends', 'settings', 'profile'];
+    tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if(el) el.classList.add('hidden');
+    });
+    
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    
+    if (tab === 'chats') loadChatsList();
+    if (tab === 'feed') loadPosts();
+}
+
+// --- ЧАТЫ ---
 async function loadChatsList() {
-    const res = await fetch(`${API_URL}/chats/list`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/chats/list`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+    });
     const partners = await res.json();
     const container = document.getElementById('active-chats-list');
-    container.innerHTML = partners.length ? '' : '<p style="color:gray;">У вас пока нет активных переписок</p>';
+    container.innerHTML = '';
     
     partners.forEach(user => {
         container.insertAdjacentHTML('beforeend', `
-            <div class="user-result" onclick="openChat('${user}')">
-                <b>${user}</b>
+            <div style="padding:15px; background:white; border:1px solid #dbdbdb; border-radius:10px; cursor:pointer;" onclick="openChat('${user}')">
+                <b>@${user}</b>
             </div>
         `);
     });
@@ -66,11 +83,11 @@ async function openChat(username) {
     currentChatPartner = username;
     document.getElementById('chats-list-view').classList.add('hidden');
     document.getElementById('chat-window').classList.remove('hidden');
-    document.getElementById('chat-with-name').innerText = 'Чат с @' + username;
+    document.getElementById('chat-with-name').innerText = '@' + username;
     
     renderMessages();
     if(chatInterval) clearInterval(chatInterval);
-    chatInterval = setInterval(renderMessages, 3000); // Обновляем чат каждые 3 секунды
+    chatInterval = setInterval(renderMessages, 3000);
 }
 
 function backToChatsList() {
@@ -78,46 +95,46 @@ function backToChatsList() {
     clearInterval(chatInterval);
     document.getElementById('chat-window').classList.add('hidden');
     document.getElementById('chats-list-view').classList.remove('hidden');
-    loadChatsList();
 }
 
 async function renderMessages() {
     if(!currentChatPartner) return;
-    const res = await fetch(`${API_URL}/messages/${currentChatPartner}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/messages/${currentChatPartner}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+    });
     const messages = await res.json();
     const container = document.getElementById('messages-container');
     
     container.innerHTML = messages.map(m => {
         const isMine = m.sender === currentUser;
-        const align = isMine ? 'align-self: flex-end; background: var(--accent); color: white;' : 'align-self: flex-start; background: #eee;';
-        return `
-            <div style="max-width: 80%; padding: 8px 12px; border-radius: 12px; ${align}">
-                ${m.imageUrl ? `<img src="${m.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:5px;"><br>` : ''}
-                ${m.text}
-                <div style="font-size:8px; opacity:0.7; text-align:right;">${new Date(m.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-            </div>
-        `;
+        return `<div class="msg ${isMine ? 'sent' : 'received'}">${m.text}</div>`;
     }).join('');
     container.scrollTop = container.scrollHeight;
 }
 
 async function sendMessage() {
-    const text = document.getElementById('chat-input').value;
-    const file = document.getElementById('chat-file').files[0];
-    if(!text && !file) return;
-
-    const formData = new FormData();
-    formData.append('receiver', currentChatPartner);
-    formData.append('text', text);
-    if(file) formData.append('photo', file);
+    const input = document.getElementById('chat-input');
+    if(!input.value) return;
 
     await fetch(`${API_URL}/messages`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ receiver: currentChatPartner, text: input.value })
     });
 
-    document.getElementById('chat-input').value = '';
-    document.getElementById('chat-file').value = '';
+    input.value = '';
     renderMessages();
+}
+
+// --- ПРОВЕРКА ВХОДА ПРИ ЗАГРУЗКЕ ---
+if (token) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-screens').classList.remove('hidden');
+    document.getElementById('app-sidebar').classList.remove('hidden');
+    document.getElementById('nav-display-name').innerText = currentUser;
+    document.getElementById('nav-username').innerText = '@' + currentUser;
+    showTab('feed');
 }
