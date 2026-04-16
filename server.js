@@ -6,23 +6,21 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // Добавили для работы с файлами
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// === ИСПРАВЛЕНИЕ: Создаем папку для фото, если её нет ===
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
+// Создаем папку для фото, если её нет (чиним твой баг)
+if (!fs.existsSync('uploads')) { fs.mkdirSync('uploads'); }
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ MongoDB подключена'))
     .catch((err) => console.log('❌ Ошибка БД:', err));
 
-// === ОБНОВЛЕННАЯ СХЕМА ПОЛЬЗОВАТЕЛЯ ===
+// СХЕМЫ ДАННЫХ
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -36,33 +34,36 @@ const postSchema = new mongoose.Schema({
     author: String,
     text: String,
     imageUrl: String,
+    likes: { type: [String], default: [] }, // Массив имен тех, кто лайкнул
+    comments: [{
+        author: String,
+        text: String,
+        createdAt: { type: Date, default: Date.now }
+    }],
     createdAt: { type: Date, default: Date.now }
 });
 const Post = mongoose.model('Post', postSchema);
 
-// Настройка Multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage: storage });
 
-// Регистрация (теперь автоматически создаем handle)
+// МАРШРУТЫ
+app.get('/', (req, res) => res.send('Сервер Kasta работает! 🚀'));
+
 app.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const existing = await User.findOne({ username });
-        if (existing) return res.status(400).json({ message: 'Имя занято' });
-
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const user = new User({ 
-            username, 
+            username: req.body.username, 
             password: hashedPassword,
-            handle: username.toLowerCase() // По умолчанию handle как имя
+            handle: req.body.username.toLowerCase() 
         });
         await user.save();
-        res.json({ message: 'Успешно!' });
-    } catch (err) { res.status(500).send(err); }
+        res.json({ message: 'Успех!' });
+    } catch (err) { res.status(400).json({ message: 'Имя занято!' }); }
 });
 
 app.post('/login', async (req, res) => {
@@ -70,41 +71,42 @@ app.post('/login', async (req, res) => {
     if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
         return res.status(400).json({ message: 'Ошибка входа' });
     }
-    const token = jwt.sign({ username: user.username, id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET);
     res.json({ token, username: user.username });
 });
 
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
-    if (!token) return res.status(401).send('Нет токена');
+    if (!token) return res.status(401).send('Нет доступа');
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).send('Ошибка токена');
+        if (err) return res.status(403).send('Ошибка');
         req.user = user;
         next();
     });
 };
 
-// === НОВЫЙ МАРШРУТ: Поиск пользователей ===
+// ПОИСК, ЛАЙКИ И КОММЕНТЫ
 app.get('/users/search', async (req, res) => {
-    const query = req.query.q;
-    const users = await User.find({ 
-        $or: [
-            { username: new RegExp(query, 'i') },
-            { handle: new RegExp(query, 'i') }
-        ]
-    }).select('-password');
+    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).select('username handle avatar');
     res.json(users);
 });
 
-// Обновление профиля
-app.post('/profile/update', verifyToken, upload.single('avatar'), async (req, res) => {
-    const updateData = { bio: req.body.bio };
-    if (req.file) {
-        const host = req.get('host');
-        updateData.avatar = `${req.protocol}://${host}/uploads/${req.file.filename}`;
+app.post('/posts/:id/like', verifyToken, async (req, res) => {
+    const post = await Post.findById(req.params.id);
+    if (post.likes.includes(req.user.username)) {
+        post.likes = post.likes.filter(name => name !== req.user.username);
+    } else {
+        post.likes.push(req.user.username);
     }
-    await User.findOneAndUpdate({ username: req.user.username }, updateData);
-    res.json({ message: 'Профиль обновлен' });
+    await post.save();
+    res.json(post);
+});
+
+app.post('/posts/:id/comment', verifyToken, async (req, res) => {
+    const post = await Post.findById(req.params.id);
+    post.comments.push({ author: req.user.username, text: req.body.text });
+    await post.save();
+    res.json(post);
 });
 
 app.get('/posts', async (req, res) => {
