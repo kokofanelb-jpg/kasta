@@ -5,59 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasta</title>
     <style>
-        /* ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТО, ЧТОБЫ НИЧЕГО НЕ ПЕРЕМЕШИВАЛОСЬ */
+        :root { --accent: #0095f6; --bg: #ffffff; --border: #dbdbdb; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #fafafa; margin: 0; padding-bottom: 60px; }
         .hidden { display: none !important; }
         
-        body { font-family: sans-serif; background: #fafafa; margin: 0; display: flex; justify-content: center; }
-        #auth-screen { background: white; border: 1px solid #dbdbdb; padding: 40px; margin-top: 50px; width: 350px; text-align: center; }
-        #main-screen { width: 100%; max-width: 600px; padding: 20px; }
-        nav { background: white; border-bottom: 1px solid #dbdbdb; padding: 10px; position: sticky; top: 0; display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .post { background: white; border: 1px solid #dbdbdb; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
-        input, textarea { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; border: 1px solid #dbdbdb; }
-        button { width: 100%; padding: 10px; background: #0095f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        /* Лента как в Инсте */
+        .feed-container { max-width: 500px; margin: 0 auto; padding-top: 20px; }
+        .post-card { background: white; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 3px; }
+        .post-header { padding: 12px; font-weight: 600; display: flex; align-items: center; border-bottom: 0.5px solid #efefef; }
+        .post-img { width: 100%; display: block; background: #efefef; }
+        .post-info { padding: 12px; }
+        .post-author { font-weight: 600; margin-right: 8px; }
+        
+        /* Кнопки лайков и комментов */
+        .actions { padding: 8px 12px; display: flex; gap: 15px; font-size: 1.3rem; }
+        .like-btn { cursor: pointer; transition: 0.2s; }
+        
+        /* Профиль */
+        .profile-header { text-align: center; padding: 40px 20px; background: white; border-bottom: 1px solid var(--border); }
+        .settings-box { background: white; padding: 20px; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border); }
+
+        /* Нижняя навигация (ТТ стайл) */
+        nav { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
+        nav button { background: none; border: none; font-size: 20px; cursor: pointer; }
+
+        /* Форма поста */
+        .add-post-btn { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <h1 id="auth-title">Kasta</h1>
-        <div id="auth-inputs">
+        <div style="max-width:350px; margin: 100px auto; background:white; border:1px solid #dbdbdb; padding:40px; text-align:center;">
+            <h1>Kasta</h1>
             <input type="text" id="username" placeholder="Логин">
             <input type="password" id="password" placeholder="Пароль">
-            <button id="authBtn" onclick="authUser('login')">Войти</button>
+            <button onclick="authUser('login')" style="background:var(--accent); color:white; width:100%; padding:8px; border:none; margin-top:10px;">Войти</button>
+            <p onclick="switchAuth('reg')" style="color:var(--accent); cursor:pointer; font-size:14px;">Создать аккаунт</p>
         </div>
-        <p id="toggleText" style="font-size: 14px; margin-top: 20px;">
-            Нет аккаунта? <a href="#" onclick="switchAuth('reg')">Зарегистрироваться</a>
-        </p>
-        <p id="authMessage" style="color: red; font-size: 12px;"></p>
     </div>
 
     <div id="main-screen" class="hidden">
-        <nav>
-            <span onclick="showTab('feed')" style="cursor:pointer">🏠 Лента</span>
-            <span onclick="showTab('search')" style="cursor:pointer">🔍 Поиск</span>
-            <span onclick="showTab('profile')" style="cursor:pointer">👤 Профиль</span>
-            <span onclick="logout()" style="cursor:pointer; color:red">🚪 Выйти</span>
-        </nav>
-
-        <div id="tab-feed">
-            <form id="postForm">
-                <textarea id="postText" placeholder="Что нового?"></textarea>
-                <input type="file" id="postFile">
-                <button type="submit">Опубликовать</button>
-            </form>
-            <div id="posts-container"></div>
+        
+        <div id="tab-feed" class="feed-container">
+            <h2 style="text-align:center;">Лента</h2>
+            <div id="all-posts"></div>
         </div>
 
-        <div id="tab-search" class="hidden">
-            <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск людей...">
+        <div id="tab-search" class="feed-container hidden">
+            <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск @username...">
             <div id="searchResults"></div>
         </div>
 
-        <div id="tab-profile" class="hidden">
-            <h2 id="profile-name"></h2>
-            <p>Это ваш личный уголок в Kasta.</p>
+        <div id="tab-profile" class="feed-container hidden">
+            <div class="profile-header">
+                <h2 id="disp-username">Имя</h2>
+                <p id="disp-handle" style="color:gray"></p>
+                <button onclick="document.getElementById('settings').classList.toggle('hidden')" style="font-size:12px;">Настройки профиля ⚙️</button>
+            </div>
+
+            <div id="settings" class="settings-box hidden">
+                <h4>Изменить данные</h4>
+                <input type="text" id="new-name" placeholder="Новое имя">
+                <button onclick="updateUser()">Сохранить</button>
+            </div>
+
+            <div style="padding: 15px;">
+                <button class="add-post-btn" onclick="document.getElementById('post-modal').classList.toggle('hidden')">+ Создать пост</button>
+                <div id="post-modal" class="hidden">
+                    <form id="postForm">
+                        <textarea id="postText" placeholder="Напиши что-нибудь..." style="width:100%; height:80px;"></textarea>
+                        <input type="file" id="postFile">
+                        <button type="submit">Опубликовать в профиле</button>
+                    </form>
+                </div>
+            </div>
+
+            <h3 style="padding-left:15px;">Мои публикации</h3>
+            <div id="my-posts"></div>
         </div>
+
+        <nav>
+            <button onclick="showTab('feed')">🏠</button>
+            <button onclick="showTab('search')">🔍</button>
+            <button onclick="showTab('profile')">👤</button>
+            <button onclick="logout()">🚪</button>
+        </nav>
     </div>
 
     <script src="script.js"></script>
