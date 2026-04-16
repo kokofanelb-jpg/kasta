@@ -2,124 +2,134 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasta Connect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kasta</title>
     <style>
-        :root { --accent: #0095f6; --bg: #fafafa; --border: #dbdbdb; --sidebar: #ffffff; --text: #262626; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --accent: #0095f6; --bg: #ffffff; --border: #dbdbdb; --text: #262626; --gray: #8e8e8e; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         .hidden { display: none !important; }
-        
-        /* Меню */
-        .sidebar { width: 70px; background: var(--sidebar); border-right: 1px solid var(--border); transition: 0.3s; display: flex; flex-direction: column; padding: 20px 0; overflow: hidden; z-index: 1000; }
-        .sidebar:hover { width: 250px; }
-        .sidebar-header { padding: 0 20px; margin-bottom: 20px; font-weight: bold; color: var(--accent); font-size: 18px; }
-        .nav-item { padding: 15px 20px; display: flex; align-items: center; cursor: pointer; text-decoration: none; color: var(--text); }
-        .nav-item:hover { background: #f0f0f0; }
-        .nav-icon { font-size: 24px; min-width: 30px; text-align: center; }
-        .nav-text { margin-left: 15px; opacity: 0; transition: 0.2s; font-weight: 500; }
-        .sidebar:hover .nav-text { opacity: 1; }
 
-        /* Контент */
-        .main-content { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; }
+        /* ВЕРХНЯЯ ПАНЕЛЬ (Только для ПК) */
+        .desktop-nav { border-right: 1px solid var(--border); width: 250px; height: 100vh; position: fixed; left: 0; top: 0; padding: 20px; display: flex; flex-direction: column; }
 
-        /* Профиль */
-        .profile-card { background: white; border: 1px solid var(--border); border-radius: 15px; padding: 30px; text-align: center; margin-bottom: 20px; }
-        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px; }
-        .stats { display: flex; justify-content: space-around; margin: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 15px 0; }
-        .stat-item b { display: block; font-size: 18px; }
+        /* НИЖНЯЯ ПАНЕЛЬ (ДЛЯ ТЕЛЕФОНА) */
+        .mobile-nav { 
+            display: none; position: fixed; bottom: 0; width: 100%; height: 60px; 
+            background: #fff; border-top: 1px solid var(--border); justify-content: space-around; align-items: center; z-index: 1000;
+        }
 
-        /* Кнопки и формы */
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
-        
-        /* Поиск */
-        .search-container { padding: 0 10px 20px; }
-        #search-results { background: white; border: 1px solid var(--border); border-radius: 8px; position: absolute; width: 200px; max-height: 300px; overflow-y: auto; z-index: 100; }
-        .search-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        /* КОНТЕНТ */
+        .main-container { margin-left: 250px; padding: 20px; display: flex; justify-content: center; }
+        .feed-container { width: 100%; max-width: 500px; padding-bottom: 80px; }
+
+        /* ПОСТЫ */
+        .post { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; background: #fff; }
+        .post-header { padding: 12px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+        .post-img { width: 100%; display: block; background: #fafafa; }
+        .post-content { padding: 12px; }
+
+        /* ПРОФИЛЬ */
+        .profile-header { text-align: center; padding: 20px 0; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+        .stats-row { display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .stat-btn { background: none; border: none; cursor: pointer; text-align: center; }
+        .stat-btn b { display: block; font-size: 16px; }
+
+        /* КНОПКИ */
+        .btn-main { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
+
+        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+        @media (max-width: 768px) {
+            .desktop-nav { display: none; }
+            .mobile-nav { display: flex; }
+            .main-container { margin-left: 0; padding: 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar hidden" id="app-sidebar">
-        <div class="sidebar-header" id="panel-title">Your panel</div>
-        
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="🔍 Поиск..." oninput="searchUsers(this.value)">
-            <div id="search-results" class="hidden"></div>
-        </div>
+    <nav class="desktop-nav">
+        <h2 style="color: var(--accent);">Kasta</h2>
+        <div onclick="showTab('feed')">Лента</div>
+        <div onclick="showTab('chats')">Чаты</div>
+        <div onclick="showTab('search')">Поиск</div>
+        <div onclick="showTab('profile')">Профиль</div>
+        <div onclick="logout()" style="margin-top: auto; color: red;">Выйти</div>
+    </nav>
 
-        <div class="nav-item" onclick="showTab('feed')"><span class="nav-icon">🏠</span><span class="nav-text" id="txt-home">Дом</span></div>
-        <div class="nav-item" onclick="showTab('chats')"><span class="nav-icon">💬</span><span class="nav-text" id="txt-chats">Мои чаты</span></div>
-        <div class="nav-item" onclick="showTab('friends')"><span class="nav-icon">👥</span><span class="nav-text" id="txt-friends">Друзья</span></div>
-        <div class="nav-item" onclick="showTab('settings')"><span class="nav-icon">⚙️</span><span class="nav-text" id="txt-settings">Настройки</span></div>
-        <div class="nav-item" onclick="logout()" style="color:red; margin-top:auto;"><span class="nav-icon">🚪</span><span class="nav-text" id="txt-exit">Выход</span></div>
-    </aside>
+    <nav class="mobile-nav">
+        <div onclick="showTab('chats')">💬</div>
+        <div onclick="showTab('feed')">🏠</div>
+        <div onclick="showTab('profile')">👤</div>
+        <div onclick="showTab('search')">🔍</div>
+    </nav>
 
-    <main class="main-content">
-        <div class="container">
+    <div class="main-container">
+        <div class="feed-container">
             
             <div id="auth-screen">
-                <div style="background:white; padding:40px; border-radius:20px; border:1px solid var(--border); text-align:center;">
-                    <h2 id="auth-title">Вход в Kasta</h2>
-                    <input type="text" id="login-username" placeholder="Юзернейм">
-                    <input type="password" id="login-password" placeholder="Пароль">
-                    <button id="auth-btn" class="btn-main" onclick="authUser('login')">Войти</button>
-                    <p><a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-toggle-link">Нет аккаунта? Зарегистрироваться</a></p>
-                </div>
+                <h2>Вход</h2>
+                <input id="u-name" placeholder="Юзернейм">
+                <input id="u-pass" type="password" placeholder="Пароль">
+                <button class="btn-main" onclick="handleAuth('login')">Войти</button>
+                <button class="btn-main" style="background: #333;" onclick="handleAuth('register')">Регистрация</button>
             </div>
 
-            <div id="main-screens" class="hidden">
+            <div id="app-screens" class="hidden">
+                
                 <div id="tab-feed">
-                    <div style="background:white; padding:15px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
-                        <textarea id="post-text" placeholder="Что нового?"></textarea>
-                        <input type="text" id="post-img" placeholder="Ссылка на фото (URL)">
-                        <button class="btn-main" onclick="createPost()">Опубликовать</button>
+                    <div style="padding: 15px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px;">
+                        <textarea id="post-txt" placeholder="Напиши что-нибудь..."></textarea>
+                        <input id="post-img-url" placeholder="Ссылка на фото (URL)">
+                        <button class="btn-main" onclick="publishPost()">Опубликовать</button>
                     </div>
-                    <div id="feed-container"></div>
+                    <div id="feed-items"></div>
+                </div>
+
+                <div id="tab-search" class="hidden">
+                    <h2>Поиск по юзернейму</h2>
+                    <input oninput="runSearch(this.value)" placeholder="Начни писать @username...">
+                    <div id="search-list"></div>
+                </div>
+
+                <div id="tab-chats" class="hidden">
+                    <div id="chats-list"><h2>Сообщения</h2><div id="active-dialogs"></div></div>
+                    <div id="chat-box" class="hidden">
+                        <button onclick="closeChat()">← Назад</button>
+                        <h3 id="chat-title">Чат</h3>
+                        <div id="msg-history" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; display: flex; flex-direction: column;"></div>
+                        <input id="msg-input" placeholder="Сообщение...">
+                        <button class="btn-main" onclick="sendMsg()">Отправить</button>
+                    </div>
                 </div>
 
                 <div id="tab-profile" class="hidden">
-                    <div class="profile-card">
-                        <img id="p-avatar" src="" class="profile-avatar">
-                        <h2 id="p-display-name"></h2>
-                        <p id="p-username" style="color:gray;"></p>
-                        <div class="stats">
-                            <div class="stat-item"><b id="s-posts">0</b>посты</div>
-                            <div class="stat-item"><b id="s-subs">0</b>подписчики</div>
-                            <div class="stat-item"><b id="s-following">0</b>подписки</div>
-                        </div>
-                        <div id="p-actions"></div>
+                    <div class="profile-header">
+                        <img id="my-ava" class="profile-avatar" src="https://via.placeholder.com/80">
+                        <h3 id="my-name">Имя</h3>
+                        <p id="my-handle" style="color: var(--gray);">@username</p>
                     </div>
+                    <div class="stats-row">
+                        <div class="stat-btn"><b id="s-p">0</b>посты</div>
+                        <div class="stat-btn" onclick="alert('Список подписчиков')"><b id="s-subers">0</b>подписчики</div>
+                        <div class="stat-btn" onclick="alert('Список подписок')"><b id="s-subing">0</b>подписки</div>
+                    </div>
+                    <button class="btn-main" onclick="showTab('settings')">Изменить профиль</button>
+                    <div id="my-posts" style="margin-top: 20px;"></div>
                 </div>
 
                 <div id="tab-settings" class="hidden">
                     <h2>Настройки</h2>
-                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid var(--border);">
-                        <label>Никнейм:</label><input type="text" id="st-name">
-                        <label>Ссылка на аватарку:</label><input type="text" id="st-avatar">
-                        <label>Язык:</label>
-                        <select id="lang-select" onchange="changeLang(this.value)">
-                            <option value="ru">Русский</option>
-                            <option value="en">English</option>
-                        </select>
-                        <button class="btn-main" onclick="saveProfile()">Сохранить</button>
-                    </div>
+                    <input id="set-name" placeholder="Новый никнейм">
+                    <input id="set-ava" placeholder="Ссылка на новую аватарку">
+                    <button class="btn-main" onclick="saveSettings()">Сохранить изменения</button>
+                    <button class="btn-main" style="background: red;" onclick="logout()">Выйти из аккаунта</button>
                 </div>
 
-                <div id="tab-chats" class="hidden">
-                    <div id="chat-list"><h2>Мои чаты</h2><div id="chats-container"></div></div>
-                    <div id="chat-window" class="hidden">
-                        <button onclick="backToChats()">← Назад</button>
-                        <h3 id="chat-target"></h3>
-                        <div id="msg-box" style="height:300px; overflow-y:auto; border:1px solid #ddd; padding:10px; background:#fff; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;"></div>
-                        <input type="text" id="msg-input" placeholder="Сообщение...">
-                        <button class="btn-main" onclick="sendMsg()">Отправить</button>
-                    </div>
-                </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script src="script.js"></script>
 </body>
