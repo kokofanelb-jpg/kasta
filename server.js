@@ -39,19 +39,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// === НОВЫЙ МАРШРУТ: ГЛАВНАЯ СТРАНИЦА ===
+// Чтобы по адресу https://kasta-l49s.onrender.com/ не было ошибки 404
+app.get('/', (req, res) => {
+    res.send('<h1>Сервер Kasta официально запущен! 🚀</h1><p>Бэкенд работает и готов принимать запросы от твоего сайта.</p>');
+});
+
 // === МАРШРУТЫ БЕЗОПАСНОСТИ (АВТОРИЗАЦИЯ) ===
 
 // Регистрация
 app.post('/register', async (req, res) => {
     try {
-        // Проверяем, нет ли уже такого имени
         const existingUser = await User.findOne({ username: req.body.username });
         if (existingUser) return res.status(400).json({ message: 'Имя уже занято!' });
 
-        // ШИФРУЕМ ПАРОЛЬ (превращаем в кашу)
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         
-        // Сохраняем в базу
         const user = new User({ username: req.body.username, password: hashedPassword });
         await user.save();
         res.json({ message: 'Успешная регистрация!' });
@@ -65,16 +68,14 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ username: req.body.username });
     if (!user) return res.status(400).json({ message: 'Пользователь не найден!' });
 
-    // Сравниваем введенный пароль с зашифрованным из базы
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) return res.status(400).json({ message: 'Неверный пароль!' });
 
-    // Выдаем цифровой пропуск (Токен)
     const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET);
     res.json({ token: token, username: user.username });
 });
 
-// Проверка пропуска (Middleware) - защищает маршруты
+// Проверка пропуска (Middleware)
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization'];
     if (!token) return res.status(401).json({ message: 'Доступ запрещен' });
@@ -88,23 +89,18 @@ const verifyToken = (req, res, next) => {
 
 // === МАРШРУТЫ ДЛЯ ПОСТОВ ===
 
-// Получить посты (сортируем от новых к старым)
 app.get('/posts', async (req, res) => {
     const posts = await Post.find().sort({ createdAt: -1 });
     res.json(posts);
 });
 
-// Создать пост (ВНИМАНИЕ: добавлена защита verifyToken)
-// Создать пост (ВНИМАНИЕ: теперь картинки будут видны всем!)
 app.post('/posts', verifyToken, upload.single('photo'), async (req, res) => {
-    // Определяем адрес сервера (на Render или локально)
     const host = req.get('host'); 
     const protocol = req.protocol;
     
     const newPost = new Post({
         author: req.user.username,
         text: req.body.text,
-        // Теперь ссылка на фото будет динамической и правильной!
         imageUrl: req.file ? `${protocol}://${host}/uploads/${req.file.filename}` : null
     });
     
