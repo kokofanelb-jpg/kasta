@@ -1,3 +1,58 @@
+const API_URL = 'https://kasta-l49s.onrender.com';
+let token = localStorage.getItem('token');
+let currentUser = localStorage.getItem('currentUser');
+
+// === 1. ПЕРЕКЛЮЧАТЕЛЬ ВХОД / РЕГИСТРАЦИЯ ===
+function toggleAuth(mode) {
+    const loginTitle = document.getElementById('auth-title');
+    const authBtn = document.getElementById('mainAuthBtn');
+    const toggleLink = document.getElementById('toggleAuthLink');
+
+    if (mode === 'reg') {
+        loginTitle.innerText = "Регистрация";
+        authBtn.innerText = "Создать аккаунт";
+        authBtn.onclick = () => authUser('register');
+        toggleLink.innerHTML = 'Уже есть аккаунт? <a href="#" onclick="toggleAuth(\'login\')">Войти</a>';
+    } else {
+        loginTitle.innerText = "Вход";
+        authBtn.innerText = "Войти";
+        authBtn.onclick = () => authUser('login');
+        toggleLink.innerHTML = 'Нет аккаунта? <a href="#" onclick="toggleAuth(\'reg\')">Зарегистрироваться</a>';
+    }
+}
+
+// === 2. ПОИСК ПОЛЬЗОВАТЕЛЕЙ ===
+async function searchUsers() {
+    const q = document.getElementById('searchInput').value;
+    if (q.length < 2) return;
+
+    const res = await fetch(`${API_URL}/users/search?q=${q}`);
+    const users = await res.json();
+    
+    const resultsEl = document.getElementById('searchResults');
+    resultsEl.innerHTML = users.map(u => `
+        <div class="user-card">
+            <img src="${u.avatar || 'https://via.placeholder.com/40'}" class="avatar-sm">
+            <span>${u.username} (@${u.handle})</span>
+        </div>
+    `).join('');
+}
+
+// === 3. ОБНОВЛЕНИЕ ПРОФИЛЯ ===
+async function updateProfile(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const res = await fetch(`${API_URL}/profile/update`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+    if (res.ok) alert("Профиль обновлен!");
+}
+
+// Стандартные функции загрузки постов оставляем как были...
+// [Здесь твой старый код loadPosts и authUser]
 const authScreen = document.getElementById('auth-screen');
 const mainScreen = document.getElementById('main-screen');
 const tabFeed = document.getElementById('tab-feed');
