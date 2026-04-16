@@ -5,92 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasta</title>
     <style>
-        :root { --accent: #0095f6; --bg: #ffffff; --border: #dbdbdb; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: #fafafa; margin: 0; padding-bottom: 60px; }
+        :root { --accent: #0095f6; --bg: #fafafa; --border: #dbdbdb; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; }
         .hidden { display: none !important; }
+        .container { max-width: 500px; margin: 0 auto; padding: 10px; }
         
-        /* Лента как в Инсте */
-        .feed-container { max-width: 500px; margin: 0 auto; padding-top: 20px; }
-        .post-card { background: white; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 3px; }
-        .post-header { padding: 12px; font-weight: 600; display: flex; align-items: center; border-bottom: 0.5px solid #efefef; }
-        .post-img { width: 100%; display: block; background: #efefef; }
-        .post-info { padding: 12px; }
-        .post-author { font-weight: 600; margin-right: 8px; }
-        
-        /* Кнопки лайков и комментов */
-        .actions { padding: 8px 12px; display: flex; gap: 15px; font-size: 1.3rem; }
-        .like-btn { cursor: pointer; transition: 0.2s; }
-        
+        /* Стили постов */
+        .post { background: white; border: 1px solid var(--border); margin-bottom: 15px; border-radius: 8px; overflow: hidden; }
+        .post-header { padding: 10px; font-weight: bold; border-bottom: 1px solid #efefef; }
+        .post-img { width: 100%; display: block; }
+        .post-content { padding: 10px; }
+
         /* Профиль */
-        .profile-header { text-align: center; padding: 40px 20px; background: white; border-bottom: 1px solid var(--border); }
-        .settings-box { background: white; padding: 20px; border-radius: 8px; margin-top: 10px; border: 1px solid var(--border); }
-
-        /* Нижняя навигация (ТТ стайл) */
-        nav { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
+        .profile-card { background: white; border: 1px solid var(--border); padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        
+        /* Навигация */
+        nav { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; }
         nav button { background: none; border: none; font-size: 20px; cursor: pointer; }
-
-        /* Форма поста */
-        .add-post-btn { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; font-weight: bold; margin-bottom: 15px; }
+        
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div style="max-width:350px; margin: 100px auto; background:white; border:1px solid #dbdbdb; padding:40px; text-align:center;">
+        <div class="container" style="margin-top: 100px; text-align: center; background: white; border: 1px solid var(--border); padding: 30px;">
             <h1>Kasta</h1>
             <input type="text" id="username" placeholder="Логин">
             <input type="password" id="password" placeholder="Пароль">
-            <button onclick="authUser('login')" style="background:var(--accent); color:white; width:100%; padding:8px; border:none; margin-top:10px;">Войти</button>
-            <p onclick="switchAuth('reg')" style="color:var(--accent); cursor:pointer; font-size:14px;">Создать аккаунт</p>
+            <button class="btn-main" style="width:100%" onclick="authUser('login')">Войти</button>
+            <p onclick="switchAuth('reg')" style="cursor:pointer; color: var(--accent); font-size: 14px;">Создать аккаунт</p>
+            <p id="authMessage" style="color: red; font-size: 12px;"></p>
         </div>
     </div>
 
     <div id="main-screen" class="hidden">
-        
-        <div id="tab-feed" class="feed-container">
-            <h2 style="text-align:center;">Лента</h2>
-            <div id="all-posts"></div>
-        </div>
-
-        <div id="tab-search" class="feed-container hidden">
-            <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск @username...">
-            <div id="searchResults"></div>
-        </div>
-
-        <div id="tab-profile" class="feed-container hidden">
-            <div class="profile-header">
-                <h2 id="disp-username">Имя</h2>
-                <p id="disp-handle" style="color:gray"></p>
-                <button onclick="document.getElementById('settings').classList.toggle('hidden')" style="font-size:12px;">Настройки профиля ⚙️</button>
-            </div>
-
-            <div id="settings" class="settings-box hidden">
-                <h4>Изменить данные</h4>
-                <input type="text" id="new-name" placeholder="Новое имя">
-                <button onclick="updateUser()">Сохранить</button>
-            </div>
-
-            <div style="padding: 15px;">
-                <button class="add-post-btn" onclick="document.getElementById('post-modal').classList.toggle('hidden')">+ Создать пост</button>
-                <div id="post-modal" class="hidden">
-                    <form id="postForm">
-                        <textarea id="postText" placeholder="Напиши что-нибудь..." style="width:100%; height:80px;"></textarea>
-                        <input type="file" id="postFile">
-                        <button type="submit">Опубликовать в профиле</button>
-                    </form>
-                </div>
-            </div>
-
-            <h3 style="padding-left:15px;">Мои публикации</h3>
-            <div id="my-posts"></div>
-        </div>
-
         <nav>
             <button onclick="showTab('feed')">🏠</button>
             <button onclick="showTab('search')">🔍</button>
             <button onclick="showTab('profile')">👤</button>
-            <button onclick="logout()">🚪</button>
         </nav>
+
+        <div class="container">
+            <div id="tab-feed">
+                <h3 style="text-align: center;">Общая лента</h3>
+                <div id="all-posts"></div>
+            </div>
+
+            <div id="tab-search" class="hidden">
+                <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск людей...">
+                <div id="searchResults"></div>
+            </div>
+
+            <div id="tab-profile" class="hidden">
+                <div class="profile-card">
+                    <h2 id="profile-name">Имя Фамилия</h2>
+                    <p id="profile-handle" style="color: gray;"></p>
+                    <button onclick="document.getElementById('edit-fields').classList.toggle('hidden')">Настройки ⚙️</button>
+                    
+                    <div id="edit-fields" class="hidden" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                        <input type="text" id="new-username" placeholder="Новый никнейм">
+                        <button class="btn-main" onclick="updateProfile()">Обновить данные</button>
+                    </div>
+                </div>
+
+                <div style="background: white; border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4>Новая публикация</h4>
+                    <form id="postForm">
+                        <textarea id="postText" placeholder="Что нового?"></textarea>
+                        <input type="file" id="postFile">
+                        <button type="submit" class="btn-main" style="width:100%">Опубликовать</button>
+                    </form>
+                </div>
+
+                <h3>Мои посты</h3>
+                <div id="my-posts"></div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
