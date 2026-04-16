@@ -1,148 +1,98 @@
-
-const API_URL = "https://kasta-l49s.onrender.com";
-let currentUser = localStorage.getItem('currentUser');
+const API_URL = "https://kasta-l49s.onrender.com"; 
 let token = localStorage.getItem('token');
-let currentChatPartner = null;
-let chatInterval = null;
+let currentUser = localStorage.getItem('currentUser');
 
-// --- АВТОРИЗАЦИЯ ---
-async function authUser(type) {
-    const userField = document.getElementById('login-username');
-    const passField = document.getElementById('login-password');
-    
-    if (!userField.value || !passField.value) return alert("Заполните поля!");
-
-    try {
-        const response = await fetch(`${API_URL}/${type}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: userField.value, password: passField.value })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('currentUser', userField.value);
-            location.reload(); 
-        } else {
-            alert(data.message || "Ошибка!");
-        }
-    } catch (err) {
-        alert("Сервер недоступен. Проверьте ссылку в script.js");
+// СЛОВАРЬ ЯЗЫКОВ
+const langMap = {
+    ru: {
+        panel: "Твоя панель", menu: "Меню", home: "Дом", chats: "Мои чаты", friends: "Друзья", settings: "Настройки", exit: "Выход"
+    },
+    en: {
+        panel: "Your panel", menu: "Menu", home: "Home", chats: "My Chats", friends: "Friends", settings: "Settings", exit: "Logout"
     }
+};
+
+function changeLanguage(lang) {
+    const t = langMap[lang];
+    document.getElementById('panel-title').innerText = t.panel;
+    document.querySelector('.menu-label').innerText = t.menu;
+    document.getElementById('nav-home').innerText = t.home;
+    document.getElementById('nav-chats').innerText = t.chats;
+    document.getElementById('nav-friends').innerText = t.friends;
+    document.getElementById('nav-settings').innerText = t.settings;
+    document.getElementById('nav-exit').innerText = t.exit;
+    localStorage.setItem('lang', lang);
 }
 
-function showRegister() {
-    const btn = document.getElementById('auth-submit-btn');
-    const title = document.getElementById('auth-title');
-    const linkText = document.getElementById('switch-auth-link');
-    
-    if(btn.innerText === "Войти") {
-        btn.innerText = "Создать аккаунт";
-        btn.onclick = () => authUser('register');
-        title.innerText = "Регистрация";
-        linkText.innerText = "Уже есть аккаунт? Войти";
-    } else {
-        btn.innerText = "Войти";
-        btn.onclick = () => authUser('login');
-        title.innerText = "Вход в Kasta";
-        linkText.innerText = "Нет аккаунта? Зарегистрироваться";
-    }
+// --- ЛЕНТА (ПОСТЫ) ---
+async function createPost() {
+    const text = document.getElementById('postText').value;
+    const file = document.getElementById('postFile').files[0];
+    const formData = new FormData();
+    formData.append('text', text);
+    if(file) formData.append('photo', file);
+
+    await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+    document.getElementById('postText').value = '';
+    loadPosts();
 }
 
-function logout() {
-    localStorage.clear();
-    location.reload();
+async function loadPosts() {
+    const res = await fetch(`${API_URL}/posts`);
+    const posts = await res.json();
+    const container = document.getElementById('all-posts');
+    container.innerHTML = posts.map(p => `
+        <div class="post">
+            <b>@${p.author}</b>
+            <p>${p.text}</p>
+            ${p.imageUrl ? `<img src="${p.imageUrl}">` : ''}
+            <div style="font-size:12px; color:gray;">${new Date(p.createdAt).toLocaleString()}</div>
+        </div>
+    `).reverse().join('');
 }
 
 // --- НАВИГАЦИЯ ---
 function showTab(tab) {
-    const tabs = ['feed', 'chats', 'friends', 'settings', 'profile'];
-    tabs.forEach(t => {
-        const el = document.getElementById('tab-' + t);
-        if(el) el.classList.add('hidden');
+    ['feed', 'chats', 'friends', 'settings', 'profile'].forEach(t => {
+        document.getElementById('tab-' + t).classList.add('hidden');
     });
-    
     document.getElementById('tab-' + tab).classList.remove('hidden');
     
-    if (tab === 'chats') loadChatsList();
+    if(tab === 'feed') loadPosts();
+    if(tab === 'profile') loadUserProfile(currentUser);
 }
 
-// --- ЧАТЫ ---
-async function loadChatsList() {
-    const res = await fetch(`${API_URL}/chats/list`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-    });
-    const partners = await res.json();
-    const container = document.getElementById('active-chats-list');
-    container.innerHTML = partners.length ? '' : '<p style="color:gray; padding:20px;">У вас пока нет чатов</p>';
+// --- ЗАГРУЗКА ПРОФИЛЯ (С кнопкой ЧАТ) ---
+async function loadUserProfile(username) {
+    // Тут должен быть запрос к серверу за данными юзера (bio, avatar)
+    document.getElementById('profile-name').innerText = '@' + username;
+    const actions = document.getElementById('profile-actions');
     
-    partners.forEach(user => {
-        container.insertAdjacentHTML('beforeend', `
-            <div style="padding:15px; background:white; border:1px solid #dbdbdb; border-radius:10px; cursor:pointer; margin-bottom:10px;" onclick="openChat('${user}')">
-                <b>@${user}</b>
-            </div>
-        `);
-    });
+    if(username !== currentUser) {
+        actions.innerHTML = `
+            <button class="btn-main" onclick="openChat('${username}')">Написать сообщение (Чат)</button>
+            <button class="btn-main" style="background:gray;">Подписаться</button>
+        `;
+    } else {
+        actions.innerHTML = `<button class="btn-main" onclick="showTab('settings')">Редактировать профиль</button>`;
+    }
 }
 
-async function openChat(username) {
-    currentChatPartner = username;
-    document.getElementById('chats-list-view').classList.add('hidden');
-    document.getElementById('chat-window').classList.remove('hidden');
-    document.getElementById('chat-with-name').innerText = '@' + username;
-    
-    renderMessages();
-    if(chatInterval) clearInterval(chatInterval);
-    chatInterval = setInterval(renderMessages, 3000);
-}
-
-function backToChatsList() {
-    currentChatPartner = null;
-    clearInterval(chatInterval);
-    document.getElementById('chat-window').classList.add('hidden');
-    document.getElementById('chats-list-view').classList.remove('hidden');
-}
-
-async function renderMessages() {
-    if(!currentChatPartner) return;
-    const res = await fetch(`${API_URL}/messages/${currentChatPartner}`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-    });
-    const messages = await res.json();
-    const container = document.getElementById('messages-container');
-    
-    container.innerHTML = messages.map(m => {
-        const isMine = m.sender === currentUser;
-        return `<div class="msg ${isMine ? 'sent' : 'received'}">${m.text}</div>`;
-    }).join('');
-    container.scrollTop = container.scrollHeight;
-}
-
-async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    if(!input.value) return;
-
-    await fetch(`${API_URL}/messages`, {
-        method: 'POST',
-        headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ receiver: currentChatPartner, text: input.value })
-    });
-
-    input.value = '';
-    renderMessages();
-}
-
-// ПРОВЕРКА ВХОДА
+// ПРОВЕРКА ПРИ ЗАПУСКЕ
 if (token) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-screens').classList.remove('hidden');
     document.getElementById('app-sidebar').classList.remove('hidden');
     document.getElementById('nav-display-name').innerText = currentUser;
     document.getElementById('nav-username').innerText = '@' + currentUser;
+    
+    const savedLang = localStorage.getItem('lang') || 'ru';
+    changeLanguage(savedLang);
+    document.getElementById('lang-select').value = savedLang;
+    
     showTab('feed');
 }
