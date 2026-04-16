@@ -3,48 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasta</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Kasta | Твоя сеть</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0095f6;
+            --bg: #fafafa;
+            --card: #ffffff;
+            --text: #262626;
+            --border: #dbdbdb;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 70px; }
+        .hidden { display: none !important; }
+
+        /* Авторизация */
+        #auth-screen { max-width: 350px; margin: 100px auto; background: var(--card); border: 1px solid var(--border); padding: 40px; text-align: center; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 4px; background: var(--primary); color: white; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
+
+        /* Навигация */
+        nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 15px; z-index: 1000; }
+        nav button { background: none; color: var(--text); width: auto; margin: 0; padding: 5px 15px; }
+        nav button:hover { background: #efefef; }
+
+        /* Лента и Посты */
+        .container { max-width: 500px; margin: 20px auto; padding: 10px; }
+        .post { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .post-header { padding: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .post-header small { color: #8e8e8e; font-weight: 400; }
+        .post-img { width: 100%; display: block; background: #eee; }
+        .post-content { padding: 15px; border-bottom: 1px solid #efefef; }
+        .post-actions { padding: 10px 15px; }
+        .btn-like { background: none; color: #262626; width: auto; font-size: 1.2rem; padding: 0; }
+
+        /* Комментарии */
+        .comments-area { padding: 10px 15px; background: #fdfdfd; font-size: 0.9rem; }
+        .comment-item { margin-bottom: 5px; }
+        .comment-input-group { display: flex; gap: 10px; padding: 10px 15px; border-top: 1px solid #efefef; }
+        .comment-input-group input { margin: 0; }
+
+        /* Форма нового поста */
+        #postForm { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        textarea { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 10px; resize: none; box-sizing: border-box; }
+
+        /* Поиск */
+        .user-card { background: white; padding: 15px; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+    </style>
 </head>
 <body>
+
     <div id="auth-screen">
-        <h2 id="auth-title">Вход в Kasta</h2>
+        <h1 style="font-size: 2rem; margin-bottom: 20px;">Kasta</h1>
+        <h3 id="auth-title">Вход</h3>
         <input type="text" id="username" placeholder="Логин">
         <input type="password" id="password" placeholder="Пароль">
         <button id="authBtn" onclick="authUser('login')">Войти</button>
-        <p id="toggleText">Нет аккаунта? <a href="#" onclick="switchAuth('reg')">Зарегистрироваться</a></p>
-        <p id="authMessage" style="color: red;"></p>
+        <p id="toggleText" style="font-size: 0.8rem; margin-top: 20px;">
+            Нет аккаунта? <a href="#" onclick="switchAuth('reg')" style="color: var(--primary); text-decoration: none;">Зарегистрироваться</a>
+        </p>
+        <p id="authMessage" style="color: #ed4956; font-size: 0.8rem;"></p>
     </div>
 
     <div id="main-screen" class="hidden">
+        <div class="container">
+            
+            <div id="tab-feed">
+                <form id="postForm">
+                    <textarea id="postText" rows="3" placeholder="Что у тебя нового?"></textarea>
+                    <input type="file" id="postFile" style="font-size: 0.7rem; margin-top: 10px;">
+                    <button type="submit">Опубликовать</button>
+                </form>
+                <div id="posts-container"></div>
+            </div>
+
+            <div id="tab-search" class="hidden">
+                <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск по @username...">
+                <div id="searchResults"></div>
+            </div>
+
+            <div id="tab-profile" class="hidden">
+                <div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
+                    <div style="width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 15px;"></div>
+                    <h2 id="profile-name" style="margin: 0;"></h2>
+                    <p id="profile-handle" style="color: #8e8e8e;"></p>
+                    <p style="font-size: 0.9rem; color: #262626;">Добро пожаловать в твой профиль Kasta!</p>
+                </div>
+            </div>
+
+        </div>
+
         <nav>
-            <button onclick="showTab('feed')">Лента</button>
-            <button onclick="showTab('search')">Поиск</button>
-            <button onclick="showTab('profile')">Аккаунт</button>
-            <button onclick="logout()" style="color: red;">Выйти</button>
+            <button onclick="showTab('feed')">🏠</button>
+            <button onclick="showTab('search')">🔍</button>
+            <button onclick="showTab('profile')">👤</button>
+            <button onclick="logout()" style="color: #ed4956;">🚪</button>
         </nav>
-
-        <div id="tab-feed">
-            <form id="postForm">
-                <textarea id="postText" placeholder="Что нового?"></textarea>
-                <input type="file" id="postFile" accept="image/*">
-                <button type="submit">Опубликовать</button>
-            </form>
-            <div id="posts-container"></div>
-        </div>
-
-        <div id="tab-search" class="hidden">
-            <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Поиск @юзера...">
-            <div id="searchResults"></div>
-        </div>
-
-        <div id="tab-profile" class="hidden">
-            <h3>Мой аккаунт</h3>
-            <p>Логин: <b id="profile-name"></b></p>
-            <p>Handle: <span id="profile-handle" style="color: gray;"></span></p>
-            <p>Здесь скоро будет аватарка и описание!</p>
-        </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
