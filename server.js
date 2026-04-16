@@ -13,20 +13,19 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Создаем папку для фото, если её нет (чиним твой баг)
+// Создаем папку для фото, если её нет
 if (!fs.existsSync('uploads')) { fs.mkdirSync('uploads'); }
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ MongoDB подключена'))
+    .then(() => console.log('✅ База данных подключена'))
     .catch((err) => console.log('❌ Ошибка БД:', err));
 
-// СХЕМЫ ДАННЫХ
+// СХЕМЫ (Лайки и комменты теперь тут)
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    handle: { type: String, unique: true }, // @юзернейм
-    bio: { type: String, default: '' },
-    avatar: { type: String, default: '' }
+    handle: { type: String, unique: true },
+    bio: { type: String, default: '' }
 });
 const User = mongoose.model('User', userSchema);
 
@@ -34,7 +33,7 @@ const postSchema = new mongoose.Schema({
     author: String,
     text: String,
     imageUrl: String,
-    likes: { type: [String], default: [] }, // Массив имен тех, кто лайкнул
+    likes: { type: [String], default: [] },
     comments: [{
         author: String,
         text: String,
@@ -50,9 +49,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// МАРШРУТЫ
-app.get('/', (req, res) => res.send('Сервер Kasta работает! 🚀'));
-
+// РЕГИСТРАЦИЯ И ВХОД
 app.post('/register', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -63,7 +60,7 @@ app.post('/register', async (req, res) => {
         });
         await user.save();
         res.json({ message: 'Успех!' });
-    } catch (err) { res.status(400).json({ message: 'Имя занято!' }); }
+    } catch (err) { res.status(400).json({ message: 'Имя уже занято!' }); }
 });
 
 app.post('/login', async (req, res) => {
@@ -77,9 +74,9 @@ app.post('/login', async (req, res) => {
 
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
-    if (!token) return res.status(401).send('Нет доступа');
+    if (!token) return res.status(401).send('Нет пропуска');
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).send('Ошибка');
+        if (err) return res.status(403).send('Ошибка токена');
         req.user = user;
         next();
     });
@@ -87,7 +84,7 @@ const verifyToken = (req, res, next) => {
 
 // ПОИСК, ЛАЙКИ И КОММЕНТЫ
 app.get('/users/search', async (req, res) => {
-    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).select('username handle avatar');
+    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).select('username handle');
     res.json(users);
 });
 
