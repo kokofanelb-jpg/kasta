@@ -95,13 +95,20 @@ app.get('/posts', async (req, res) => {
 });
 
 // Создать пост (ВНИМАНИЕ: добавлена защита verifyToken)
+// Создать пост (ВНИМАНИЕ: теперь картинки будут видны всем!)
 app.post('/posts', verifyToken, upload.single('photo'), async (req, res) => {
+    // Определяем адрес сервера (на Render или локально)
+    const host = req.get('host'); 
+    const protocol = req.protocol;
+    
     const newPost = new Post({
-        author: req.user.username, // Имя берем прямо из токена (не подделать!)
+        author: req.user.username,
         text: req.body.text,
-        imageUrl: req.file ? `http://localhost:3000/uploads/${req.file.filename}` : null
+        // Теперь ссылка на фото будет динамической и правильной!
+        imageUrl: req.file ? `${protocol}://${host}/uploads/${req.file.filename}` : null
     });
-    await newPost.save(); // Сохраняем в MongoDB
+    
+    await newPost.save();
     res.json(newPost);
 });
 
