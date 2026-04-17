@@ -5,13 +5,24 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const app = express();
-app.use(cors());
+
+// --- НАСТРОЙКА CORS (Разрешаем всё, чтобы телефон не ругался) ---
+app.use(cors({
+    origin: '*', // Разрешает запросы с любых сайтов (включая твой GitHub)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '15mb' })); 
 
 const SECRET = "KASTA_ULTIMATE_KEY_99";
-mongoose.connect(process.env.MONGO_URI);
 
-// МОДЕЛИ ДАННЫХ
+// Подключение к базе данных
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("DB Connected"))
+  .catch(err => console.error("DB Error:", err));
+
+// --- МОДЕЛИ ---
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -38,7 +49,7 @@ const Message = mongoose.model('Message', {
     createdAt: { type: Date, default: Date.now }
 });
 
-// ПРОВЕРКА ТОКЕНА
+// --- ПРОВЕРКА ТОКЕНА ---
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token || token === "null") return res.status(401).json({error: "No token"});
@@ -49,7 +60,8 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// МАРШРУТЫ
+// --- РОУТЫ (ЛОГИКА) ---
+
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -57,13 +69,15 @@ app.post('/register', async (req, res) => {
         const user = new User({ username, password: hashed, displayName: username });
         await user.save();
         res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
-    } catch(e) { res.status(400).json({message: "Логин занят"}); }
+    } catch(e) { res.status(400).json({message: "Логин уже занят"}); }
 });
 
 app.post('/login', async (req, res) => {
     const username = req.body.username.trim();
     const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка входа"});
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
+        return res.status(400).json({message: "Ошибка входа"});
+    }
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
@@ -85,19 +99,25 @@ app.post('/posts', verifyToken, async (req, res) => {
 });
 
 app.post('/posts/:id/like', verifyToken, async (req, res) => {
-    const post = await Post.findById(req.params.id);
-    const me = req.user.username;
-    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
-    await post.save();
-    res.json({ likes: post.likes });
+    try {
+        const post = await Post.findById(req.params.id);
+        const me = req.user.username;
+        post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
+        await post.save();
+        res.json({ likes: post.likes });
+    } catch(e) { res.status(500).json({error: "Like error"}); }
 });
 
 app.get('/users/profile/:username', async (req, res) => {
     const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    if (!user) return res.status(404).send();
+    if (!user) return res.status(404).json({error: "Not found"});
     const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
     res.json({
-        ...user._doc,
+        username: user.username,
+        displayName: user.displayName || user.username,
+        avatarUrl: user.avatarUrl || "",
+        subscribers: user.subscribers,
+        subscriptions: user.subscriptions,
         subscribersCount: user.subscribers.length,
         subscriptionsCount: user.subscriptions.length,
         postsCount: posts.length,
@@ -113,6 +133,8 @@ app.get('/users/search', async (req, res) => {
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
     const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
     const me = await User.findOne({ username: req.user.username });
+    if (!target || !me) return res.status(404).send();
+    
     if (target.subscribers.includes(me.username)) {
         target.subscribers = target.subscribers.filter(u => u !== me.username);
         me.subscriptions = me.subscriptions.filter(u => u !== target.username);
@@ -151,9 +173,12 @@ app.post('/messages', verifyToken, async (req, res) => {
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    await User.findOneAndUpdate({ username: req.user.username }, req.body);
-    if(req.body.avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
+    const { displayName, avatarUrl } = req.body;
+    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
+    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
     res.json({ ok: true });
 });
 
-app.listen(process.env.PORT || 80);
+// Запуск
+const PORT = process.env.PORT || 80;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
