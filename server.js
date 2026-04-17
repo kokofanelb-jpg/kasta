@@ -84,31 +84,22 @@ app.post('/posts', verifyToken, async (req, res) => {
 app.post('/posts/:id/like', verifyToken, async (req, res) => {
     const post = await Post.findById(req.params.id);
     const me = req.user.username;
-    if (post.likes.includes(me)) {
-        post.likes = post.likes.filter(u => u !== me);
-    } else {
-        post.likes.push(me);
-    }
+    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
     await post.save();
     res.json({ likes: post.likes });
 });
 
 app.get('/users/profile/:username', async (req, res) => {
-    try {
-        const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-        if (!user) return res.status(404).json({error: "User not found"});
-        const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
-        res.json({
-            username: user.username,
-            displayName: user.displayName || user.username,
-            avatarUrl: user.avatarUrl || "",
-            subscribersCount: user.subscribers.length,
-            subscriptionsCount: user.subscriptions.length,
-            postsCount: posts.length,
-            subscribers: user.subscribers,
-            posts: posts
-        });
-    } catch (e) { res.status(500).json({error: "Server error"}); }
+    const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
+    if (!user) return res.status(404).send();
+    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
+    res.json({
+        ...user._doc,
+        subscribersCount: user.subscribers.length,
+        subscriptionsCount: user.subscriptions.length,
+        postsCount: posts.length,
+        posts: posts
+    });
 });
 
 app.get('/users/search', async (req, res) => {
@@ -119,8 +110,6 @@ app.get('/users/search', async (req, res) => {
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
     const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
     const me = await User.findOne({ username: req.user.username });
-    if (!target || target.username === me.username) return res.status(400).send();
-
     if (target.subscribers.includes(me.username)) {
         target.subscribers = target.subscribers.filter(u => u !== me.username);
         me.subscriptions = me.subscriptions.filter(u => u !== target.username);
@@ -157,9 +146,8 @@ app.post('/messages', verifyToken, async (req, res) => {
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    const { displayName, avatarUrl } = req.body;
-    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
-    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
+    await User.findOneAndUpdate({ username: req.user.username }, req.body);
+    if(req.body.avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
     res.json({ ok: true });
 });
 
