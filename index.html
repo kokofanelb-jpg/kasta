@@ -5,62 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kasta</title>
     <style>
-        :root { --accent: #0088cc; --bg: #f0f2f5; --white: #ffffff; --border: #dddfe2; --text: #1c1e21; }
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+        :root { --accent: #0088cc; --bg: #f0f2f5; --text: #000; --border: #dddfe2; --gray: #65676b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; padding-bottom: 70px; }
         .hidden { display: none !important; }
         
-        /* МОБИЛЬНАЯ НАВИГАЦИЯ */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 9999; }
-        .nav-item { cursor: pointer; font-size: 26px; flex: 1; text-align: center; padding: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; filter: grayscale(1); }
+        /* МОБИЛЬНАЯ НАВИГАЦИЯ (В стиле ВК/ТГ) */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 9999; box-shadow: 0 -1px 5px rgba(0,0,0,0.05); }
+        .nav-item { cursor: pointer; font-size: 24px; flex: 1; text-align: center; height: 100%; display: flex; align-items: center; justify-content: center; filter: grayscale(1); transition: 0.2s; }
         .nav-item.active { filter: grayscale(0); color: var(--accent); }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 0 0 70px 0; }
+        .container { max-width: 600px; margin: 0 auto; width: 100%; }
         
-        /* ПОСТЫ: На телефоне от края до края */
-        .post { background: #fff; margin-bottom: 15px; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); position: relative; }
-        .post-header { padding: 15px; display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 16px; cursor: pointer; }
-        .post-ava { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; border: 1px solid #ddd; flex-shrink: 0; }
-        .post-img { width: 100%; display: block; background: #f9f9f9; max-height: 80vh; object-fit: cover; }
-        .post-content { padding: 15px; font-size: 16px; white-space: pre-wrap; word-wrap: break-word; }
-        .del-btn { position: absolute; top: 12px; right: 15px; background: transparent; border: none; font-size: 24px; color: #aaa; cursor: pointer; padding: 5px; }
-
+        /* СОЗДАНИЕ ПОСТА */
+        .create-post { background: #fff; padding: 15px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+        
+        /* ПОСТЫ */
+        .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+        .post-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; position: relative; cursor: pointer; }
+        .post-ava { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; border: 1px solid #eee; flex-shrink: 0; }
+        .post-info { display: flex; flex-direction: column; }
+        .post-author { font-weight: 600; font-size: 15px; }
+        .post-time { font-size: 12px; color: var(--gray); margin-top: 2px; }
+        .del-btn { position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; color: #aaa; padding: 5px; cursor: pointer; }
+        
+        .post-content { padding: 0 15px 10px 15px; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+        .post-img { width: 100%; max-height: 80vh; object-fit: cover; display: block; background: #f9f9f9; }
+        
+        /* ЛАЙКИ */
+        .post-footer { padding: 10px 15px; border-top: 1px solid #f0f2f5; display: flex; align-items: center; gap: 15px; }
+        .action-btn { background: none; border: none; display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; color: var(--gray); cursor: pointer; padding: 5px; border-radius: 20px; transition: 0.2s; }
+        .action-btn.liked { color: #e0245e; }
+        
         /* ПРОФИЛЬ */
-        .profile-card { background: #fff; padding: 30px 15px; text-align: center; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
-        .big-ava { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 10px; background: #eee; }
-        .stats { display: flex; justify-content: center; gap: 30px; margin: 20px 0; }
-        .stats div { display: flex; flex-direction: column; font-size: 14px; color: #65676b; }
-        .stats b { font-size: 20px; color: var(--text); }
+        .profile-header { background: #fff; padding: 25px 15px; text-align: center; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+        .big-ava { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; background: #eee; }
+        .stats { display: flex; justify-content: center; gap: 25px; margin: 15px 0; }
+        .stats div { display: flex; flex-direction: column; font-size: 13px; color: var(--gray); }
+        .stats b { font-size: 18px; color: var(--text); }
 
-        /* КНОПКИ и ИНПУТЫ */
-        .btn { background: var(--accent); color: #fff; border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 16px; -webkit-tap-highlight-color: transparent; }
-        .btn-sec { background: #e4e6eb; color: #050505; }
-        
-        input, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; font-size: 16px; outline: none; background: #f0f2f5; -webkit-appearance: none; }
+        /* КНОПКИ И ИНПУТЫ (Адаптировано под пальцы) */
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 5px; }
+        .btn-sec { background: #e4e6eb; color: #000; }
+        /* Важно: font-size: 16px предотвращает авто-зум на iOS */
+        input, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; margin: 5px 0; font-size: 16px; outline: none; background: #f0f2f5; font-family: inherit; }
         
         /* ЧАТ */
-        #msg-history { height: 65vh; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #e5ddd5; border-radius: 0; }
-        .msg { padding: 12px 16px; border-radius: 20px; max-width: 80%; font-size: 16px; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        #msg-history { height: calc(100vh - 180px); overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #e5ddd5; }
+        .msg { padding: 10px 14px; border-radius: 18px; max-width: 85%; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
         .msg-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 4px; }
         .msg-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; }
 
-        /* Десктопные отступы (возвращаем скругления на компах) */
         @media (min-width: 600px) {
-            .container { padding: 20px 20px 80px 20px; }
-            .post { border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-            .profile-card { border-radius: 12px; border: 1px solid var(--border); }
-            #msg-history { border-radius: 12px; }
+            body { padding-bottom: 20px; }
+            .container { padding-top: 20px; }
+            .post, .create-post, .profile-header { border-radius: 12px; border: 1px solid var(--border); }
         }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="container" style="padding-top: 40px;">
-        <h1 style="text-align:center; color: var(--accent); font-size: 48px; margin: 20px 0;">Kasta</h1>
-        <div style="background: white; padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin: 0 15px;">
+    <div id="auth-screen" class="container" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 100vh;">
+        <h1 style="text-align:center; color: var(--accent); font-size: 40px; margin-bottom: 30px;">Kasta</h1>
+        <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <input id="u-name" placeholder="Логин" autocomplete="off">
             <input id="u-pass" type="password" placeholder="Пароль">
-            <button class="btn" onclick="auth('login')">Войти</button>
+            <button class="btn" style="margin-top: 15px;" onclick="auth('login')">Войти</button>
             <button class="btn btn-sec" onclick="auth('register')">Создать аккаунт</button>
         </div>
     </div>
@@ -69,32 +79,34 @@
         <div class="container">
             
             <div id="page-feed">
-                <div style="background:#fff; padding:15px; border-bottom:1px solid var(--border); margin-bottom:15px;">
-                    <textarea id="p-txt" placeholder="Расскажите что-нибудь..." rows="2"></textarea>
-                    <input type="file" id="p-img" accept="image/*" style="font-size:14px; background:none; border:none; padding:10px 0;">
-                    <button class="btn" onclick="createPost()">Опубликовать</button>
+                <div class="create-post">
+                    <textarea id="p-txt" placeholder="Что нового?" rows="2"></textarea>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                        <input type="file" id="p-img" accept="image/*" style="flex: 1; padding: 10px; background: none; border: none;">
+                        <button class="btn" style="width: auto; padding: 10px 20px; margin: 0;" onclick="createPost()">Пост</button>
+                    </div>
                 </div>
                 <div id="feed-container"></div>
             </div>
 
             <div id="page-search" class="hidden">
-                <div style="padding: 15px; background: #fff; border-bottom: 1px solid var(--border);">
-                    <input oninput="doSearch(this.value)" placeholder="Поиск людей...">
+                <div style="padding: 10px 15px; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;">
+                    <input oninput="doSearch(this.value)" placeholder="Поиск людей..." autofocus>
                 </div>
                 <div id="search-results"></div>
             </div>
 
             <div id="page-chats" class="hidden">
-                <div id="chat-list" style="text-align:center; padding-top:40px; color:gray;">Сообщений нет</div>
+                <div id="chat-list" style="text-align:center; padding-top:40px; color:var(--gray);">Выберите пользователя для чата</div>
                 <div id="active-chat" class="hidden">
-                    <div style="background: #fff; padding: 10px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
-                        <button class="btn btn-sec" style="width: auto; margin: 0; padding: 8px 15px;" onclick="backToChats()">←</button>
-                        <h4 id="chat-title" style="margin: 0; font-size: 18px;"></h4>
+                    <div style="background: #fff; padding: 10px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; position: sticky; top: 0;">
+                        <button style="background:none; border:none; font-size:24px; color:var(--accent); cursor:pointer;" onclick="backToChats()">←</button>
+                        <h4 id="chat-title" style="margin: 0; font-size: 17px;"></h4>
                     </div>
                     <div id="msg-history"></div>
-                    <div style="display:flex; gap:10px; padding: 15px; background: #f0f2f5;">
+                    <div style="display:flex; gap:10px; padding: 10px; background: #f0f2f5;">
                         <input id="m-input" placeholder="Сообщение..." style="margin: 0;">
-                        <button class="btn" style="width:70px; margin:0;" onclick="sendMsg()">></button>
+                        <button class="btn" style="width:50px; margin:0; padding:0; border-radius: 50%; font-size: 20px;" onclick="sendMsg()">➤</button>
                     </div>
                 </div>
             </div>
@@ -105,13 +117,13 @@
             </div>
 
             <div id="page-settings" class="hidden">
-                <div style="background: white; padding: 25px; border-bottom: 1px solid var(--border);">
-                    <h3 style="margin-top:0;">Настройки</h3>
+                <div style="background: white; padding: 20px; margin-top: 10px;">
+                    <h3 style="margin-bottom:15px;">Настройки</h3>
                     <input id="new-display-name" placeholder="Отображаемое имя">
-                    <p style="font-size:14px; color:gray; margin-bottom:5px;">Изменить фото:</p>
-                    <input type="file" id="new-ava-file" accept="image/*" style="background:none; border:none; padding:0;">
-                    <button class="btn" onclick="updateProfile()">Сохранить</button>
-                    <button class="btn btn-sec" onclick="logout()" style="color:red; margin-top:30px;">Выйти из аккаунта</button>
+                    <p style="font-size:14px; color:var(--gray); margin: 10px 0 5px 0;">Аватарка:</p>
+                    <input type="file" id="new-ava-file" accept="image/*" style="padding:0; border:none; background:none;">
+                    <button class="btn" style="margin-top:20px;" onclick="updateProfile()">Сохранить изменения</button>
+                    <button class="btn btn-sec" onclick="logout()" style="color:#e0245e; margin-top:30px;">Выйти из аккаунта</button>
                 </div>
             </div>
         </div>
@@ -126,7 +138,8 @@
 
     <script>
         const API = "https://kasta-l49s.onrender.com";
-        const DEF_AVA = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NjYyI+PHBhdGggZD0iTTEyIDJDMi41IDIgMCA0LjUgMCA3LjV2OWMwIDMgMi41IDUuNSA2LjUgNS41czYuNS0yLjUgNi41LTUuNXYtOWMwLTMtMi41LTUuNS02LjUtNS41em0wIDNhMyAzIDAgMSAxIDAgNiAzIDMgMCAwIDEgMC02em03LjUgMTAuNWMwIDIuNS0zLjQgNC41LTcuNSA0LjVzLTcuNS0yLTcuNS00LjV2LS41YzAtMS41IDMtMyA3LjUtMyA0LjUgMCA3LjUgMS41IDcuNSAzdi41eiIvPjwvc3ZnPg==";
+        // Чистый и гарантированно рабочий SVG-плейсхолдер
+        const DEF_AVA = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
 
         let token = localStorage.getItem('token');
         let me = localStorage.getItem('currentUser');
@@ -134,9 +147,13 @@
         let currentChat = null;
 
         const fixUrl = (url) => {
-            if(!url) return DEF_AVA;
-            if(url.includes('localhost')) return ""; 
+            if(!url || url.includes('localhost')) return DEF_AVA;
             return url.replace("http://", "https://");
+        };
+
+        const formatDate = (dateStr) => {
+            const d = new Date(dateStr);
+            return d.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         };
 
         async function auth(type) {
@@ -152,7 +169,7 @@
             const d = await res.json();
             if(res.ok) {
                 localStorage.setItem('token', d.token);
-                localStorage.setItem('currentUser', d.username); // Сохраняем имя ровно так, как отдаст сервер
+                localStorage.setItem('currentUser', d.username);
                 location.reload();
             } else alert(d.message);
         }
@@ -178,7 +195,9 @@
         async function createPost() {
             const txt = document.getElementById('p-txt').value;
             const file = document.getElementById('p-img').files[0];
+            if(!txt && !file) return; // Защита от пустых постов
             let img = file ? await toB64(file) : "";
+            
             await fetch(`${API}/posts`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
@@ -198,20 +217,51 @@
         function renderPost(p) {
             const isMyPost = p.author.toLowerCase() === me.toLowerCase();
             const postImg = fixUrl(p.imageUrl);
+            const likesCount = p.likes ? p.likes.length : 0;
+            const isLiked = p.likes && p.likes.includes(me);
+
             return `
                 <div class="post">
                     <div class="post-header" onclick="openUser('${p.author}')">
                         <img class="post-ava" src="${fixUrl(p.authorAvatar)}">
-                        <span>@${p.author}</span>
+                        <div class="post-info">
+                            <span class="post-author">${p.author}</span>
+                            <span class="post-time">${formatDate(p.createdAt)}</span>
+                        </div>
                         ${isMyPost ? `<button class="del-btn" onclick="event.stopPropagation(); delPost('${p._id}')">×</button>` : ''}
                     </div>
-                    ${postImg && !postImg.includes('data:image/svg') ? `<img class="post-img" src="${postImg}">` : ''}
                     ${p.text ? `<div class="post-content">${p.text}</div>` : ''}
+                    ${postImg !== DEF_AVA ? `<img class="post-img" src="${postImg}">` : ''}
+                    <div class="post-footer">
+                        <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${p._id}', this)">
+                            ${isLiked ? '❤️' : '🤍'} <span class="likes-count">${likesCount}</span>
+                        </button>
+                    </div>
                 </div>`;
         }
 
+        async function toggleLike(postId, btnEl) {
+            const countEl = btnEl.querySelector('.likes-count');
+            let currentCount = parseInt(countEl.innerText);
+            
+            // Оптимистичное обновление UI (чтобы юзер сразу видел результат)
+            if (btnEl.classList.contains('liked')) {
+                btnEl.classList.remove('liked');
+                btnEl.innerHTML = `🤍 <span class="likes-count">${currentCount - 1}</span>`;
+            } else {
+                btnEl.classList.add('liked');
+                btnEl.innerHTML = `❤️ <span class="likes-count">${currentCount + 1}</span>`;
+            }
+
+            // Запрос на сервер
+            await fetch(`${API}/posts/${postId}/like`, {
+                method: 'POST',
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+        }
+
         async function delPost(id) {
-            if(!confirm("Удалить?")) return;
+            if(!confirm("Удалить пост?")) return;
             await fetch(`${API}/posts/${id}`, {
                 method: 'DELETE',
                 headers: {'Authorization': `Bearer ${token}`}
@@ -223,9 +273,9 @@
         async function openUser(username) {
             if(!username) return;
             nav('profile');
-            document.getElementById('nav-profile').classList.add('active'); // Подсветка кнопки
+            document.getElementById('nav-profile').classList.add('active');
             const cont = document.getElementById('profile-content');
-            cont.innerHTML = "<p style='text-align:center; padding: 20px;'>Загрузка...</p>";
+            cont.innerHTML = "<div style='text-align:center; padding: 30px; color: var(--gray);'>Загрузка...</div>";
             document.getElementById('profile-posts').innerHTML = "";
             
             try {
@@ -237,21 +287,23 @@
                 const isSub = d.subscribers && d.subscribers.includes(me);
 
                 cont.innerHTML = `
-                    <div class="profile-card">
+                    <div class="profile-header">
                         <img class="big-ava" src="${fixUrl(d.avatarUrl)}">
-                        <h2 style="margin:5px 0">${d.displayName || d.username}</h2>
-                        <p style="color:gray; margin:0">@${d.username}</p>
+                        <h2 style="font-size: 20px; margin-bottom: 2px;">${d.displayName || d.username}</h2>
+                        <p style="color:var(--gray); font-size: 14px; margin:0">@${d.username}</p>
+                        
                         <div class="stats">
-                            <div><b>${d.postsCount}</b><span>постов</span></div>
-                            <div><b>${d.subscribersCount}</b><span>подписчиков</span></div>
-                            <div><b>${d.subscriptionsCount}</b><span>подписок</span></div>
+                            <div><b>${d.postsCount}</b><span>посты</span></div>
+                            <div><b>${d.subscribersCount}</b><span>подписчики</span></div>
+                            <div><b>${d.subscriptionsCount}</b><span>подписки</span></div>
                         </div>
-                        <div id="profile-btns-area" style="padding: 0 15px;">
+                        
+                        <div style="margin-top: 15px;">
                             ${isMe ? 
-                                `<button class="btn btn-sec" onclick="nav('settings')">Настройки</button>` : 
+                                `<button class="btn btn-sec" onclick="nav('settings')">Редактировать профиль</button>` : 
                                 `<div style="display:flex; gap:10px;">
-                                    <button class="btn" style="flex:1;" onclick="follow('${d.username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
-                                    <button class="btn btn-sec" style="flex:1;" onclick="startChat('${d.username}')">Написать</button>
+                                    <button class="btn" style="flex:1; background: ${isSub ? '#e4e6eb' : 'var(--accent)'}; color: ${isSub ? '#000' : '#fff'};" onclick="follow('${d.username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
+                                    <button class="btn btn-sec" style="flex:1;" onclick="startChat('${d.username}')">Сообщение</button>
                                 </div>`
                             }
                         </div>
@@ -259,7 +311,7 @@
                 `;
                 document.getElementById('profile-posts').innerHTML = d.posts.map(p => renderPost(p)).join('');
             } catch(e) {
-                cont.innerHTML = "<p style='text-align:center; padding:40px;'>Пользователь не найден</p>";
+                cont.innerHTML = "<div style='text-align:center; padding:40px; color: var(--gray);'>Пользователь не найден</div>";
             }
         }
 
@@ -268,7 +320,7 @@
                 method: 'POST',
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            openUser(username);
+            openUser(username); // Перезагружаем профиль
         }
 
         async function updateProfile() {
@@ -280,18 +332,21 @@
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({displayName: name, avatarUrl: ava})
             });
-            alert("Обновлено!");
             location.reload();
         }
 
         async function doSearch(q) {
-            if(!q) return document.getElementById('search-results').innerHTML = "";
+            const resultsDiv = document.getElementById('search-results');
+            if(!q) return resultsDiv.innerHTML = "";
             const res = await fetch(`${API}/users/search?q=${q}`);
             const users = await res.json();
-            document.getElementById('search-results').innerHTML = users.map(u => `
-                <div onclick="openUser('${u.username}')" style="display:flex; align-items:center; gap:15px; background:#fff; padding:15px; border-bottom:1px solid #eee; cursor:pointer;">
-                    <img src="${fixUrl(u.avatarUrl)}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
-                    <b style="font-size:16px;">${u.displayName || u.username}</b>
+            resultsDiv.innerHTML = users.map(u => `
+                <div onclick="openUser('${u.username}')" style="display:flex; align-items:center; gap:12px; padding:12px 15px; border-bottom:1px solid #eee; cursor:pointer; background: #fff;">
+                    <img src="${fixUrl(u.avatarUrl)}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                    <div style="display:flex; flex-direction:column;">
+                        <b style="font-size:15px;">${u.displayName || u.username}</b>
+                        <span style="font-size:13px; color:var(--gray);">@${u.username}</span>
+                    </div>
                 </div>
             `).join('');
         }
