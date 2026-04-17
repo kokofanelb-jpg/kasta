@@ -25,14 +25,15 @@ const Post = mongoose.model('Post', {
     authorAvatar: String,
     text: String,
     imageUrl: String,
-    likes: { type: [String], default: [] }, // ВЕРНУЛИ ЛАЙКИ
-    createdAt: { type: Date, default: Date.now } // ВРЕМЯ СОЗДАНИЯ
+    likes: { type: [String], default: [] },
+    createdAt: { type: Date, default: Date.now }
 });
 
 const Message = mongoose.model('Message', {
     sender: String,
     receiver: String,
     text: String,
+    isRead: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -46,6 +47,7 @@ const verifyToken = (req, res, next) => {
     });
 };
 
+// РЕГИСТРАЦИЯ И ЛОГИН
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -63,6 +65,7 @@ app.post('/login', async (req, res) => {
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
+// ПОСТЫ И ЛАЙКИ
 app.get('/posts', async (req, res) => {
     const posts = await Post.find().sort({ createdAt: -1 }).limit(50);
     res.json(posts);
@@ -70,108 +73,71 @@ app.get('/posts', async (req, res) => {
 
 app.post('/posts', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ 
-        author: req.user.username, 
-        authorAvatar: user.avatarUrl || "", 
-        text: req.body.text, 
-        imageUrl: req.body.imageUrl 
-    });
+    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
     await post.save();
     res.json(post);
 });
 
-app.delete('/posts/:id', verifyToken, async (req, res) => {
-    const post = await Post.findOne({ _id: req.params.id });
-    if (post && post.author === req.user.username) {
-        await Post.deleteOne({ _id: req.params.id });
-        return res.json({ success: true });
-    }
-    res.status(403).json({ error: "Access denied" });
-});
-
-// НОВЫЙ ЭНДПОИНТ ДЛЯ ЛАЙКОВ
 app.post('/posts/:id/like', verifyToken, async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        if (!post) return res.status(404).send();
-        const me = req.user.username;
-        
-        if (post.likes.includes(me)) {
-            post.likes = post.likes.filter(u => u !== me); // Убрать лайк
-        } else {
-            post.likes.push(me); // Поставить лайк
-        }
-        await post.save();
-        res.json({ likes: post.likes });
-    } catch (e) { res.status(500).send(); }
+    const post = await Post.findById(req.params.id);
+    const me = req.user.username;
+    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
+    await post.save();
+    res.json({ likes: post.likes });
 });
 
+// ПРОФИЛИ И ПОИСК
 app.get('/users/profile/:username', async (req, res) => {
-    try {
-        const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-        if (!user) return res.status(404).json({error: "User not found"});
-        const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
-        res.json({
-            username: user.username,
-            displayName: user.displayName || user.username,
-            avatarUrl: user.avatarUrl || "",
-            subscribersCount: user.subscribers ? user.subscribers.length : 0,
-            subscriptionsCount: user.subscriptions ? user.subscriptions.length : 0,
-            postsCount: posts.length,
-            subscribers: user.subscribers || [],
-            posts: posts
-        });
-    } catch (e) { res.status(500).json({error: "Server error"}); }
-});
-
-app.post('/users/update', verifyToken, async (req, res) => {
-    const updates = {};
-    if(req.body.displayName) updates.displayName = req.body.displayName;
-    if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
-    await User.findOneAndUpdate({ username: req.user.username }, updates);
-    if(req.body.avatarUrl) {
-        await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
-    }
-    res.json({ ok: true });
+    const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
+    if (!user) return res.status(404).send();
+    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
+    res.json({ ...user._doc, posts, subscribersCount: user.subscribers.length, subscriptionsCount: user.subscriptions.length, postsCount: posts.length });
 });
 
 app.get('/users/search', async (req, res) => {
-    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(20);
+    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
     res.json(users);
 });
 
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
     const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    const meUser = await User.findOne({ username: req.user.username });
-    
-    if (!target || target.username === meUser.username) return res.status(400).send();
-
-    if (target.subscribers.includes(meUser.username)) {
-        target.subscribers = target.subscribers.filter(u => u !== meUser.username);
-        meUser.subscriptions = meUser.subscriptions.filter(u => u !== target.username);
+    const me = await User.findOne({ username: req.user.username });
+    if (target.subscribers.includes(me.username)) {
+        target.subscribers = target.subscribers.filter(u => u !== me.username);
+        me.subscriptions = me.subscriptions.filter(u => u !== target.username);
     } else {
-        target.subscribers.push(meUser.username);
-        meUser.subscriptions.push(target.username);
+        target.subscribers.push(me.username);
+        me.subscriptions.push(target.username);
     }
-    await target.save();
-    await meUser.save();
+    await target.save(); await me.save();
     res.json({ ok: true });
 });
 
+// СООБЩЕНИЯ И СПИСОК ЧАТОВ
+app.get('/chats', verifyToken, async (req, res) => {
+    const me = req.user.username;
+    // Находим всех, кому я писал или кто писал мне
+    const senders = await Message.distinct('sender', { receiver: me });
+    const receivers = await Message.distinct('receiver', { sender: me });
+    const chatPartners = [...new Set([...senders, ...receivers])];
+    
+    const users = await User.find({ username: { $in: chatPartners } }, 'username displayName avatarUrl');
+    
+    // Проверяем наличие непрочитанных
+    const unread = await Message.countDocuments({ receiver: me, isRead: false });
+    res.json({ users, unreadCount: unread });
+});
+
 app.get('/messages/:with', verifyToken, async (req, res) => {
-    const targetName = req.params.with;
-    const msgs = await Message.find({ $or: [
-        {sender: req.user.username, receiver: new RegExp('^' + targetName + '$', 'i')}, 
-        {sender: new RegExp('^' + targetName + '$', 'i'), receiver: req.user.username}
-    ] });
+    const me = req.user.username;
+    const him = req.params.with;
+    const msgs = await Message.find({ $or: [{sender:me, receiver:him}, {sender:him, receiver:me}] }).sort({createdAt: 1});
+    await Message.updateMany({ sender: him, receiver: me }, { isRead: true });
     res.json(msgs);
 });
 
 app.post('/messages', verifyToken, async (req, res) => {
-    const target = await User.findOne({ username: new RegExp('^' + req.body.receiver + '$', 'i') });
-    if(!target) return res.status(404).send();
-    
-    const msg = new Message({ sender: req.user.username, receiver: target.username, text: req.body.text });
+    const msg = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
     await msg.save();
     res.json(msg);
 });
