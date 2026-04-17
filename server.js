@@ -105,6 +105,7 @@ app.get('/users/profile/:username', async (req, res) => {
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
+    // Безопасность: обновляем только того, чей токен
     const updates = {};
     if(req.body.displayName) updates.displayName = req.body.displayName;
     if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
