@@ -1,9 +1,35 @@
-const API = "https://kasta-l49s.onrender.com"; 
+const API = "https://kasta-l49s.onrender.com"; // ЗАМЕНИ НА СВОЮ ССЫЛКУ БЕЗ ПОРТОВ!
+
 let token = localStorage.getItem('token');
 let me = localStorage.getItem('currentUser');
-let chatWith = null;
 
-// Вспомогательная функция для превращения файла в строку
+// ВАЖНО: handleAuth должна быть в самом верху
+async function handleAuth(type) {
+    const username = document.getElementById('u-name').value;
+    const password = document.getElementById('u-pass').value;
+    
+    if(!username || !password) return alert("Заполни поля!");
+
+    try {
+        const res = await fetch(`${API}/${type}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+        const data = await res.json();
+        if(res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', username);
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    } catch (err) {
+        alert("Ошибка сервера. Проверь ссылку API в начале script.js");
+    }
+}
+
+// Конвертация фото
 const toBase64 = file => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -11,107 +37,46 @@ const toBase64 = file => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-// Предпросмотр выбранного фото
-async function previewFile(inputId, imgId) {
-    const file = document.getElementById(inputId).files[0];
-    if (file) {
-        const base64 = await toBase64(file);
-        const img = document.getElementById(imgId);
-        img.src = base64;
-        img.style.display = 'block';
-    }
-}
-
-// СОХРАНЕНИЕ НАСТРОЕК С ФОТО
-async function saveSettings() {
-    const displayName = document.getElementById('set-name').value;
-    const fileInput = document.getElementById('set-ava-file');
-    let avatarUrl = "";
-
-    if (fileInput.files[0]) {
-        avatarUrl = await toBase64(fileInput.files[0]);
-    }
-
-    await fetch(`${API}/users/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ displayName, avatarUrl: avatarUrl || undefined })
-    });
-    alert("Профиль обновлен!");
-    location.reload();
-}
-
-// ПОСТ С ФОТО
 async function publishPost() {
     const text = document.getElementById('post-txt').value;
-    const fileInput = document.getElementById('post-file');
+    const file = document.getElementById('post-file').files[0];
     let imageUrl = "";
-
-    if (fileInput.files[0]) {
-        imageUrl = await toBase64(fileInput.files[0]);
-    }
+    if(file) imageUrl = await toBase64(file);
 
     await fetch(`${API}/posts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ text, imageUrl })
+        headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+        body: JSON.stringify({text, imageUrl})
     });
-    
-    document.getElementById('post-txt').value = "";
-    document.getElementById('post-preview').style.display = 'none';
-    loadFeed();
+    location.reload();
 }
 
-// ОБНОВЛЕННАЯ ЛЕНТА (С АВАТАРКАМИ)
 async function loadFeed() {
     const res = await fetch(`${API}/posts`);
     const posts = await res.json();
     document.getElementById('feed-items').innerHTML = posts.map(p => `
-        <div class="post" style="border:1px solid #ddd; margin-bottom:15px; border-radius:12px; background:#fff;">
-            <div class="post-header" style="padding:10px; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openUser('${p.author}')">
-                <img src="${p.authorAvatar || 'https://via.placeholder.com/30'}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
-                <b>@${p.author}</b>
-            </div>
-            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;">` : ''}
-            <div style="padding:10px;">${p.text}</div>
+        <div class="post">
+            <div class="post-header">@${p.author}</div>
+            ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%">` : ''}
+            <div style="padding:10px">${p.text}</div>
         </div>
-    `).join('');
+    `).reverse().join('');
 }
 
-// ПОДПИСКА
-async function toggleFollow(username) {
-    const res = await fetch(`${API}/users/follow/${username}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+function showTab(t) {
+    ['feed', 'profile', 'settings', 'chats', 'search'].forEach(id => {
+        const el = document.getElementById('tab-'+id);
+        if(el) el.classList.add('hidden');
     });
-    const data = await res.json();
-    openUser(username); // Обновляем профиль, чтобы увидеть цифры
+    document.getElementById('tab-'+t).classList.remove('hidden');
+    if(t === 'feed') loadFeed();
 }
 
-// ОБНОВЛЕННЫЙ ПРОФИЛЬ (С КНОПКОЙ ПОДПИСКИ)
-async function openUser(username) {
-    showTab('profile');
-    const res = await fetch(`${API}/users/profile/${username}`);
-    const d = await res.json();
-    
-    document.getElementById('my-ava').src = d.avatarUrl || 'https://via.placeholder.com/100';
-    document.getElementById('my-name').innerText = d.displayName || d.username;
-    document.getElementById('my-handle').innerText = '@' + d.username;
-    document.getElementById('s-p').innerText = d.postsCount;
-    document.getElementById('s-subers').innerText = d.subscribersCount;
-    document.getElementById('s-subing').innerText = d.subscriptionsCount;
+function logout() { localStorage.clear(); location.reload(); }
 
-    const actions = document.getElementById('profile-actions');
-    if (username !== me) {
-        const isFollowing = d.subscribers.includes(me);
-        actions.innerHTML = `
-            <button class="btn-main" style="background:${isFollowing ? '#eee' : '#0095f6'}; color:${isFollowing ? '#000' : '#fff'}" onclick="toggleFollow('${username}')">
-                ${isFollowing ? 'Отписаться' : 'Подписаться'}
-            </button>
-            <button class="btn-main" onclick="startChat('${username}')">💬 Написать</button>
-        `;
-    } else {
-        actions.innerHTML = `<button class="btn-main" onclick="showTab('settings')">⚙️ Настройки</button>`;
-    }
+// Запуск приложения
+if(token) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app-screens').classList.remove('hidden');
+    loadFeed();
 }
-// ... остальной код (showTab, handleAuth, logout) оставь как был
