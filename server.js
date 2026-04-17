@@ -47,7 +47,6 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// РЕГИСТРАЦИЯ И ЛОГИН
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -65,7 +64,6 @@ app.post('/login', async (req, res) => {
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
-// ПОСТЫ И ЛАЙКИ
 app.get('/posts', async (req, res) => {
     const posts = await Post.find().sort({ createdAt: -1 }).limit(50);
     res.json(posts);
@@ -73,7 +71,12 @@ app.get('/posts', async (req, res) => {
 
 app.post('/posts', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
+    const post = new Post({ 
+        author: req.user.username, 
+        authorAvatar: user.avatarUrl || "", 
+        text: req.body.text, 
+        imageUrl: req.body.imageUrl 
+    });
     await post.save();
     res.json(post);
 });
@@ -81,17 +84,31 @@ app.post('/posts', verifyToken, async (req, res) => {
 app.post('/posts/:id/like', verifyToken, async (req, res) => {
     const post = await Post.findById(req.params.id);
     const me = req.user.username;
-    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
+    if (post.likes.includes(me)) {
+        post.likes = post.likes.filter(u => u !== me);
+    } else {
+        post.likes.push(me);
+    }
     await post.save();
     res.json({ likes: post.likes });
 });
 
-// ПРОФИЛИ И ПОИСК
 app.get('/users/profile/:username', async (req, res) => {
-    const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    if (!user) return res.status(404).send();
-    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
-    res.json({ ...user._doc, posts, subscribersCount: user.subscribers.length, subscriptionsCount: user.subscriptions.length, postsCount: posts.length });
+    try {
+        const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
+        if (!user) return res.status(404).json({error: "User not found"});
+        const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
+        res.json({
+            username: user.username,
+            displayName: user.displayName || user.username,
+            avatarUrl: user.avatarUrl || "",
+            subscribersCount: user.subscribers.length,
+            subscriptionsCount: user.subscriptions.length,
+            postsCount: posts.length,
+            subscribers: user.subscribers,
+            posts: posts
+        });
+    } catch (e) { res.status(500).json({error: "Server error"}); }
 });
 
 app.get('/users/search', async (req, res) => {
@@ -102,6 +119,8 @@ app.get('/users/search', async (req, res) => {
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
     const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
     const me = await User.findOne({ username: req.user.username });
+    if (!target || target.username === me.username) return res.status(400).send();
+
     if (target.subscribers.includes(me.username)) {
         target.subscribers = target.subscribers.filter(u => u !== me.username);
         me.subscriptions = me.subscriptions.filter(u => u !== target.username);
@@ -113,19 +132,14 @@ app.post('/users/follow/:username', verifyToken, async (req, res) => {
     res.json({ ok: true });
 });
 
-// СООБЩЕНИЯ И СПИСОК ЧАТОВ
 app.get('/chats', verifyToken, async (req, res) => {
     const me = req.user.username;
-    // Находим всех, кому я писал или кто писал мне
     const senders = await Message.distinct('sender', { receiver: me });
     const receivers = await Message.distinct('receiver', { sender: me });
-    const chatPartners = [...new Set([...senders, ...receivers])];
-    
-    const users = await User.find({ username: { $in: chatPartners } }, 'username displayName avatarUrl');
-    
-    // Проверяем наличие непрочитанных
-    const unread = await Message.countDocuments({ receiver: me, isRead: false });
-    res.json({ users, unreadCount: unread });
+    const partners = [...new Set([...senders, ...receivers])];
+    const users = await User.find({ username: { $in: partners } }, 'username displayName avatarUrl');
+    const unreadCount = await Message.countDocuments({ receiver: me, isRead: false });
+    res.json({ users, unreadCount });
 });
 
 app.get('/messages/:with', verifyToken, async (req, res) => {
@@ -140,6 +154,13 @@ app.post('/messages', verifyToken, async (req, res) => {
     const msg = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
     await msg.save();
     res.json(msg);
+});
+
+app.post('/users/update', verifyToken, async (req, res) => {
+    const { displayName, avatarUrl } = req.body;
+    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
+    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
+    res.json({ ok: true });
 });
 
 app.listen(process.env.PORT || 80);
