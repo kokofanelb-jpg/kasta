@@ -45,7 +45,6 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// Роуты
 app.post('/register', async (req, res) => {
     const hashed = await bcrypt.hash(req.body.password, 10);
     const user = new User({ username: req.body.username, password: hashed });
@@ -71,10 +70,18 @@ app.post('/posts', verifyToken, async (req, res) => {
     res.json(post);
 });
 
+// НОВОЕ: УДАЛЕНИЕ ПОСТА
+app.delete('/posts/:id', verifyToken, async (req, res) => {
+    await Post.findOneAndDelete({ _id: req.params.id, author: req.user.username });
+    res.json({ success: true });
+});
+
+// ОБНОВЛЕНО: ВОЗВРАЩАЕМ ПОСТЫ ПОЛЬЗОВАТЕЛЯ ДЛЯ ПРОФИЛЯ
 app.get('/users/profile/:username', async (req, res) => {
     const user = await User.findOne({ username: req.params.username });
-    const postsCount = await Post.countDocuments({ author: req.params.username });
-    res.json({ ...user._doc, postsCount, subscribersCount: user.subscribers.length });
+    if (!user) return res.status(404).send();
+    const userPosts = await Post.find({ author: req.params.username }).sort({ createdAt: -1 });
+    res.json({ ...user._doc, postsCount: userPosts.length, subscribersCount: user.subscribers.length, posts: userPosts });
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
