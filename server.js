@@ -89,23 +89,24 @@ app.delete('/posts/:id', verifyToken, async (req, res) => {
 });
 
 app.get('/users/profile/:username', async (req, res) => {
-    const user = await User.findOne({ username: req.params.username.toLowerCase() });
-    if (!user) return res.status(404).json({error: "User not found"});
-    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
-    res.json({
-        username: user.username,
-        displayName: user.displayName || user.username,
-        avatarUrl: user.avatarUrl,
-        subscribersCount: user.subscribers.length,
-        subscriptionsCount: user.subscriptions.length,
-        postsCount: posts.length,
-        subscribers: user.subscribers,
-        posts: posts
-    });
+    try {
+        const user = await User.findOne({ username: req.params.username.toLowerCase() });
+        if (!user) return res.status(404).json({error: "User not found"});
+        const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
+        res.json({
+            username: user.username,
+            displayName: user.displayName || user.username,
+            avatarUrl: user.avatarUrl || "",
+            subscribersCount: user.subscribers ? user.subscribers.length : 0,
+            subscriptionsCount: user.subscriptions ? user.subscriptions.length : 0,
+            postsCount: posts.length,
+            subscribers: user.subscribers || [],
+            posts: posts
+        });
+    } catch (e) { res.status(500).json({error: "Server error"}); }
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    // Безопасность: обновляем только того, чей токен
     const updates = {};
     if(req.body.displayName) updates.displayName = req.body.displayName;
     if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
@@ -125,19 +126,17 @@ app.post('/users/follow/:username', verifyToken, async (req, res) => {
     const targetName = req.params.username.toLowerCase();
     const meName = req.user.username;
     if (targetName === meName) return res.status(400).send();
-
     const target = await User.findOne({ username: targetName });
-    const me = await User.findOne({ username: meName });
-
-    if (target.subscribers.includes(meName)) {
-        target.subscribers = target.subscribers.filter(u => u !== meName);
-        me.subscriptions = me.subscriptions.filter(u => u !== targetName);
-    } else {
+    const meUser = await User.findOne({ username: meName });
+    if (!target.subscribers.includes(meName)) {
         target.subscribers.push(meName);
-        me.subscriptions.push(targetName);
+        meUser.subscriptions.push(targetName);
+    } else {
+        target.subscribers = target.subscribers.filter(u => u !== meName);
+        meUser.subscriptions = meUser.subscriptions.filter(u => u !== targetName);
     }
     await target.save();
-    await me.save();
+    await meUser.save();
     res.json({ ok: true });
 });
 
