@@ -4,49 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kasta</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
     <style>
-        :root { --blue: #0088cc; --bg: #f0f2f5; --text: #000; --gray: #65676b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: rgba(0,0,0,0.1); }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.4; padding-bottom: 80px; }
-        
+        :root { --blue: #0088cc; --bg: #f0f2f5; --gray: #65676b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding-bottom: 80px; }
         .hidden { display: none !important; }
 
-        /* НАВИГАЦИЯ — Сделана максимально надежно для клика */
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: #fff; border-top: 2px solid #ddd; display: flex; z-index: 999999; }
-        .nav-btn { flex: 1; border: none; background: none; font-size: 26px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; height: 100%; }
-        .nav-btn:active { background: #f0f0f0; }
-        .nav-btn.active { color: var(--blue); }
-        .badge { position: absolute; top: 10px; right: 20%; background: red; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: bold; border: 2px solid #fff; }
-
-        .container { max-width: 600px; margin: 0 auto; width: 100%; position: relative; z-index: 10; }
-
-        /* КНОПКИ — Теперь они точно будут нажиматься */
-        .btn { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; width: 100%; display: block; cursor: pointer; text-align: center; margin: 5px 0; }
-        .btn:active { opacity: 0.8; transform: scale(0.98); }
-        .btn-gray { background: #e4e6eb; color: #000; }
-
-        input, textarea { width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; margin-bottom: 10px; outline: none; background: #fff; display: block; }
+        .container { max-width: 600px; margin: 0 auto; position: relative; }
 
         /* ПОСТЫ */
-        .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #ddd; overflow: hidden; }
-        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .post-ava { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #ddd; }
+        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; }
+        .post-ava { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; }
         .post-time { font-size: 12px; color: var(--gray); }
-        .post-txt { padding: 0 15px 12px; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+        .post-txt { padding: 0 15px 12px; font-size: 15px; white-space: pre-wrap; }
         .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
-        .post-f { padding: 10px 15px; display: flex; gap: 20px; border-top: 1px solid #f0f0f0; }
+        .post-f { padding: 10px 15px; border-top: 1px solid #f9f9f9; }
 
         /* ПРОФИЛЬ */
-        .prof-top { background: #fff; padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
-        .p-ava { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 1px solid #ddd; }
-        .p-stats { display: flex; justify-content: space-around; margin: 15px 0; border-top: 1px solid #eee; padding-top: 15px; }
-        .p-stats div { display: flex; flex-direction: column; font-size: 13px; color: var(--gray); }
+        .prof-top { background: #fff; padding: 25px 15px; text-align: center; border-bottom: 1px solid #ddd; }
+        .p-ava { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue); margin-bottom: 10px; }
+        .p-stats { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .p-stats div { display: flex; flex-direction: column; font-size: 12px; color: var(--gray); }
         .p-stats b { font-size: 18px; color: #000; }
+        .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: #fff; }
+        .p-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+
+        /* КНОПКИ */
+        .btn { background: var(--blue); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; margin: 5px 0; z-index: 10; position: relative; }
+        .btn:active { opacity: 0.7; }
+        .btn-gray { background: #e4e6eb; color: #000; }
+
+        input, textarea { width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; margin-bottom: 10px; background: #fff; outline: none; }
+
+        /* НАВИГАЦИЯ */
+        .nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #fff; border-top: 1px solid #ddd; display: flex; z-index: 9999; }
+        .nav-item { flex: 1; border: none; background: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; }
+        .badge { position: absolute; top: 12px; right: 25%; background: red; color: white; border-radius: 10px; padding: 2px 5px; font-size: 10px; border: 2px solid #fff; }
 
         /* ЧАТ */
-        .chat-list-item { display: flex; align-items: center; gap: 12px; padding: 15px; background: #fff; border-bottom: 1px solid #eee; cursor: pointer; }
-        .chat-list-item:active { background: #f9f9f9; }
-        #msg-box { height: calc(100vh - 140px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 8px; }
+        #msg-box { height: calc(100vh - 130px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 8px; }
         .m { padding: 8px 14px; border-radius: 15px; max-width: 80%; font-size: 15px; }
         .m-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .m-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
@@ -55,100 +56,81 @@
 <body>
 
     <div id="view-auth" class="container" style="padding: 40px 20px;">
-        <h1 style="text-align:center; font-size: 40px; color: var(--blue); margin-bottom: 30px;">Kasta</h1>
-        <input id="in-user" placeholder="Логин">
-        <input id="in-pass" type="password" placeholder="Пароль">
+        <h1 style="text-align:center; color: var(--blue); margin-bottom: 30px;">Kasta</h1>
+        <input id="auth-u" placeholder="Логин">
+        <input id="auth-p" type="password" placeholder="Пароль">
         <button class="btn" onclick="handleAuth('login')">Войти</button>
         <button class="btn btn-gray" onclick="handleAuth('register')">Создать аккаунт</button>
     </div>
 
     <div id="view-app" class="hidden">
         <div class="container">
-            
             <div id="sec-feed">
                 <div style="background:#fff; padding:15px; border-bottom:1px solid #ddd;">
-                    <textarea id="new-p-txt" placeholder="Что нового?" rows="2"></textarea>
-                    <input type="file" id="new-p-img" accept="image/*">
-                    <button class="btn" id="btn-post" onclick="doPost()">Опубликовать</button>
+                    <textarea id="p-txt" placeholder="Что нового?" rows="2"></textarea>
+                    <input type="file" id="p-img" accept="image/*">
+                    <button class="btn" onclick="doPost()">Опубликовать</button>
                 </div>
                 <div id="feed-list"></div>
             </div>
 
             <div id="sec-search" class="hidden">
-                <div style="padding:15px; background:#fff; border-bottom:1px solid #ddd;">
-                    <input oninput="searchUsers(this.value)" placeholder="Найти человека...">
-                </div>
+                <div style="padding:15px;"><input oninput="doSearch(this.value)" placeholder="Поиск..."></div>
                 <div id="search-list"></div>
             </div>
 
             <div id="sec-chats" class="hidden">
-                <div id="chat-list-box"></div>
+                <div id="chats-list"></div>
                 <div id="chat-active" class="hidden">
-                    <div style="padding:10px; background:#fff; display:flex; align-items:center; gap:10px; border-bottom:1px solid #ddd;">
-                        <button onclick="closeChat()" style="padding:10px; background:none; border:none; font-size:24px;">←</button>
-                        <b id="active-chat-name"></b>
+                    <div style="padding:10px; background:#fff; display:flex; gap:10px; border-bottom:1px solid #ddd;">
+                        <button onclick="backToChats()" style="border:none; background:none; font-size:24px;">←</button>
+                        <b id="chat-name"></b>
                     </div>
                     <div id="msg-box"></div>
-                    <div style="padding:10px; display:flex; gap:10px; background:#fff; border-top:1px solid #ddd;">
-                        <input id="msg-input" placeholder="Сообщение..." style="margin:0;">
-                        <button class="btn" style="width:60px; margin:0; padding:0;" onclick="sendMsg()">➤</button>
+                    <div style="padding:10px; display:flex; gap:10px; background:#f0f2f5;">
+                        <input id="m-in" placeholder="Сообщение..." style="margin:0;">
+                        <button class="btn" style="width:60px; margin:0;" onclick="sendMsg()">➤</button>
                     </div>
                 </div>
             </div>
 
             <div id="sec-profile" class="hidden">
-                <div id="profile-head"></div>
-                <div id="profile-posts"></div>
+                <div id="prof-ui"></div>
+                <div class="p-grid" id="prof-posts"></div>
             </div>
-
-            <div id="sec-sets" class="hidden" style="padding:20px;">
-                <h3>Настройки</h3><br>
-                <input id="set-name" placeholder="Новое имя">
-                <p style="font-size:12px; color:gray;">Сменить аватарку:</p>
-                <input type="file" id="set-ava" accept="image/*">
-                <button class="btn" onclick="saveSets()">Сохранить</button>
-                <button class="btn btn-gray" onclick="logout()" style="margin-top:40px; color:red;">Выйти</button>
-            </div>
-
         </div>
 
         <nav class="nav">
-            <button class="nav-btn" onclick="nav('feed')">🏠</button>
-            <button class="nav-btn" onclick="nav('search')">🔍</button>
-            <button class="nav-btn" onclick="nav('chats')">💬<div id="chat-dot" class="badge hidden"></div></button>
-            <button class="nav-btn" onclick="openProfile(me)">👤</button>
+            <button class="nav-item" onclick="nav('feed')">🏠</button>
+            <button class="nav-item" onclick="nav('search')">🔍</button>
+            <button class="nav-item" onclick="nav('chats')">💬<div id="dot" class="badge hidden"></div></button>
+            <button class="nav-item" onclick="openProfile(me)">👤</button>
         </nav>
     </div>
 
     <script>
+        // ВАЖНО: Проверь, чтобы тут был HTTPS!
         const API = "https://kasta-l49s.onrender.com";
-        const DEF_AVA = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
+        const DEF = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
 
-        let token = localStorage.getItem('token');
-        let me = localStorage.getItem('currentUser');
-        let currentChat = null, chatLoop = null;
+        let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), chatL;
 
-        async function handleAuth(type) {
-            const username = document.getElementById('in-user').value;
-            const password = document.getElementById('in-pass').value;
-            const res = await fetch(`${API}/${type}`, {
+        async function handleAuth(t) {
+            const username = document.getElementById('auth-u').value, password = document.getElementById('auth-p').value;
+            const res = await fetch(`${API}/${t}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password})
             });
             const d = await res.json();
-            if(res.ok) {
-                localStorage.setItem('token', d.token);
-                localStorage.setItem('currentUser', d.username);
-                location.reload();
-            } else alert(d.message);
+            if(res.ok) { localStorage.setItem('token', d.token); localStorage.setItem('currentUser', d.username); location.reload(); }
+            else alert(d.message);
         }
 
-        function nav(sec) {
-            document.querySelectorAll('[id^="sec-"]').forEach(s => s.classList.add('hidden'));
-            document.getElementById('sec-'+sec).classList.remove('hidden');
-            if(sec === 'feed') loadFeed();
-            if(sec === 'chats') loadChatList();
+        function nav(s) {
+            document.querySelectorAll('[id^="sec-"]').forEach(x => x.classList.add('hidden'));
+            document.getElementById('sec-'+s).classList.remove('hidden');
+            if(s==='feed') loadFeed(); if(s==='chats') loadChats();
             window.scrollTo(0,0);
         }
 
@@ -158,39 +140,21 @@
             document.getElementById('feed-list').innerHTML = posts.map(p => `
                 <div class="post">
                     <div class="post-h" onclick="openProfile('${p.author}')">
-                        <img class="post-ava" src="${p.authorAvatar || DEF_AVA}">
+                        <img class="post-ava" src="${p.authorAvatar || DEF}">
                         <div><b>${p.author}</b><br><span class="post-time">${new Date(p.createdAt).toLocaleString()}</span></div>
                     </div>
                     ${p.text ? `<div class="post-txt">${p.text}</div>` : ''}
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
                     <div class="post-f">
-                        <button onclick="doLike('${p._id}', this)" style="border:none; background:none; font-size:18px; cursor:pointer;">❤️ ${p.likes.length}</button>
+                        <button onclick="doLike('${p._id}', this)" style="border:none; background:none; font-size:18px;">❤️ ${p.likes.length}</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function doPost() {
-            const text = document.getElementById('new-p-txt').value;
-            const file = document.getElementById('new-p-img').files[0];
-            let imageUrl = "";
-            if(file) {
-                const reader = new FileReader();
-                imageUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
-            }
-            await fetch(`${API}/posts`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({text, imageUrl})
-            });
-            document.getElementById('new-p-txt').value = "";
-            loadFeed();
-        }
-
         async function doLike(id, btn) {
-            const res = await fetch(`${API}/posts/${id}/like`, {method: 'POST', headers: {'Authorization': `Bearer ${token}`}});
-            const d = await res.json();
-            btn.innerHTML = `❤️ ${d.likes.length}`;
+            const res = await fetch(`${API}/posts/${id}/like`, {method:'POST', headers:{'Authorization':`Bearer ${token}`}});
+            const d = await res.json(); btn.innerHTML = `❤️ ${d.likes.length}`;
         }
 
         async function openProfile(name) {
@@ -200,122 +164,89 @@
             const isMe = u.username === me;
             const isSub = u.subscribers && u.subscribers.includes(me);
 
-            document.getElementById('profile-head').innerHTML = `
+            document.getElementById('prof-ui').innerHTML = `
                 <div class="prof-top">
-                    <img src="${u.avatarUrl || DEF_AVA}" class="p-ava">
+                    <img src="${u.avatarUrl || DEF}" class="p-ava">
                     <h2>${u.displayName || u.username}</h2>
-                    <p style="color:gray;">@${u.username}</p>
                     <div class="p-stats">
                         <div><b>${u.postsCount}</b>посты</div>
                         <div><b>${u.subscribersCount}</b>подписчики</div>
                         <div><b>${u.subscriptionsCount}</b>подписки</div>
                     </div>
-                    ${isMe ? `<button class="btn btn-gray" onclick="nav('sets')">Настройки</button>` : `
+                    ${isMe ? `<button class="btn btn-gray" onclick="logout()">Выйти</button>` : `
                         <div style="display:flex; gap:10px;">
-                            <button class="btn" style="background:${isSub ? '#ddd' : '#0088cc'}; color:${isSub ? '#000' : '#fff'};" onclick="doFollow('${u.username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
-                            <button class="btn btn-gray" style="margin:0;" onclick="startChat('${u.username}')">Чат</button>
+                            <button class="btn" style="background:${isSub ? '#ddd':'#0088cc'}" onclick="doFollow('${u.username}')">${isSub ? 'Отписаться':'Подписаться'}</button>
+                            <button class="btn btn-gray" style="margin:0" onclick="startChat('${u.username}')">Чат</button>
                         </div>
                     `}
                 </div>
             `;
-            document.getElementById('profile-posts').innerHTML = u.posts.map(p => `
-                <div class="post" style="margin-top:10px;">
-                    ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
-                    <div class="post-txt" style="padding-top:10px;">${p.text}</div>
-                </div>
-            `).join('');
+            document.getElementById('prof-posts').innerHTML = u.posts.map(p => p.imageUrl ? `<img src="${p.imageUrl}">` : `<div style="padding:10px; background:#eee; font-size:10px; overflow:hidden;">${p.text}</div>`).join('');
         }
 
-        async function doFollow(name) {
-            await fetch(`${API}/users/follow/${name}`, {method: 'POST', headers: {'Authorization': `Bearer ${token}`}});
-            openProfile(name);
-        }
-
-        async function loadChatList() {
-            const res = await fetch(`${API}/chats`, {headers: {'Authorization': `Bearer ${token}`}});
-            const d = await res.json();
-            const dot = document.getElementById('chat-dot');
-            if(d.unreadCount > 0) { dot.innerText = d.unreadCount; dot.classList.remove('hidden'); } else dot.classList.add('hidden');
-
-            document.getElementById('chat-list-box').innerHTML = d.users.map(u => `
-                <div class="chat-list-item" onclick="startChat('${u.username}')">
-                    <img src="${u.avatarUrl || DEF_AVA}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
-                    <b>${u.displayName || u.username}</b>
-                </div>
-            `).join('') || '<p style="padding:40px; text-align:center; color:gray;">Тут пусто...</p>';
-        }
-
-        function startChat(name) {
-            currentChat = name;
-            document.getElementById('chat-list-box').classList.add('hidden');
-            document.getElementById('chat-active').classList.remove('hidden');
-            document.getElementById('active-chat-name').innerText = name;
-            loadMsgs();
-            chatLoop = setInterval(loadMsgs, 3000);
-        }
-
-        function closeChat() {
-            clearInterval(chatLoop);
-            document.getElementById('chat-active').classList.add('hidden');
-            document.getElementById('chat-list-box').classList.remove('hidden');
-            loadChatList();
-        }
-
-        async function loadMsgs() {
-            const res = await fetch(`${API}/messages/${currentChat}`, {headers: {'Authorization': `Bearer ${token}`}});
-            const msgs = await res.json();
-            document.getElementById('msg-box').innerHTML = msgs.map(m => `
-                <div class="m ${m.sender === me ? 'm-out' : 'm-in'}">${m.text}</div>
-            `).join('');
-            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
-        }
-
-        async function sendMsg() {
-            const text = document.getElementById('msg-input').value; if(!text) return;
-            await fetch(`${API}/messages`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({receiver: currentChat, text})
-            });
-            document.getElementById('msg-input').value = ""; loadMsgs();
-        }
-
-        async function searchUsers(q) {
-            if(!q) return document.getElementById('search-list').innerHTML = "";
-            const res = await fetch(`${API}/users/search?q=${q}`);
-            const users = await res.json();
-            document.getElementById('search-list').innerHTML = users.map(u => `
-                <div class="chat-list-item" onclick="openProfile('${u.username}')">
-                    <img src="${u.avatarUrl || DEF_AVA}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-                    <b>${u.username}</b>
-                </div>
-            `).join('');
-        }
-
-        async function saveSets() {
-            const displayName = document.getElementById('set-name').value;
-            const file = document.getElementById('set-ava').files[0];
-            let avatarUrl = undefined;
+        async function doPost() {
+            const text = document.getElementById('p-txt').value, file = document.getElementById('p-img').files[0];
+            let imageUrl = "";
             if(file) {
                 const reader = new FileReader();
-                avatarUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
+                imageUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
             }
-            await fetch(`${API}/users/update`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({displayName, avatarUrl})
+            await fetch(`${API}/posts`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
+                body: JSON.stringify({text, imageUrl})
             });
-            location.reload();
+            document.getElementById('p-txt').value = ""; loadFeed();
         }
 
+        async function loadChats() {
+            const res = await fetch(`${API}/chats`, {headers:{'Authorization':`Bearer ${token}`}});
+            const d = await res.json();
+            const dot = document.getElementById('dot');
+            if(d.unreadCount > 0) { dot.innerText = d.unreadCount; dot.classList.remove('hidden'); } else dot.classList.add('hidden');
+            document.getElementById('chats-list').innerHTML = d.users.map(u => `
+                <div style="display:flex; align-items:center; gap:12px; padding:15px; background:#fff; border-bottom:1px solid #eee" onclick="startChat('${u.username}')">
+                    <img src="${u.avatarUrl || DEF}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+                    <b>${u.username}</b>
+                </div>
+            `).join('') || '<p style="padding:20px; text-align:center; color:gray;">Нет чатов</p>';
+        }
+
+        let curP;
+        function startChat(n) {
+            curP = n; document.getElementById('chats-list').classList.add('hidden');
+            document.getElementById('chat-active').classList.remove('hidden');
+            document.getElementById('chat-name').innerText = n;
+            loadMsgs(); chatL = setInterval(loadMsgs, 3000);
+        }
+        function backToChats() { clearInterval(chatL); document.getElementById('chat-active').classList.add('hidden'); document.getElementById('chats-list').classList.remove('hidden'); loadChats(); }
+        async function loadMsgs() {
+            const res = await fetch(`${API}/messages/${curP}`, {headers:{'Authorization':`Bearer ${token}`}});
+            const msgs = await res.json();
+            document.getElementById('msg-box').innerHTML = msgs.map(m => `<div class="m ${m.sender === me ? 'm-out' : 'm-in'}">${m.text}</div>`).join('');
+            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
+        }
+        async function sendMsg() {
+            const text = document.getElementById('m-in').value; if(!text) return;
+            await fetch(`${API}/messages`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
+                body: JSON.stringify({receiver:curP, text})
+            });
+            document.getElementById('m-in').value = ""; loadMsgs();
+        }
+
+        async function doSearch(q) {
+            if(!q) return;
+            const res = await fetch(`${API}/users/search?q=${q}`);
+            const users = await res.json();
+            document.getElementById('search-list').innerHTML = users.map(u => `<div style="padding:15px; background:#fff; border-bottom:1px solid #eee" onclick="openProfile('${u.username}')">${u.username}</div>`).join('');
+        }
+
+        async function doFollow(n) { await fetch(`${API}/users/follow/${n}`, {method:'POST', headers:{'Authorization':`Bearer ${token}`}}); openProfile(n); }
         function logout() { localStorage.clear(); location.reload(); }
 
-        if(token) {
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('view-app').classList.remove('hidden');
-            loadFeed();
-            setInterval(loadChatList, 10000);
-        }
+        if(token) { document.getElementById('view-auth').classList.add('hidden'); document.getElementById('view-app').classList.remove('hidden'); loadFeed(); setInterval(loadChats, 10000); }
     </script>
 </body>
 </html>
