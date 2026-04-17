@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasta - Твоя Сеть</title>
+    <title>Kasta</title>
     <style>
         :root { --accent: #0088cc; --bg: #f4f4f5; --white: #ffffff; --text: #222; --gray: #8e8e93; --border: #dbdbdb; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         .hidden { display: none !important; }
         
-        /* Меню */
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: var(--white); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { cursor: pointer; font-size: 24px; filter: grayscale(1); }
         .nav-item.active { filter: grayscale(0); transform: scale(1.1); }
 
-        /* Контент */
         .container { max-width: 500px; margin: 0 auto; padding: 15px; padding-bottom: 80px; }
         
-        /* Профиль */
         .profile-card { background: var(--white); padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .p-ava { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
+        .p-ava { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); display: inline-block; }
         
-        /* Посты */
         .post { background: var(--white); border-radius: 15px; margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border); }
-        .post-head { padding: 10px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; }
+        .post-head { padding: 10px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; position: relative; }
         .post-ava { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         .post-img { width: 100%; display: block; max-height: 400px; object-fit: cover; }
         .post-txt { padding: 12px; font-size: 15px; }
+        .del-btn { position: absolute; right: 10px; background: none; border: none; color: red; font-size: 18px; cursor: pointer; }
 
-        /* Кнопки */
         .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-grey { background: #e5e5ea; color: #000; }
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 16px; }
 
-        /* Сообщения */
         #msg-history { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #f9f9f9; border-radius: 10px; }
         .m { padding: 8px 14px; border-radius: 15px; max-width: 75%; font-size: 14px; }
         .m-in { align-self: flex-start; background: #fff; border: 1px solid #ddd; }
@@ -65,14 +60,14 @@
             </div>
 
             <div id="tab-search" class="hidden">
-                <input oninput="runSearch(this.value)" placeholder="Найти друзей...">
+                <input id="search-input" oninput="runSearch(this.value)" placeholder="Найти людей...">
                 <div id="search-list"></div>
             </div>
 
             <div id="tab-chats" class="hidden">
                 <div id="chats-list-view">
                     <h3>Мои сообщения</h3>
-                    <div id="active-dialogs"></div>
+                    <div id="active-dialogs">Ищи друзей и пиши им сообщения!</div>
                 </div>
                 <div id="chat-box" class="hidden">
                     <button class="btn btn-grey" onclick="closeChat()">← Назад</button>
@@ -97,19 +92,20 @@
                     </div>
                     <div id="profile-actions" style="margin-top:20px;"></div>
                 </div>
+                <div id="profile-posts-list"></div>
             </div>
 
             <div id="tab-settings" class="hidden">
-                <h3>Настройки (как в ТГ)</h3>
+                <h3>Настройки профиля</h3>
                 <div style="background: white; padding: 20px; border-radius: 15px;">
                     <label>Отображаемое имя:</label>
-                    <input id="set-display-name" placeholder="Как тебя называть?">
+                    <input id="set-display-name" placeholder="Твое имя">
                     
-                    <label>Новая аватарка:</label>
+                    <label>Сменить аватарку:</label>
                     <input type="file" id="set-ava-file" accept="image/*">
                     
                     <button class="btn" onclick="saveSettings()">Сохранить изменения</button>
-                    <button class="btn btn-grey" style="color:red; margin-top:20px;" onclick="logout()">Выйти</button>
+                    <button class="btn btn-grey" style="color:red; margin-top:20px;" onclick="logout()">🚪 Выйти из аккаунта</button>
                 </div>
             </div>
 
@@ -125,7 +121,6 @@
     </div>
 
     <script>
-        // ВНИМАНИЕ: Проверь, чтобы ссылка была HTTPS
         const API = "https://kasta-l49s.onrender.com"; 
 
         let token = localStorage.getItem('token');
@@ -133,11 +128,25 @@
         let chatWith = null;
         let chatInterval = null;
 
-        // 1. АВТОРИЗАЦИЯ
+        // ФУНКЦИИ ДЛЯ РЕНДЕРА ПОСТОВ
+        function createPostHTML(p) {
+            return `
+                <div class="post">
+                    <div class="post-head" onclick="openUser('${p.author}')">
+                        <img src="${p.authorAvatar || 'https://via.placeholder.com/35'}" class="post-ava">
+                        <span>@${p.author}</span>
+                        ${p.author === me ? `<button class="del-btn" onclick="event.stopPropagation(); deletePost('${p._id}')">🗑️</button>` : ''}
+                    </div>
+                    ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
+                    <div class="post-txt">${p.text}</div>
+                </div>
+            `;
+        }
+
         async function handleAuth(type) {
             const username = document.getElementById('u-name').value;
             const password = document.getElementById('u-pass').value;
-            if(!username || !password) return alert("Заполни пустые поля!");
+            if(!username || !password) return alert("Заполни поля!");
 
             try {
                 const res = await fetch(`${API}/${type}`, {
@@ -151,10 +160,9 @@
                     localStorage.setItem('currentUser', username);
                     location.reload();
                 } else alert(data.message || "Ошибка!");
-            } catch(e) { alert("Сервер Render просыпается, попробуй через 20 секунд."); }
+            } catch(e) { alert("Сервер спит, подожди 20 секунд и нажми еще раз."); }
         }
 
-        // 2. ВСПОМОГАТЕЛЬНЫЕ
         const toBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -162,36 +170,44 @@
             reader.onerror = e => reject(e);
         });
 
-        // 3. ЛЕНТА
+        // ПУБЛИКАЦИЯ И МГНОВЕННОЕ ОБНОВЛЕНИЕ
         async function publishPost() {
-            const text = document.getElementById('post-txt').value;
-            const file = document.getElementById('post-file').files[0];
-            let imageUrl = file ? await toBase64(file) : "";
+            const textInput = document.getElementById('post-txt');
+            const fileInput = document.getElementById('post-file');
+            if (!textInput.value && !fileInput.files[0]) return;
+
+            let imageUrl = fileInput.files[0] ? await toBase64(fileInput.files[0]) : "";
             
             await fetch(`${API}/posts`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({text, imageUrl})
+                body: JSON.stringify({text: textInput.value, imageUrl})
             });
-            location.reload();
+            
+            // Очищаем форму и мгновенно грузим ленту (БЕЗ перезагрузки страницы)
+            textInput.value = "";
+            fileInput.value = "";
+            loadFeed();
+        }
+
+        // УДАЛЕНИЕ ПОСТА
+        async function deletePost(postId) {
+            if(!confirm("Точно удалить пост?")) return;
+            await fetch(`${API}/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            // Обновляем текущую вкладку
+            if(!document.getElementById('tab-feed').classList.contains('hidden')) loadFeed();
+            if(!document.getElementById('tab-profile').classList.contains('hidden')) openUser(me);
         }
 
         async function loadFeed() {
             const res = await fetch(`${API}/posts`);
             const posts = await res.json();
-            document.getElementById('feed-items').innerHTML = posts.map(p => `
-                <div class="post">
-                    <div class="post-head" onclick="openUser('${p.author}')">
-                        <img src="${p.authorAvatar || 'https://via.placeholder.com/35'}" class="post-ava">
-                        <span>@${p.author}</span>
-                    </div>
-                    ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
-                    <div class="post-txt">${p.text}</div>
-                </div>
-            `).join('');
+            document.getElementById('feed-items').innerHTML = posts.map(createPostHTML).join('');
         }
 
-        // 4. НАСТРОЙКИ И ПРОФИЛЬ
         async function saveSettings() {
             const displayName = document.getElementById('set-display-name').value;
             const file = document.getElementById('set-ava-file').files[0];
@@ -202,7 +218,7 @@
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({displayName, avatarUrl})
             });
-            alert("Готово! Настройки изменены.");
+            alert("Настройки сохранены!");
             location.reload();
         }
 
@@ -217,15 +233,23 @@
             document.getElementById('s-p').innerText = d.postsCount || 0;
             document.getElementById('s-subers').innerText = d.subscribersCount || 0;
 
+            // ОТОБРАЖАЕМ ПОСТЫ ЭТОГО ПОЛЬЗОВАТЕЛЯ НА ЕГО СТРАНИЦЕ
+            const profilePostsBox = document.getElementById('profile-posts-list');
+            if (d.posts && d.posts.length > 0) {
+                profilePostsBox.innerHTML = "<h3 style='margin-top: 20px;'>Публикации</h3>" + d.posts.map(createPostHTML).join('');
+            } else {
+                profilePostsBox.innerHTML = "<p style='text-align:center; color:gray; margin-top:20px;'>Пока нет постов.</p>";
+            }
+
             const actions = document.getElementById('profile-actions');
             if(username !== me) {
                 const isSub = d.subscribers && d.subscribers.includes(me);
                 actions.innerHTML = `
-                    <button class="btn" onclick="toggleFollow('${username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
-                    <button class="btn btn-grey" onclick="startChat('${username}')">💬 Написать</button>
+                    <button class="btn" style="width: 48%; display: inline-block;" onclick="toggleFollow('${username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
+                    <button class="btn btn-grey" style="width: 48%; display: inline-block; margin-left: 2%;" onclick="startChat('${username}')">💬 Написать</button>
                 `;
             } else {
-                actions.innerHTML = `<button class="btn btn-grey" onclick="showTab('settings')">⚙️ Настройки профиля</button>`;
+                actions.innerHTML = `<button class="btn btn-grey" onclick="showTab('settings')">⚙️ Редактировать профиль</button>`;
             }
         }
 
@@ -234,23 +258,24 @@
                 method: 'POST',
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            openUser(username);
+            openUser(username); // мгновенно обновит цифру подписчиков
         }
 
-        // 5. ПОИСК
         async function runSearch(q) {
-            if(!q) return;
+            if(!q) {
+                document.getElementById('search-list').innerHTML = "";
+                return;
+            }
             const res = await fetch(`${API}/users/search?q=${q}`);
             const users = await res.json();
             document.getElementById('search-list').innerHTML = users.map(u => `
                 <div onclick="openUser('${u.username}')" style="display:flex; align-items:center; gap:10px; padding:12px; background:white; margin-top:8px; border-radius:12px; cursor:pointer;">
-                    <img src="${u.avatarUrl || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%;">
+                    <img src="${u.avatarUrl || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                     <b>${u.displayName || u.username} (@${u.username})</b>
                 </div>
             `).join('');
         }
 
-        // 6. ЧАТЫ
         async function startChat(user) {
             chatWith = user;
             showTab('chats');
@@ -280,18 +305,17 @@
         }
 
         async function sendMsg() {
-            const txt = document.getElementById('msg-input').value;
-            if(!txt) return;
+            const input = document.getElementById('msg-input');
+            if(!input.value) return;
             await fetch(`${API}/messages`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({receiver: chatWith, text: txt})
+                body: JSON.stringify({receiver: chatWith, text: input.value})
             });
-            document.getElementById('msg-input').value = "";
+            input.value = "";
             renderMsgs();
         }
 
-        // 7. НАВИГАЦИЯ
         function showTab(t) {
             const tabs = ['feed', 'profile', 'settings', 'chats', 'search'];
             tabs.forEach(id => {
@@ -308,7 +332,6 @@
 
         function logout() { localStorage.clear(); location.reload(); }
 
-        // ЗАПУСК
         if(token) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screens').classList.remove('hidden');
