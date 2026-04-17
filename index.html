@@ -10,41 +10,44 @@
         .hidden { display: none !important; }
         
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 9999; }
-        .nav-item { cursor: pointer; font-size: 24px; padding: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .nav-item:active { transform: scale(0.9); }
+        .nav-item { cursor: pointer; font-size: 24px; padding: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; filter: grayscale(1); }
+        .nav-item:hover { filter: grayscale(0); }
+        .nav-item.active { filter: grayscale(0); color: var(--accent); }
 
         .container { max-width: 550px; margin: 0 auto; padding: 15px 15px 80px 15px; }
         
-        .post { background: #fff; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); overflow: hidden; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .post { background: #fff; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .post-ava { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #ddd; }
-        .post-img { width: 100%; display: block; background: #eee; max-height: 500px; object-fit: cover; }
+        .post-ava { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .post-img { width: 100%; display: block; background: #f9f9f9; max-height: 550px; object-fit: cover; }
         .post-content { padding: 12px; font-size: 15px; line-height: 1.4; white-space: pre-wrap; }
-        .del-btn { margin-left: auto; color: #ff4d4d; border: none; background: none; cursor: pointer; font-size: 20px; }
+        .del-btn { margin-left: auto; color: #ccc; border: none; background: none; cursor: pointer; font-size: 22px; transition: 0.2s; }
+        .del-btn:hover { color: #ff4d4d; }
 
         .profile-card { background: #fff; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid var(--border); }
-        .big-ava { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 10px; background: #eee; }
+        .big-ava { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 10px; background: #eee; }
         
-        .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; transition: 0.2s; }
-        .btn:active { opacity: 0.8; }
+        .btn { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; }
         .btn-sec { background: #e4e6eb; color: #050505; }
         
-        input, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; box-sizing: border-box; font-size: 16px; outline: none; background: #fff; }
+        input, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; box-sizing: border-box; font-size: 16px; outline: none; }
         
-        #msg-history { height: 65vh; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #e5ddd5; border-radius: 10px; }
-        .msg { padding: 10px 14px; border-radius: 15px; max-width: 75%; font-size: 15px; line-height: 1.3; }
+        #msg-history { height: 60vh; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #e5ddd5; border-radius: 10px; }
+        .msg { padding: 10px 14px; border-radius: 18px; max-width: 75%; font-size: 15px; }
         .msg-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .msg-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
+
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; }
     </style>
 </head>
 <body>
 
+    <div id="loader" class="loading-overlay hidden">⏳ Загрузка...</div>
+
     <div id="auth-screen" class="container">
         <h1 style="text-align:center; color: var(--accent); font-size: 42px; margin: 20px 0;">Kasta</h1>
         <div style="background: white; padding: 20px; border-radius: 15px; border: 1px solid var(--border);">
-            <input id="u-name" placeholder="Логин (например, ivan)" autocomplete="off">
+            <input id="u-name" placeholder="Логин">
             <input id="u-pass" type="password" placeholder="Пароль">
             <button class="btn" onclick="auth('login')">Войти</button>
             <button class="btn btn-sec" onclick="auth('register')">Создать аккаунт</button>
@@ -56,8 +59,8 @@
             <div id="page-feed">
                 <div style="background:#fff; padding:15px; border-radius:12px; border:1px solid var(--border); margin-bottom:15px;">
                     <textarea id="p-txt" placeholder="Что нового?" rows="2"></textarea>
-                    <input type="file" id="p-img" accept="image/*" style="font-size: 12px;">
-                    <button class="btn" onclick="createPost()">Опубликовать</button>
+                    <input type="file" id="p-img" accept="image/*">
+                    <button class="btn" id="publish-btn" onclick="createPost()">Опубликовать</button>
                 </div>
                 <div id="feed-container"></div>
             </div>
@@ -94,12 +97,11 @@
             <div id="page-settings" class="hidden">
                 <h3>Настройки</h3>
                 <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-                    <label>Отображаемое имя:</label>
-                    <input id="new-display-name">
-                    <label>Сменить фото:</label>
+                    <input id="new-display-name" placeholder="Имя в профиле">
+                    <p style="font-size: 13px; color: gray;">Сменить аватарку:</p>
                     <input type="file" id="new-ava-file" accept="image/*">
                     <button class="btn" onclick="updateProfile()">Сохранить изменения</button>
-                    <button class="btn btn-sec" onclick="logout()" style="color:red; margin-top:30px;">🚪 Выйти</button>
+                    <button class="btn btn-sec" onclick="logout()" style="color:red; margin-top:30px;">Выйти</button>
                 </div>
             </div>
         </div>
@@ -115,7 +117,7 @@
 
     <script>
         const API = "https://kasta-l49s.onrender.com";
-        // SVG ЗАГЛУШКА (Чтобы не было ERR_CONNECTION_CLOSED)
+        // Встроенный SVG, чтобы не зависеть от внешних сайтов
         const DEFAULT_AVA = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NjYyI+PHBhdGggZD0iTTEyIDJDMi41IDIgMCA0LjUgMCA3LjV2OWMwIDMgMi41IDUuNSA2LjUgNS41czYuNS0yLjUgNi41LTUuNXYtOWMwLTMtMi41LTUuNS02LjUtNS41em0wIDNhMyAzIDAgMSAxIDAgNiAzIDMgMCAwIDEgMC02em03LjUgMTAuNWMwIDIuNS0zLjQgNC41LTcuNSA0LjVzLTcuNS0yLTcuNS00LjV2LS41YzAtMS41IDMtMyA3LjUtMyA0LjUgMCA3LjUgMS41IDcuNSAzdi41eiIvPjwvc3ZnPg==";
 
         let token = localStorage.getItem('token');
@@ -139,13 +141,12 @@
                     localStorage.setItem('currentUser', d.username);
                     location.reload();
                 } else alert(d.message || "Ошибка!");
-            } catch(e) { alert("Сервер спит, нажми еще раз через 10 сек."); }
+            } catch(e) { alert("Сервер просыпается... Подожди 10 секунд."); }
         }
 
         function nav(page) {
             document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
-            const target = document.getElementById('page-' + page);
-            if(target) target.classList.remove('hidden');
+            document.getElementById('page-' + page).classList.remove('hidden');
             if(page === 'feed') loadFeed();
             if(page !== 'chats') backToChats();
             window.scrollTo(0,0);
@@ -160,18 +161,21 @@
             const txt = document.getElementById('p-txt').value;
             const file = document.getElementById('p-img').files[0];
             if(!txt && !file) return;
-            const btn = document.querySelector('#page-feed .btn');
-            btn.disabled = true; btn.innerText = "Публикация...";
             
+            document.getElementById('publish-btn').disabled = true;
+            document.getElementById('loader').classList.remove('hidden');
+
             let img = file ? await toB64(file) : "";
             await fetch(`${API}/posts`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({text: txt, imageUrl: img})
             });
+            
             document.getElementById('p-txt').value = "";
             document.getElementById('p-img').value = "";
-            btn.disabled = false; btn.innerText = "Опубликовать";
+            document.getElementById('publish-btn').disabled = false;
+            document.getElementById('loader').classList.add('hidden');
             loadFeed();
         }
 
@@ -197,12 +201,13 @@
         }
 
         async function delPost(id) {
-            if(!confirm("Удалить?")) return;
+            if(!confirm("Удалить этот пост?")) return;
             await fetch(`${API}/posts/${id}`, {
                 method: 'DELETE',
                 headers: {'Authorization': `Bearer ${token}`}
             });
             loadFeed();
+            // Если мы в профиле, обновляем и его
             if(!document.getElementById('page-profile').classList.contains('hidden')) openUser(me);
         }
 
@@ -212,8 +217,7 @@
             try {
                 const res = await fetch(`${API}/users/profile/${user}`);
                 const d = await res.json();
-                if(!res.ok) return;
-
+                
                 document.getElementById('view-ava').src = d.avatarUrl || DEFAULT_AVA;
                 document.getElementById('view-name').innerText = d.displayName || d.username;
                 document.getElementById('view-handle').innerText = '@' + d.username;
@@ -221,7 +225,7 @@
                 
                 let btns = document.getElementById('profile-btns');
                 if(user === me) {
-                    btns.innerHTML = `<button class="btn btn-sec" onclick="nav('settings')">Редактировать профиль</button>`;
+                    btns.innerHTML = `<button class="btn btn-sec" onclick="nav('settings')">Настройки</button>`;
                 } else {
                     const isSub = d.subscribers && d.subscribers.includes(me);
                     btns.innerHTML = `
@@ -233,25 +237,18 @@
             } catch(e) {}
         }
 
-        async function follow(user) {
-            await fetch(`${API}/users/follow/${user}`, {
-                method: 'POST',
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            openUser(user);
-        }
-
         async function updateProfile() {
             const name = document.getElementById('new-display-name').value;
             const file = document.getElementById('new-ava-file').files[0];
             let ava = file ? await toB64(file) : undefined;
 
+            document.getElementById('loader').classList.remove('hidden');
             await fetch(`${API}/users/update`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({displayName: name, avatarUrl: ava})
             });
-            alert("Обновлено!");
+            alert("Профиль обновлен!");
             location.reload();
         }
 
@@ -287,15 +284,13 @@
 
         async function loadMsgs() {
             if(!currentChat) return;
-            try {
-                const res = await fetch(`${API}/messages/${currentChat}`, {headers: {'Authorization': `Bearer ${token}`}});
-                const msgs = await res.json();
-                document.getElementById('msg-history').innerHTML = msgs.map(m => `
-                    <div class="msg ${m.sender === me ? 'msg-out' : 'msg-in'}">${m.text}</div>
-                `).join('');
-                const h = document.getElementById('msg-history');
-                h.scrollTop = h.scrollHeight;
-            } catch(e) {}
+            const res = await fetch(`${API}/messages/${currentChat}`, {headers: {'Authorization': `Bearer ${token}`}});
+            const msgs = await res.json();
+            document.getElementById('msg-history').innerHTML = msgs.map(m => `
+                <div class="msg ${m.sender === me ? 'msg-out' : 'msg-in'}">${m.text}</div>
+            `).join('');
+            const h = document.getElementById('msg-history');
+            h.scrollTop = h.scrollHeight;
         }
 
         async function sendMsg() {
@@ -316,8 +311,6 @@
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
             loadFeed();
-        } else {
-            localStorage.clear();
         }
     </script>
 </body>
