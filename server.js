@@ -104,14 +104,19 @@ app.get('/users/profile/:username', async (req, res) => {
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    const updates = {};
-    if(req.body.displayName) updates.displayName = req.body.displayName;
-    if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
-    await User.findOneAndUpdate({ username: req.user.username }, updates);
-    if(updates.avatarUrl) {
-        await Post.updateMany({ author: req.user.username }, { authorAvatar: updates.avatarUrl });
+    const { displayName, avatarUrl } = req.body;
+    const updateData = {};
+    if (displayName) updateData.displayName = displayName;
+    if (avatarUrl) updateData.avatarUrl = avatarUrl;
+
+    const updatedUser = await User.findOneAndUpdate({ username: req.user.username }, updateData, { new: true });
+    
+    // СИНХРОНИЗАЦИЯ: Обновляем аватарку во всех постах пользователя
+    if (avatarUrl) {
+        await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
     }
-    res.json({ ok: true });
+    
+    res.json({ ok: true, user: updatedUser });
 });
 
 app.get('/users/search', async (req, res) => {
