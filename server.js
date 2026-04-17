@@ -6,23 +6,21 @@ const bcrypt = require('bcryptjs');
 
 const app = express();
 
-// --- НАСТРОЙКА CORS (Разрешаем всё, чтобы телефон не ругался) ---
-app.use(cors({
-    origin: '*', // Разрешает запросы с любых сайтов (включая твой GitHub)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Жесткая настройка CORS
+app.use(cors());
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+});
 
 app.use(express.json({ limit: '15mb' })); 
 
 const SECRET = "KASTA_ULTIMATE_KEY_99";
+mongoose.connect(process.env.MONGO_URI);
 
-// Подключение к базе данных
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("DB Connected"))
-  .catch(err => console.error("DB Error:", err));
-
-// --- МОДЕЛИ ---
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -49,7 +47,6 @@ const Message = mongoose.model('Message', {
     createdAt: { type: Date, default: Date.now }
 });
 
-// --- ПРОВЕРКА ТОКЕНА ---
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token || token === "null") return res.status(401).json({error: "No token"});
@@ -60,8 +57,6 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// --- РОУТЫ (ЛОГИКА) ---
-
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -69,15 +64,13 @@ app.post('/register', async (req, res) => {
         const user = new User({ username, password: hashed, displayName: username });
         await user.save();
         res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
-    } catch(e) { res.status(400).json({message: "Логин уже занят"}); }
+    } catch(e) { res.status(400).json({message: "Логин занят"}); }
 });
 
 app.post('/login', async (req, res) => {
-    const username = req.body.username.trim();
-    const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
-        return res.status(400).json({message: "Ошибка входа"});
-    }
+    const u = req.body.username.trim();
+    const user = await User.findOne({ username: new RegExp('^' + u + '$', 'i') });
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка"});
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
@@ -88,38 +81,30 @@ app.get('/posts', async (req, res) => {
 
 app.post('/posts', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ 
-        author: req.user.username, 
-        authorAvatar: user.avatarUrl || "", 
-        text: req.body.text, 
-        imageUrl: req.body.imageUrl 
-    });
+    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
     await post.save();
     res.json(post);
 });
 
 app.post('/posts/:id/like', verifyToken, async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        const me = req.user.username;
-        post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
-        await post.save();
-        res.json({ likes: post.likes });
-    } catch(e) { res.status(500).json({error: "Like error"}); }
+    const post = await Post.findById(req.params.id);
+    const me = req.user.username;
+    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
+    await post.save();
+    res.json({ likes: post.likes });
 });
 
 app.get('/users/profile/:username', async (req, res) => {
     const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    if (!user) return res.status(404).json({error: "Not found"});
+    if (!user) return res.status(404).send();
     const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
     res.json({
         username: user.username,
         displayName: user.displayName || user.username,
         avatarUrl: user.avatarUrl || "",
-        subscribers: user.subscribers,
-        subscriptions: user.subscriptions,
         subscribersCount: user.subscribers.length,
         subscriptionsCount: user.subscriptions.length,
+        subscribers: user.subscribers,
         postsCount: posts.length,
         posts: posts
     });
@@ -130,32 +115,21 @@ app.get('/users/search', async (req, res) => {
     res.json(users);
 });
 
-app.post('/users/follow/:username', verifyToken, async (req, res) => {
-    const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    const me = await User.findOne({ username: req.user.username });
-    if (!target || !me) return res.status(404).send();
-    
-    if (target.subscribers.includes(me.username)) {
-        target.subscribers = target.subscribers.filter(u => u !== me.username);
-        me.subscriptions = me.subscriptions.filter(u => u !== target.username);
-    } else {
-        target.subscribers.push(me.username);
-        me.subscriptions.push(target.username);
-    }
-    await target.save(); await me.save();
+app.post('/users/update', verifyToken, async (req, res) => {
+    const { displayName, avatarUrl } = req.body;
+    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
+    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
     res.json({ ok: true });
 });
 
 app.get('/chats', verifyToken, async (req, res) => {
     const me = req.user.username;
-    try {
-        const senders = await Message.distinct('sender', { receiver: me });
-        const receivers = await Message.distinct('receiver', { sender: me });
-        const partners = [...new Set([...senders, ...receivers])];
-        const users = await User.find({ username: { $in: partners } }, 'username displayName avatarUrl');
-        const unreadCount = await Message.countDocuments({ receiver: me, isRead: false });
-        res.json({ users, unreadCount });
-    } catch (e) { res.status(500).json({ users: [] }); }
+    const senders = await Message.distinct('sender', { receiver: me });
+    const receivers = await Message.distinct('receiver', { sender: me });
+    const partners = [...new Set([...senders, ...receivers])];
+    const users = await User.find({ username: { $in: partners } }, 'username displayName avatarUrl');
+    const unreadCount = await Message.countDocuments({ receiver: me, isRead: false });
+    res.json({ users, unreadCount });
 });
 
 app.get('/messages/:with', verifyToken, async (req, res) => {
@@ -172,13 +146,4 @@ app.post('/messages', verifyToken, async (req, res) => {
     res.json(msg);
 });
 
-app.post('/users/update', verifyToken, async (req, res) => {
-    const { displayName, avatarUrl } = req.body;
-    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
-    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
-    res.json({ ok: true });
-});
-
-// Запуск
-const PORT = process.env.PORT || 80;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(process.env.PORT || 80);
