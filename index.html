@@ -5,117 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kasta</title>
     <style>
-        :root { --accent: #0088cc; --bg: #f0f2f5; --border: #dddfe2; --gray: #65676b; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); padding-bottom: 70px; }
+        :root { --blue: #0088cc; --bg: #f0f2f5; --text: #000; --gray: #65676b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.4; padding-bottom: 80px; }
+        
         .hidden { display: none !important; }
 
-        /* Навигация (Мобильная снизу) */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid var(--border); display: flex; z-index: 9999; }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
-        .badge { position: absolute; top: 12px; right: 30%; background: red; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; }
+        /* НАВИГАЦИЯ — Сделана максимально надежно для клика */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: #fff; border-top: 2px solid #ddd; display: flex; z-index: 999999; }
+        .nav-btn { flex: 1; border: none; background: none; font-size: 26px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; height: 100%; }
+        .nav-btn:active { background: #f0f0f0; }
+        .nav-btn.active { color: var(--blue); }
+        .badge { position: absolute; top: 10px; right: 20%; background: red; color: white; border-radius: 10px; padding: 2px 6px; font-size: 10px; font-weight: bold; border: 2px solid #fff; }
 
-        .container { max-width: 600px; margin: 0 auto; background: var(--bg); min-height: 100vh; }
-        
-        /* Посты */
-        .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; }
-        .post-ava { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #eee; }
-        .post-time { font-size: 12px; color: var(--gray); display: block; }
-        .post-img { width: 100%; max-height: 600px; object-fit: cover; display: block; background: #fafafa; }
-        .post-content { padding: 0 15px 12px; font-size: 15px; white-space: pre-wrap; }
-        .post-footer { padding: 10px 15px; border-top: 1px solid #f8f8f8; display: flex; gap: 20px; }
+        .container { max-width: 600px; margin: 0 auto; width: 100%; position: relative; z-index: 10; }
 
-        /* Профиль */
-        .profile-card { background: #fff; padding: 25px 15px; text-align: center; border-bottom: 1px solid var(--border); }
-        .big-ava { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); margin-bottom: 10px; }
-        .stats-row { display: flex; justify-content: center; gap: 25px; margin: 15px 0; }
-        .stats-item { display: flex; flex-direction: column; font-size: 13px; color: var(--gray); }
-        .stats-item b { font-size: 18px; color: #000; }
+        /* КНОПКИ — Теперь они точно будут нажиматься */
+        .btn { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; width: 100%; display: block; cursor: pointer; text-align: center; margin: 5px 0; }
+        .btn:active { opacity: 0.8; transform: scale(0.98); }
+        .btn-gray { background: #e4e6eb; color: #000; }
 
-        /* Кнопки и формы */
-        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; }
-        .btn-sec { background: #e4e6eb; color: #000; margin-top: 8px; }
-        input, textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; margin-bottom: 10px; background: #f0f2f5; outline: none; }
+        input, textarea { width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; margin-bottom: 10px; outline: none; background: #fff; display: block; }
 
-        /* Чат */
-        .chat-row { display: flex; align-items: center; gap: 12px; padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
-        #msg-history { height: calc(100vh - 125px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 6px; }
-        .m-bubble { padding: 8px 14px; border-radius: 18px; max-width: 80%; font-size: 15px; position: relative; }
-        .m-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 4px; }
-        .m-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; }
+        /* ПОСТЫ */
+        .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #ddd; overflow: hidden; }
+        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .post-ava { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .post-time { font-size: 12px; color: var(--gray); }
+        .post-txt { padding: 0 15px 12px; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+        .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
+        .post-f { padding: 10px 15px; display: flex; gap: 20px; border-top: 1px solid #f0f0f0; }
 
-        @media (min-width: 600px) {
-            .container { padding-top: 20px; }
-            .post, .profile-card { border-radius: 12px; border: 1px solid var(--border); }
-        }
+        /* ПРОФИЛЬ */
+        .prof-top { background: #fff; padding: 20px; text-align: center; border-bottom: 1px solid #ddd; }
+        .p-ava { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 1px solid #ddd; }
+        .p-stats { display: flex; justify-content: space-around; margin: 15px 0; border-top: 1px solid #eee; padding-top: 15px; }
+        .p-stats div { display: flex; flex-direction: column; font-size: 13px; color: var(--gray); }
+        .p-stats b { font-size: 18px; color: #000; }
+
+        /* ЧАТ */
+        .chat-list-item { display: flex; align-items: center; gap: 12px; padding: 15px; background: #fff; border-bottom: 1px solid #eee; cursor: pointer; }
+        .chat-list-item:active { background: #f9f9f9; }
+        #msg-box { height: calc(100vh - 140px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 8px; }
+        .m { padding: 8px 14px; border-radius: 15px; max-width: 80%; font-size: 15px; }
+        .m-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
+        .m-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="container" style="padding: 50px 20px; text-align: center;">
-        <h1 style="font-size: 42px; color: var(--accent); margin-bottom: 30px;">Kasta</h1>
-        <input id="u-name" placeholder="Логин">
-        <input id="u-pass" type="password" placeholder="Пароль">
-        <button class="btn" onclick="auth('login')">Войти</button>
-        <button class="btn btn-sec" onclick="auth('register')">Создать аккаунт</button>
+    <div id="view-auth" class="container" style="padding: 40px 20px;">
+        <h1 style="text-align:center; font-size: 40px; color: var(--blue); margin-bottom: 30px;">Kasta</h1>
+        <input id="in-user" placeholder="Логин">
+        <input id="in-pass" type="password" placeholder="Пароль">
+        <button class="btn" onclick="handleAuth('login')">Войти</button>
+        <button class="btn btn-gray" onclick="handleAuth('register')">Создать аккаунт</button>
     </div>
 
-    <div id="app" class="hidden">
+    <div id="view-app" class="hidden">
         <div class="container">
             
-            <div id="page-feed">
-                <div style="background:#fff; padding:15px; border-bottom:1px solid var(--border); margin-bottom:10px;">
-                    <textarea id="p-txt" placeholder="Что нового?" rows="2"></textarea>
-                    <input type="file" id="p-img" accept="image/*" style="background:none; border:none; padding:0;">
-                    <button class="btn" onclick="createPost()">Опубликовать</button>
+            <div id="sec-feed">
+                <div style="background:#fff; padding:15px; border-bottom:1px solid #ddd;">
+                    <textarea id="new-p-txt" placeholder="Что нового?" rows="2"></textarea>
+                    <input type="file" id="new-p-img" accept="image/*">
+                    <button class="btn" id="btn-post" onclick="doPost()">Опубликовать</button>
                 </div>
-                <div id="feed-container"></div>
+                <div id="feed-list"></div>
             </div>
 
-            <div id="page-search" class="hidden">
-                <div style="padding:15px; background:#fff; border-bottom:1px solid var(--border);">
-                    <input oninput="doSearch(this.value)" placeholder="Поиск людей...">
+            <div id="sec-search" class="hidden">
+                <div style="padding:15px; background:#fff; border-bottom:1px solid #ddd;">
+                    <input oninput="searchUsers(this.value)" placeholder="Найти человека...">
                 </div>
-                <div id="search-results"></div>
+                <div id="search-list"></div>
             </div>
 
-            <div id="page-chats" class="hidden">
-                <div id="chats-list-view"></div>
-                <div id="chat-active-view" class="hidden">
-                    <div style="padding:10px; background:#fff; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border);">
-                        <button onclick="closeChat()" style="border:none; background:none; font-size:24px;">←</button>
-                        <b id="chat-partner-name">Чат</b>
+            <div id="sec-chats" class="hidden">
+                <div id="chat-list-box"></div>
+                <div id="chat-active" class="hidden">
+                    <div style="padding:10px; background:#fff; display:flex; align-items:center; gap:10px; border-bottom:1px solid #ddd;">
+                        <button onclick="closeChat()" style="padding:10px; background:none; border:none; font-size:24px;">←</button>
+                        <b id="active-chat-name"></b>
                     </div>
-                    <div id="msg-history"></div>
-                    <div style="padding:10px; display:flex; gap:10px; background:#f0f2f5;">
-                        <input id="m-input" placeholder="Сообщение..." style="margin:0;">
-                        <button class="btn" style="width:60px; margin:0;" onclick="sendMsg()">➤</button>
+                    <div id="msg-box"></div>
+                    <div style="padding:10px; display:flex; gap:10px; background:#fff; border-top:1px solid #ddd;">
+                        <input id="msg-input" placeholder="Сообщение..." style="margin:0;">
+                        <button class="btn" style="width:60px; margin:0; padding:0;" onclick="sendMsg()">➤</button>
                     </div>
                 </div>
             </div>
 
-            <div id="page-profile" class="hidden">
-                <div id="profile-ui"></div>
-                <div id="profile-posts-grid"></div>
+            <div id="sec-profile" class="hidden">
+                <div id="profile-head"></div>
+                <div id="profile-posts"></div>
             </div>
 
-            <div id="page-settings" class="hidden" style="padding:20px;">
-                <h3>Настройки профиля</h3>
+            <div id="sec-sets" class="hidden" style="padding:20px;">
+                <h3>Настройки</h3><br>
                 <input id="set-name" placeholder="Новое имя">
-                <p style="font-size:12px; color:gray; margin-bottom:5px;">Сменить фото:</p>
+                <p style="font-size:12px; color:gray;">Сменить аватарку:</p>
                 <input type="file" id="set-ava" accept="image/*">
                 <button class="btn" onclick="saveSets()">Сохранить</button>
-                <button class="btn btn-sec" onclick="logout()" style="color:red; margin-top:40px;">Выйти</button>
+                <button class="btn btn-gray" onclick="logout()" style="margin-top:40px; color:red;">Выйти</button>
             </div>
+
         </div>
 
-        <nav class="nav-bar">
-            <div class="nav-item" onclick="nav('feed')" id="nav-feed">🏠</div>
-            <div class="nav-item" onclick="nav('search')" id="nav-search">🔍</div>
-            <div class="nav-item" onclick="nav('chats')" id="nav-chats">💬<div id="chat-badge" class="badge hidden"></div></div>
-            <div class="nav-item" onclick="openProfile(me)" id="nav-profile">👤</div>
+        <nav class="nav">
+            <button class="nav-btn" onclick="nav('feed')">🏠</button>
+            <button class="nav-btn" onclick="nav('search')">🔍</button>
+            <button class="nav-btn" onclick="nav('chats')">💬<div id="chat-dot" class="badge hidden"></div></button>
+            <button class="nav-btn" onclick="openProfile(me)">👤</button>
         </nav>
     </div>
 
@@ -125,11 +126,11 @@
 
         let token = localStorage.getItem('token');
         let me = localStorage.getItem('currentUser');
-        let chatTimer;
+        let currentChat = null, chatLoop = null;
 
-        async function auth(type) {
-            const username = document.getElementById('u-name').value.trim();
-            const password = document.getElementById('u-pass').value.trim();
+        async function handleAuth(type) {
+            const username = document.getElementById('in-user').value;
+            const password = document.getElementById('in-pass').value;
             const res = await fetch(`${API}/${type}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -143,152 +144,148 @@
             } else alert(d.message);
         }
 
-        function nav(page) {
-            document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('page-'+page).classList.remove('hidden');
-            if(page === 'feed') loadFeed();
-            if(page === 'chats') loadChats();
+        function nav(sec) {
+            document.querySelectorAll('[id^="sec-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById('sec-'+sec).classList.remove('hidden');
+            if(sec === 'feed') loadFeed();
+            if(sec === 'chats') loadChatList();
             window.scrollTo(0,0);
-        }
-
-        const toB64 = f => new Promise(r => { const reader = new FileReader(); reader.readAsDataURL(f); reader.onload = () => r(reader.result); });
-
-        async function createPost() {
-            const text = document.getElementById('p-txt').value;
-            const file = document.getElementById('p-img').files[0];
-            const imageUrl = file ? await toB64(file) : "";
-            await fetch(`${API}/posts`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({text, imageUrl})
-            });
-            document.getElementById('p-txt').value = "";
-            loadFeed();
         }
 
         async function loadFeed() {
             const res = await fetch(`${API}/posts`);
             const posts = await res.json();
-            document.getElementById('feed-container').innerHTML = posts.map(p => `
+            document.getElementById('feed-list').innerHTML = posts.map(p => `
                 <div class="post">
-                    <div class="post-header" onclick="openProfile('${p.author}')">
+                    <div class="post-h" onclick="openProfile('${p.author}')">
                         <img class="post-ava" src="${p.authorAvatar || DEF_AVA}">
-                        <div>
-                            <b>${p.author}</b>
-                            <span class="post-time">${new Date(p.createdAt).toLocaleString('ru-RU', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
-                        </div>
+                        <div><b>${p.author}</b><br><span class="post-time">${new Date(p.createdAt).toLocaleString()}</span></div>
                     </div>
-                    ${p.text ? `<div class="post-content">${p.text}</div>` : ''}
+                    ${p.text ? `<div class="post-txt">${p.text}</div>` : ''}
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
-                    <div class="post-footer">
-                        <button onclick="like('${p._id}', this)" style="border:none; background:none; font-size:16px;">❤️ ${p.likes.length}</button>
+                    <div class="post-f">
+                        <button onclick="doLike('${p._id}', this)" style="border:none; background:none; font-size:18px; cursor:pointer;">❤️ ${p.likes.length}</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function like(id, btn) {
-            const res = await fetch(`${API}/posts/${id}/like`, { method: 'POST', headers: {'Authorization': `Bearer ${token}`} });
+        async function doPost() {
+            const text = document.getElementById('new-p-txt').value;
+            const file = document.getElementById('new-p-img').files[0];
+            let imageUrl = "";
+            if(file) {
+                const reader = new FileReader();
+                imageUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
+            }
+            await fetch(`${API}/posts`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({text, imageUrl})
+            });
+            document.getElementById('new-p-txt').value = "";
+            loadFeed();
+        }
+
+        async function doLike(id, btn) {
+            const res = await fetch(`${API}/posts/${id}/like`, {method: 'POST', headers: {'Authorization': `Bearer ${token}`}});
             const d = await res.json();
             btn.innerHTML = `❤️ ${d.likes.length}`;
         }
 
-        async function openProfile(username) {
+        async function openProfile(name) {
             nav('profile');
-            const res = await fetch(`${API}/users/profile/${username}`);
+            const res = await fetch(`${API}/users/profile/${name}`);
             const u = await res.json();
-            const isMe = u.username.toLowerCase() === me.toLowerCase();
-            const isSub = u.subscribers.includes(me);
+            const isMe = u.username === me;
+            const isSub = u.subscribers && u.subscribers.includes(me);
 
-            document.getElementById('profile-ui').innerHTML = `
-                <div class="profile-card">
-                    <img src="${u.avatarUrl || DEF_AVA}" class="big-ava">
+            document.getElementById('profile-head').innerHTML = `
+                <div class="prof-top">
+                    <img src="${u.avatarUrl || DEF_AVA}" class="p-ava">
                     <h2>${u.displayName || u.username}</h2>
                     <p style="color:gray;">@${u.username}</p>
-                    <div class="stats-row">
-                        <div class="stats-item"><b>${u.postsCount}</b><span>посты</span></div>
-                        <div class="stats-item"><b>${u.subscribersCount}</b><span>подписчики</span></div>
-                        <div class="stats-item"><b>${u.subscriptionsCount}</b><span>подписки</span></div>
+                    <div class="p-stats">
+                        <div><b>${u.postsCount}</b>посты</div>
+                        <div><b>${u.subscribersCount}</b>подписчики</div>
+                        <div><b>${u.subscriptionsCount}</b>подписки</div>
                     </div>
-                    ${isMe ? 
-                        `<button class="btn btn-sec" onclick="nav('settings')">Настройки</button>` : 
-                        `<div style="display:flex; gap:10px; margin-top:10px;">
-                            <button class="btn" style="background:${isSub ? '#e4e6eb':'#0088cc'}; color:${isSub ? '#000':'#fff'}" onclick="follow('${u.username}')">${isSub ? 'Отписаться':'Подписаться'}</button>
-                            <button class="btn btn-sec" style="margin:0" onclick="startChat('${u.username}')">Чат</button>
-                        </div>`
-                    }
+                    ${isMe ? `<button class="btn btn-gray" onclick="nav('sets')">Настройки</button>` : `
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn" style="background:${isSub ? '#ddd' : '#0088cc'}; color:${isSub ? '#000' : '#fff'};" onclick="doFollow('${u.username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
+                            <button class="btn btn-gray" style="margin:0;" onclick="startChat('${u.username}')">Чат</button>
+                        </div>
+                    `}
                 </div>
             `;
-            document.getElementById('profile-posts-grid').innerHTML = u.posts.map(p => `
+            document.getElementById('profile-posts').innerHTML = u.posts.map(p => `
                 <div class="post" style="margin-top:10px;">
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
-                    <div class="post-content" style="padding-top:10px;">${p.text}</div>
+                    <div class="post-txt" style="padding-top:10px;">${p.text}</div>
                 </div>
             `).join('');
         }
 
-        async function follow(name) {
-            await fetch(`${API}/users/follow/${name}`, { method:'POST', headers:{'Authorization':`Bearer ${token}`} });
+        async function doFollow(name) {
+            await fetch(`${API}/users/follow/${name}`, {method: 'POST', headers: {'Authorization': `Bearer ${token}`}});
             openProfile(name);
         }
 
-        async function loadChats() {
-            const res = await fetch(`${API}/chats`, { headers: {'Authorization': `Bearer ${token}`} });
+        async function loadChatList() {
+            const res = await fetch(`${API}/chats`, {headers: {'Authorization': `Bearer ${token}`}});
             const d = await res.json();
-            const badge = document.getElementById('chat-badge');
-            if(d.unreadCount > 0) { badge.innerText = d.unreadCount; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
+            const dot = document.getElementById('chat-dot');
+            if(d.unreadCount > 0) { dot.innerText = d.unreadCount; dot.classList.remove('hidden'); } else dot.classList.add('hidden');
 
-            document.getElementById('chats-list-view').innerHTML = d.users.map(u => `
-                <div class="chat-row" onclick="startChat('${u.username}')">
+            document.getElementById('chat-list-box').innerHTML = d.users.map(u => `
+                <div class="chat-list-item" onclick="startChat('${u.username}')">
                     <img src="${u.avatarUrl || DEF_AVA}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
                     <b>${u.displayName || u.username}</b>
                 </div>
-            `).join('') || '<p style="text-align:center; padding:20px; color:gray;">Нет активных чатов</p>';
+            `).join('') || '<p style="padding:40px; text-align:center; color:gray;">Тут пусто...</p>';
         }
 
-        let activeChatPartner = null;
         function startChat(name) {
-            activeChatPartner = name;
-            document.getElementById('chats-list-view').classList.add('hidden');
-            document.getElementById('chat-active-view').classList.remove('hidden');
-            document.getElementById('chat-partner-name').innerText = name;
+            currentChat = name;
+            document.getElementById('chat-list-box').classList.add('hidden');
+            document.getElementById('chat-active').classList.remove('hidden');
+            document.getElementById('active-chat-name').innerText = name;
             loadMsgs();
-            chatTimer = setInterval(loadMsgs, 3000);
+            chatLoop = setInterval(loadMsgs, 3000);
         }
 
         function closeChat() {
-            clearInterval(chatTimer);
-            document.getElementById('chat-active-view').classList.add('hidden');
-            document.getElementById('chats-list-view').classList.remove('hidden');
-            loadChats();
+            clearInterval(chatLoop);
+            document.getElementById('chat-active').classList.add('hidden');
+            document.getElementById('chat-list-box').classList.remove('hidden');
+            loadChatList();
         }
 
         async function loadMsgs() {
-            const res = await fetch(`${API}/messages/${activeChatPartner}`, { headers: {'Authorization': `Bearer ${token}`} });
+            const res = await fetch(`${API}/messages/${currentChat}`, {headers: {'Authorization': `Bearer ${token}`}});
             const msgs = await res.json();
-            document.getElementById('msg-history').innerHTML = msgs.map(m => `
-                <div class="m-bubble ${m.sender === me ? 'm-out' : 'm-in'}">${m.text}</div>
+            document.getElementById('msg-box').innerHTML = msgs.map(m => `
+                <div class="m ${m.sender === me ? 'm-out' : 'm-in'}">${m.text}</div>
             `).join('');
-            const h = document.getElementById('msg-history'); h.scrollTop = h.scrollHeight;
+            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
         }
 
         async function sendMsg() {
-            const text = document.getElementById('m-input').value; if(!text) return;
+            const text = document.getElementById('msg-input').value; if(!text) return;
             await fetch(`${API}/messages`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({receiver: activeChatPartner, text})
+                body: JSON.stringify({receiver: currentChat, text})
             });
-            document.getElementById('m-input').value = ""; loadMsgs();
+            document.getElementById('msg-input').value = ""; loadMsgs();
         }
 
-        async function doSearch(q) {
-            if(!q) return document.getElementById('search-results').innerHTML = "";
+        async function searchUsers(q) {
+            if(!q) return document.getElementById('search-list').innerHTML = "";
             const res = await fetch(`${API}/users/search?q=${q}`);
             const users = await res.json();
-            document.getElementById('search-results').innerHTML = users.map(u => `
-                <div class="chat-row" onclick="openProfile('${u.username}')">
+            document.getElementById('search-list').innerHTML = users.map(u => `
+                <div class="chat-list-item" onclick="openProfile('${u.username}')">
                     <img src="${u.avatarUrl || DEF_AVA}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                     <b>${u.username}</b>
                 </div>
@@ -298,22 +295,26 @@
         async function saveSets() {
             const displayName = document.getElementById('set-name').value;
             const file = document.getElementById('set-ava').files[0];
-            const avatarUrl = file ? await toB64(file) : undefined;
+            let avatarUrl = undefined;
+            if(file) {
+                const reader = new FileReader();
+                avatarUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
+            }
             await fetch(`${API}/users/update`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({displayName, avatarUrl})
             });
-            alert("Обновлено!"); location.reload();
+            location.reload();
         }
 
         function logout() { localStorage.clear(); location.reload(); }
 
         if(token) {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('view-app').classList.remove('hidden');
             loadFeed();
-            setInterval(loadChats, 10000);
+            setInterval(loadChatList, 10000);
         }
     </script>
 </body>
