@@ -47,7 +47,7 @@ const verifyToken = (req, res, next) => {
 
 app.post('/register', async (req, res) => {
     try {
-        const username = req.body.username.trim().toLowerCase();
+        const username = req.body.username.trim();
         const hashed = await bcrypt.hash(req.body.password, 10);
         const user = new User({ username, password: hashed, displayName: username });
         await user.save();
@@ -56,8 +56,9 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-    const username = req.body.username.trim().toLowerCase();
-    const user = await User.findOne({ username });
+    const username = req.body.username.trim();
+    // Ищем пользователя без учета регистра (большие/маленькие буквы)
+    const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
     if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка входа"});
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
@@ -90,7 +91,8 @@ app.delete('/posts/:id', verifyToken, async (req, res) => {
 
 app.get('/users/profile/:username', async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.params.username.toLowerCase() });
+        // Умный поиск: найдет 'Ivan', даже если ты ищешь 'ivan'
+        const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
         if (!user) return res.status(404).json({error: "User not found"});
         const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
         res.json({
@@ -123,17 +125,17 @@ app.get('/users/search', async (req, res) => {
 });
 
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
-    const targetName = req.params.username.toLowerCase();
-    const meName = req.user.username;
-    if (targetName === meName) return res.status(400).send();
-    const target = await User.findOne({ username: targetName });
-    const meUser = await User.findOne({ username: meName });
-    if (!target.subscribers.includes(meName)) {
-        target.subscribers.push(meName);
-        meUser.subscriptions.push(targetName);
+    const target = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
+    const meUser = await User.findOne({ username: req.user.username });
+    
+    if (!target || target.username === meUser.username) return res.status(400).send();
+
+    if (target.subscribers.includes(meUser.username)) {
+        target.subscribers = target.subscribers.filter(u => u !== meUser.username);
+        meUser.subscriptions = meUser.subscriptions.filter(u => u !== target.username);
     } else {
-        target.subscribers = target.subscribers.filter(u => u !== meName);
-        meUser.subscriptions = meUser.subscriptions.filter(u => u !== targetName);
+        target.subscribers.push(meUser.username);
+        meUser.subscriptions.push(target.username);
     }
     await target.save();
     await meUser.save();
@@ -141,12 +143,19 @@ app.post('/users/follow/:username', verifyToken, async (req, res) => {
 });
 
 app.get('/messages/:with', verifyToken, async (req, res) => {
-    const msgs = await Message.find({ $or: [{sender:req.user.username, receiver:req.params.with}, {sender:req.params.with, receiver:req.user.username}] });
+    const targetName = req.params.with;
+    const msgs = await Message.find({ $or: [
+        {sender: req.user.username, receiver: new RegExp('^' + targetName + '$', 'i')}, 
+        {sender: new RegExp('^' + targetName + '$', 'i'), receiver: req.user.username}
+    ] });
     res.json(msgs);
 });
 
 app.post('/messages', verifyToken, async (req, res) => {
-    const msg = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
+    const target = await User.findOne({ username: new RegExp('^' + req.body.receiver + '$', 'i') });
+    if(!target) return res.status(404).send();
+    
+    const msg = new Message({ sender: req.user.username, receiver: target.username, text: req.body.text });
     await msg.save();
     res.json(msg);
 });
