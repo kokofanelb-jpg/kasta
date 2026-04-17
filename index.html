@@ -3,52 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasta - Твой Профиль</title>
+    <title>Kasta - Твоя Сеть</title>
     <style>
-        :root { --accent: #0088cc; --bg: #f4f4f5; --white: #ffffff; --text: #222; --gray: #8e8e93; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        :root { --accent: #0088cc; --bg: #f4f4f5; --white: #ffffff; --text: #222; --gray: #8e8e93; --border: #dbdbdb; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         .hidden { display: none !important; }
         
-        /* Навигация */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: var(--white); border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-item { cursor: pointer; font-size: 24px; color: var(--gray); transition: 0.2s; }
-        .nav-item.active { color: var(--accent); }
+        /* Меню */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: var(--white); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { cursor: pointer; font-size: 24px; filter: grayscale(1); }
+        .nav-item.active { filter: grayscale(0); transform: scale(1.1); }
 
-        /* Контейнер */
-        .container { max-width: 500px; margin: 0 auto; padding: 20px; padding-bottom: 80px; }
+        /* Контент */
+        .container { max-width: 500px; margin: 0 auto; padding: 15px; padding-bottom: 80px; }
         
-        /* Профиль в стиле ТГ */
-        .profile-header { background: var(--white); padding: 30px 20px; border-radius: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .profile-ava { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 10px; }
-        .profile-name { font-size: 22px; font-weight: bold; margin: 0; }
-        .profile-handle { color: var(--gray); font-size: 16px; margin: 5px 0 15px 0; }
+        /* Профиль */
+        .profile-card { background: var(--white); padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .p-ava { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
         
         /* Посты */
-        .post { background: var(--white); border-radius: 15px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
-        .post-top { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .post { background: var(--white); border-radius: 15px; margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border); }
+        .post-head { padding: 10px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; }
         .post-ava { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        .post-img { width: 100%; display: block; }
-        .post-text { padding: 12px; font-size: 15px; }
+        .post-img { width: 100%; display: block; max-height: 400px; object-fit: cover; }
+        .post-txt { padding: 12px; font-size: 15px; }
 
-        /* Кнопки и инпуты */
-        .btn { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-secondary { background: #e5e5ea; color: #000; }
-        input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; background: #fff; }
+        /* Кнопки */
+        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-grey { background: #e5e5ea; color: #000; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 16px; }
 
-        /* Чаты */
-        .chat-msg { padding: 10px 15px; border-radius: 15px; margin-bottom: 5px; max-width: 80%; font-size: 14px; }
-        .msg-my { align-self: flex-end; background: var(--accent); color: white; }
-        .msg-their { align-self: flex-start; background: #e5e5ea; color: black; }
+        /* Сообщения */
+        #msg-history { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #f9f9f9; border-radius: 10px; }
+        .m { padding: 8px 14px; border-radius: 15px; max-width: 75%; font-size: 14px; }
+        .m-in { align-self: flex-start; background: #fff; border: 1px solid #ddd; }
+        .m-out { align-self: flex-end; background: var(--accent); color: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="container" style="margin-top: 50px;">
+    <div id="auth-screen" class="container">
         <h1 style="text-align:center; color: var(--accent);">Kasta</h1>
-        <input id="u-name" placeholder="Твой ник (username)">
-        <input id="u-pass" type="password" placeholder="Пароль">
-        <button class="btn" onclick="handleAuth('login')">Войти</button>
-        <button class="btn btn-secondary" onclick="handleAuth('register')">Регистрация</button>
+        <div style="background: white; padding: 20px; border-radius: 20px;">
+            <input id="u-name" placeholder="Юзернейм (@username)">
+            <input id="u-pass" type="password" placeholder="Пароль">
+            <button class="btn" onclick="handleAuth('login')">Войти</button>
+            <button class="btn btn-grey" onclick="handleAuth('register')">Создать аккаунт</button>
+        </div>
     </div>
 
     <div id="app-screens" class="hidden">
@@ -56,7 +57,7 @@
             
             <div id="tab-feed">
                 <div style="background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px;">
-                    <textarea id="post-txt" placeholder="Что нового?"></textarea>
+                    <textarea id="post-txt" placeholder="Расскажи, что нового?"></textarea>
                     <input type="file" id="post-file" accept="image/*">
                     <button class="btn" onclick="publishPost()">Опубликовать</button>
                 </div>
@@ -64,50 +65,51 @@
             </div>
 
             <div id="tab-search" class="hidden">
-                <input oninput="runSearch(this.value)" placeholder="Поиск людей...">
+                <input oninput="runSearch(this.value)" placeholder="Найти друзей...">
                 <div id="search-list"></div>
             </div>
 
             <div id="tab-chats" class="hidden">
                 <div id="chats-list-view">
-                    <h3>Ваши диалоги</h3>
+                    <h3>Мои сообщения</h3>
                     <div id="active-dialogs"></div>
                 </div>
                 <div id="chat-box" class="hidden">
-                    <button class="btn btn-secondary" onclick="closeChat()">← Назад</button>
-                    <h3 id="chat-title"></h3>
-                    <div id="msg-history" style="height:400px; overflow-y:auto; display:flex; flex-direction:column; padding:10px; background:#fff; border-radius:15px;"></div>
+                    <button class="btn btn-grey" onclick="closeChat()">← Назад</button>
+                    <h4 id="chat-title" style="margin: 10px 0;"></h4>
+                    <div id="msg-history"></div>
                     <div style="display:flex; gap:5px;">
                         <input id="msg-input" placeholder="Сообщение...">
-                        <button class="btn" style="width: auto;" onclick="sendMsg()">></button>
+                        <button class="btn" style="width:60px;" onclick="sendMsg()">></button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-profile" class="hidden">
-                <div class="profile-header">
-                    <img id="my-ava" class="profile-ava" src="https://via.placeholder.com/100">
-                    <h2 id="my-name" class="profile-name">Имя Фамилия</h2>
-                    <p id="my-handle" class="profile-handle">@username</p>
-                    <div style="display:flex; justify-content:center; gap:20px; font-size:14px; color:var(--gray);">
-                        <span><b id="s-p">0</b> постов</span>
-                        <span><b id="s-subers">0</b> подписчиков</span>
+                <div class="profile-card">
+                    <img id="my-ava" class="p-ava" src="https://via.placeholder.com/110">
+                    <h2 id="my-name" style="margin: 10px 0 0 0;">Имя</h2>
+                    <p id="my-handle" style="color: var(--gray); margin: 5px 0 15px 0;">@username</p>
+                    
+                    <div style="display:flex; justify-content:center; gap:25px; border-top:1px solid #eee; padding-top:15px;">
+                        <span><b id="s-p">0</b><br><small>посты</small></span>
+                        <span><b id="s-subers">0</b><br><small>подписчики</small></span>
                     </div>
-                    <div id="profile-actions" style="margin-top: 20px;"></div>
+                    <div id="profile-actions" style="margin-top:20px;"></div>
                 </div>
             </div>
 
             <div id="tab-settings" class="hidden">
-                <h3>Настройки профиля</h3>
+                <h3>Настройки (как в ТГ)</h3>
                 <div style="background: white; padding: 20px; border-radius: 15px;">
-                    <label>Изменить Имя:</label>
-                    <input id="set-display-name" placeholder="Твое новое имя">
+                    <label>Отображаемое имя:</label>
+                    <input id="set-display-name" placeholder="Как тебя называть?">
                     
-                    <label>Изменить Аватарку:</label>
+                    <label>Новая аватарка:</label>
                     <input type="file" id="set-ava-file" accept="image/*">
                     
                     <button class="btn" onclick="saveSettings()">Сохранить изменения</button>
-                    <button class="btn btn-secondary" style="color:red;" onclick="logout()">Выйти из аккаунта</button>
+                    <button class="btn btn-grey" style="color:red; margin-top:20px;" onclick="logout()">Выйти</button>
                 </div>
             </div>
 
@@ -123,7 +125,7 @@
     </div>
 
     <script>
-        // ВСТАВЬ СВОЮ ССЫЛКУ С RENDER НИЖЕ
+        // ВНИМАНИЕ: Проверь, чтобы ссылка была HTTPS
         const API = "https://kasta-l49s.onrender.com"; 
 
         let token = localStorage.getItem('token');
@@ -131,11 +133,11 @@
         let chatWith = null;
         let chatInterval = null;
 
-        // ВХОД / РЕГИСТРАЦИЯ
+        // 1. АВТОРИЗАЦИЯ
         async function handleAuth(type) {
             const username = document.getElementById('u-name').value;
             const password = document.getElementById('u-pass').value;
-            if(!username || !password) return alert("Заполни поля!");
+            if(!username || !password) return alert("Заполни пустые поля!");
 
             try {
                 const res = await fetch(`${API}/${type}`, {
@@ -148,10 +150,11 @@
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('currentUser', username);
                     location.reload();
-                } else alert(data.message);
-            } catch(e) { alert("Сервер еще не проснулся, подожди минуту."); }
+                } else alert(data.message || "Ошибка!");
+            } catch(e) { alert("Сервер Render просыпается, попробуй через 20 секунд."); }
         }
 
+        // 2. ВСПОМОГАТЕЛЬНЫЕ
         const toBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -159,11 +162,12 @@
             reader.onerror = e => reject(e);
         });
 
-        // ЛЕНТА
+        // 3. ЛЕНТА
         async function publishPost() {
             const text = document.getElementById('post-txt').value;
             const file = document.getElementById('post-file').files[0];
             let imageUrl = file ? await toBase64(file) : "";
+            
             await fetch(`${API}/posts`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
@@ -177,17 +181,17 @@
             const posts = await res.json();
             document.getElementById('feed-items').innerHTML = posts.map(p => `
                 <div class="post">
-                    <div class="post-top" onclick="openUser('${p.author}')">
-                        <img src="${p.authorAvatar || 'https://via.placeholder.com/40'}" class="post-ava">
+                    <div class="post-head" onclick="openUser('${p.author}')">
+                        <img src="${p.authorAvatar || 'https://via.placeholder.com/35'}" class="post-ava">
                         <span>@${p.author}</span>
                     </div>
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
-                    <div class="post-text">${p.text}</div>
+                    <div class="post-txt">${p.text}</div>
                 </div>
             `).join('');
         }
 
-        // НАСТРОЙКИ (ИЗМЕНЕНИЕ ИМЕНИ И АВАТАРКИ)
+        // 4. НАСТРОЙКИ И ПРОФИЛЬ
         async function saveSettings() {
             const displayName = document.getElementById('set-display-name').value;
             const file = document.getElementById('set-ava-file').files[0];
@@ -198,31 +202,30 @@
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
                 body: JSON.stringify({displayName, avatarUrl})
             });
-            alert("Профиль обновлен!");
+            alert("Готово! Настройки изменены.");
             location.reload();
         }
 
-        // ПРОФИЛЬ
         async function openUser(username) {
             showTab('profile');
             const res = await fetch(`${API}/users/profile/${username}`);
             const d = await res.json();
             
-            document.getElementById('my-ava').src = d.avatarUrl || 'https://via.placeholder.com/100';
+            document.getElementById('my-ava').src = d.avatarUrl || 'https://via.placeholder.com/110';
             document.getElementById('my-name').innerText = d.displayName || d.username;
             document.getElementById('my-handle').innerText = '@' + d.username;
-            document.getElementById('s-p').innerText = d.postsCount;
-            document.getElementById('s-subers').innerText = d.subscribersCount;
+            document.getElementById('s-p').innerText = d.postsCount || 0;
+            document.getElementById('s-subers').innerText = d.subscribersCount || 0;
 
             const actions = document.getElementById('profile-actions');
             if(username !== me) {
-                const isSub = d.subscribers.includes(me);
+                const isSub = d.subscribers && d.subscribers.includes(me);
                 actions.innerHTML = `
                     <button class="btn" onclick="toggleFollow('${username}')">${isSub ? 'Отписаться' : 'Подписаться'}</button>
-                    <button class="btn btn-secondary" onclick="startChat('${username}')">Написать сообщение</button>
+                    <button class="btn btn-grey" onclick="startChat('${username}')">💬 Написать</button>
                 `;
             } else {
-                actions.innerHTML = `<button class="btn btn-secondary" onclick="showTab('settings')">Настройки профиля</button>`;
+                actions.innerHTML = `<button class="btn btn-grey" onclick="showTab('settings')">⚙️ Настройки профиля</button>`;
             }
         }
 
@@ -234,26 +237,26 @@
             openUser(username);
         }
 
-        // ПОИСК
+        // 5. ПОИСК
         async function runSearch(q) {
             if(!q) return;
             const res = await fetch(`${API}/users/search?q=${q}`);
             const users = await res.json();
             document.getElementById('search-list').innerHTML = users.map(u => `
-                <div onclick="openUser('${u.username}')" style="display:flex; align-items:center; gap:10px; padding:10px; background:white; margin-top:5px; border-radius:10px;">
+                <div onclick="openUser('${u.username}')" style="display:flex; align-items:center; gap:10px; padding:12px; background:white; margin-top:8px; border-radius:12px; cursor:pointer;">
                     <img src="${u.avatarUrl || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%;">
                     <b>${u.displayName || u.username} (@${u.username})</b>
                 </div>
             `).join('');
         }
 
-        // ЧАТЫ
+        // 6. ЧАТЫ
         async function startChat(user) {
             chatWith = user;
             showTab('chats');
             document.getElementById('chats-list-view').classList.add('hidden');
             document.getElementById('chat-box').classList.remove('hidden');
-            document.getElementById('chat-title').innerText = 'Чат с @' + user;
+            document.getElementById('chat-title').innerText = 'Диалог с @' + user;
             renderMsgs();
             chatInterval = setInterval(renderMsgs, 3000);
         }
@@ -270,8 +273,10 @@
             const res = await fetch(`${API}/messages/${chatWith}`, { headers: {'Authorization': `Bearer ${token}`} });
             const msgs = await res.json();
             document.getElementById('msg-history').innerHTML = msgs.map(m => `
-                <div class="chat-msg ${m.sender === me ? 'msg-my' : 'msg-their'}">${m.text}</div>
+                <div class="m ${m.sender === me ? 'm-out' : 'm-in'}">${m.text}</div>
             `).join('');
+            const hist = document.getElementById('msg-history');
+            hist.scrollTop = hist.scrollHeight;
         }
 
         async function sendMsg() {
@@ -286,16 +291,24 @@
             renderMsgs();
         }
 
-        // НАВИГАЦИЯ
+        // 7. НАВИГАЦИЯ
         function showTab(t) {
-            ['feed', 'profile', 'settings', 'chats', 'search'].forEach(id => document.getElementById('tab-'+id).classList.add('hidden'));
-            document.getElementById('tab-'+t).classList.remove('hidden');
+            const tabs = ['feed', 'profile', 'settings', 'chats', 'search'];
+            tabs.forEach(id => {
+                const el = document.getElementById('tab-' + id);
+                if(el) el.classList.add('hidden');
+            });
+            
+            const target = document.getElementById('tab-' + t);
+            if(target) target.classList.remove('hidden');
+
             if(t === 'feed') loadFeed();
-            if(t === 'profile') openUser(me);
+            if(t === 'profile' && !chatWith) openUser(me);
         }
 
         function logout() { localStorage.clear(); location.reload(); }
 
+        // ЗАПУСК
         if(token) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screens').classList.remove('hidden');
