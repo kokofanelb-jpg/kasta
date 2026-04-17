@@ -16,75 +16,75 @@
         .btn-gray { background: #e4e6eb; color: #000; }
         input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 16px; outline: none; }
         
-        /* ЛЕНТА */
         .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #ddd; }
-        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .p-ava-s { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
-        .post-img { width: 100%; display: block; background: #eee; }
+        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; }
+        .p-ava-s { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .post-img { width: 100%; display: block; background: #000; }
         
-        /* СЕТКА В ПРОФИЛЕ (ИСПРАВЛЕНО) */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #fff; padding-top: 2px; }
-        .grid-item { position: relative; width: 100%; aspect-ratio: 1/1; background: #f0f2f5; overflow: hidden; display: flex; align-items: center; justify-content: center; border: none; }
+        /* СЕТКА ПРОФИЛЯ */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #fff; }
+        .grid-item { aspect-ratio: 1/1; background: #eee; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .grid-item span { padding: 5px; font-size: 10px; color: #555; text-align: center; word-break: break-all; line-height: 1.2; }
 
-        .prof-top { background: #fff; padding: 20px 10px; text-align: center; border-bottom: 1px solid #eee; }
+        .prof-top { background: #fff; padding: 20px 15px; text-align: center; border-bottom: 1px solid #eee; }
         .p-ava-l { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue); margin-bottom: 10px; }
-        .p-stats { display: flex; justify-content: space-around; margin: 15px 0; border-top: 1px solid #f0f0f0; padding-top: 10px; }
-        .p-stats b { display: block; font-size: 16px; color: #000; }
+        .p-stats { display: flex; justify-content: space-around; margin: 15px 0; }
+        .p-stats b { display: block; font-size: 17px; }
         .p-stats span { font-size: 12px; color: #777; }
 
         .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #ddd; display: flex; z-index: 1000; }
-        .nav-btn { flex: 1; border: none; background: none; font-size: 24px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .badge { position: absolute; top: 12px; right: 25%; background: #ff3b30; color: white; border-radius: 10px; padding: 2px 5px; font-size: 10px; min-width: 18px; }
+        .nav-btn { flex: 1; border: none; background: none; font-size: 24px; position: relative; }
+        .badge { position: absolute; top: 12px; right: 25%; background: #ff3b30; color: white; border-radius: 10px; padding: 2px 5px; font-size: 10px; }
 
+        /* ЧАТ */
         #msg-box { height: calc(100vh - 125px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 8px; }
-        .m { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 15px; position: relative; }
-        .m-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
-        .m-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
+        .m { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 15px; position: relative; min-width: 60px; }
+        .m-out { align-self: flex-end; background: #dcf8c6; }
+        .m-in { align-self: flex-start; background: #fff; }
+        .m-time { font-size: 10px; color: #888; text-align: right; margin-top: 4px; display: block; }
 
-        #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; display:flex; align-items:center; justify-content:center; }
+        #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
 
     <div id="view-auth" class="container" style="padding: 60px 25px; text-align: center;">
-        <h1 style="color:var(--blue); font-size: 40px; margin-bottom: 30px; letter-spacing: -1px;">KASTA</h1>
+        <h1 style="color:var(--blue); font-size: 40px; margin-bottom: 30px;">KASTA</h1>
         <input id="auth-u" placeholder="Логин">
         <input id="auth-p" type="password" placeholder="Пароль">
         <button class="btn" style="width:100%" onclick="handleAuth('login')">Войти</button>
-        <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="handleAuth('register')">Создать аккаунт</button>
+        <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="handleAuth('register')">Регистрация</button>
     </div>
 
     <div id="view-app" class="hidden">
         <div class="container">
             <div id="sec-feed">
                 <div style="background:#fff; padding:15px; border-bottom:1px solid #ddd;">
-                    <textarea id="p-txt" placeholder="Что нового?" rows="2" style="resize: none;"></textarea>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <input type="file" id="p-img" accept="image/*" style="width: auto; margin: 0; border: none; padding: 0; font-size: 12px;">
-                        <button class="btn" id="btn-post" onclick="doPost()" style="padding: 8px 20px;">Опубликовать</button>
+                    <textarea id="p-txt" placeholder="Напиши что-нибудь..." rows="2"></textarea>
+                    <div style="display: flex; justify-content: space-between;">
+                        <input type="file" id="p-img" accept="image/*" style="width: auto; border: none;">
+                        <button class="btn" id="btn-post" onclick="doPost()">Опубликовать</button>
                     </div>
                 </div>
                 <div id="feed-list"></div>
             </div>
 
             <div id="sec-search" class="hidden">
-                <div style="padding:15px; background: #fff; position: sticky; top: 0; z-index: 10;"><input oninput="doSearch(this.value)" placeholder="Найти человека..." style="margin:0;"></div>
+                <div style="padding:15px;"><input oninput="doSearch(this.value)" placeholder="Поиск..." style="margin:0;"></div>
                 <div id="search-list"></div>
             </div>
 
             <div id="sec-chats" class="hidden">
                 <div id="chats-list"></div>
                 <div id="chat-active" class="hidden">
-                    <div style="padding:10px; background:#fff; display:flex; gap:10px; align-items:center; border-bottom:1px solid #ddd; position: sticky; top: 0; z-index: 10;">
-                        <button onclick="backToChats()" style="font-size:24px; border:none; background:none; padding: 0 10px;">←</button>
-                        <b id="chat-name">Чат</b>
+                    <div style="padding:10px; background:#fff; display:flex; gap:10px; align-items:center; border-bottom:1px solid #ddd;">
+                        <button onclick="backToChats()" style="font-size:24px; border:none; background:none;">←</button>
+                        <b id="chat-name"></b>
                     </div>
                     <div id="msg-box"></div>
-                    <div style="padding:10px; display:flex; gap:10px; background:#fff; border-top: 1px solid #ddd;">
+                    <div style="padding:10px; display:flex; gap:10px; background:#fff;">
                         <input id="m-in" placeholder="Сообщение..." style="margin:0;">
-                        <button class="btn" style="padding:10px 20px;" onclick="sendMsg()">➤</button>
+                        <button class="btn" onclick="sendMsg()">➤</button>
                     </div>
                 </div>
             </div>
@@ -92,36 +92,37 @@
             <div id="sec-profile" class="hidden">
                 <div id="prof-ui"></div>
                 <div id="prof-edit" class="hidden" style="padding:20px; background:#fff;">
-                    <h3 style="margin-bottom: 15px;">Настройки</h3>
-                    <input id="edit-name" placeholder="Новое имя">
-                    <p style="font-size: 12px; color: #888; margin-bottom: 5px;">Сменить аватар:</p>
+                    <input id="edit-name" placeholder="Имя">
                     <input type="file" id="edit-ava" accept="image/*">
-                    <button class="btn" id="btn-save" onclick="saveProfile()" style="width: 100%; margin-top: 10px;">Сохранить изменения</button>
-                    <button class="btn btn-gray" onclick="toggleEdit(false)" style="width: 100%; margin-top: 10px;">Отмена</button>
+                    <button class="btn" id="btn-save" onclick="saveProfile()" style="width:100%">Сохранить</button>
+                    <button class="btn btn-gray" onclick="toggleEdit(false)" style="width:100%; margin-top:5px;">Отмена</button>
                 </div>
                 <div id="prof-posts" class="grid"></div>
+                <div id="prof-feed" class="hidden" style="background:#fff;">
+                   <button class="btn btn-gray" onclick="closeProfFeed()" style="width:100%; border-radius:0;">← Назад к сетке</button>
+                   <div id="prof-feed-list"></div>
+                </div>
             </div>
         </div>
 
         <nav class="nav">
             <button class="nav-btn" onclick="nav('feed')">🏠</button>
             <button class="nav-btn" onclick="nav('search')">🔍</button>
-            <button class="nav-btn" onclick="nav('chats')">💬<div id="dot" class="badge hidden">0</div></button>
+            <button class="nav-btn" onclick="nav('chats')">💬<div id="dot" class="badge hidden"></div></button>
             <button class="nav-btn" onclick="openProfile(me)">👤</button>
         </nav>
     </div>
 
-    <div id="modal" class="hidden" onclick="this.classList.add('hidden')"><img id="modal-img" style="max-width:100%; max-height:100%; object-fit: contain;"></div>
+    <div id="modal" class="hidden" onclick="this.classList.add('hidden')"><img id="modal-img" style="max-width:100%;"></div>
 
     <script>
         const API = "https://kasta-l49s.onrender.com";
         const DEF = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
-        let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), curP, chatL;
+        let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), curP, chatL, lastProfileData = null;
 
         function fixUrl(url) {
             if(!url) return DEF;
-            let final = url.includes('localhost:3000') ? url.replace('http://localhost:3000', API) : url;
-            return final.replace('http://', 'https://');
+            return url.replace('http://localhost:3000', API).replace('http://', 'https://');
         }
 
         function compressImage(file) {
@@ -146,7 +147,7 @@
         }
 
         async function api(path, opt={}) {
-            opt.headers = { ...opt.headers, 'Authorization': `Bearer ${token}` };
+            opt.headers = { ...opt.headers, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
             const r = await fetch(API+path, opt);
             if(r.status === 401) { localStorage.clear(); location.reload(); }
             return r.json();
@@ -155,7 +156,6 @@
         async function handleAuth(t) {
             const username = document.getElementById('auth-u').value.trim();
             const password = document.getElementById('auth-p').value.trim();
-            if(!username || !password) return alert("Заполни поля");
             const res = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password}) });
             const d = await res.json();
             if(res.ok) { localStorage.setItem('token', d.token); localStorage.setItem('currentUser', d.username); location.reload(); }
@@ -171,111 +171,109 @@
 
         async function loadFeed() {
             const pp = await api('/posts');
-            const list = document.getElementById('feed-list');
+            renderPostList(pp, 'feed-list');
+        }
+
+        function renderPostList(pp, elementId) {
+            const list = document.getElementById(elementId);
             list.innerHTML = '';
             pp.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'post';
                 div.innerHTML = `
-                    <div class="post-h">
+                    <div class="post-h" onclick="openProfile('${p.author}')">
                         <img class="p-ava-s" src="${fixUrl(p.authorAvatar)}">
                         <b>${p.author}</b>
-                        ${p.author === me ? `<span style="margin-left:auto; color:red; padding: 5px;" onclick="deletePost('${p._id}')">✕</span>` : ''}
+                        ${p.author === me ? `<span style="margin-left:auto; color:red;" onclick="event.stopPropagation(); deletePost('${p._id}')">✕</span>` : ''}
                     </div>
-                    ${p.text ? `<div style="padding:0 15px 10px; font-size:15px; line-height:1.4;">${p.text}</div>` : ''}
+                    ${p.text ? `<div style="padding:0 15px 10px;">${p.text}</div>` : ''}
                     ${p.imageUrl ? `<img src="${fixUrl(p.imageUrl)}" class="post-img" onclick="zoom('${fixUrl(p.imageUrl)}')">` : ''}
-                    <div style="padding:12px; display:flex; gap:15px; border-bottom: 1px solid #f0f0f0;">
-                        <button onclick="doLike('${p._id}')" style="border:none; background:none; font-size:18px;">❤️ ${p.likes.length}</button>
-                    </div>
-                    <div class="comm-sec">
-                        <div id="comms-${p._id}">${p.comments.map(c => `<div style="margin-bottom:4px;"><b>${c.author}:</b> ${c.text}</div>`).join('')}</div>
-                        <div style="display:flex; gap:8px; margin-top:8px;">
-                            <input id="ci-${p._id}" placeholder="Ваш комментарий..." style="margin:0; padding:6px 10px; font-size:13px; background:#fff;">
-                            <button class="btn" style="padding:0 15px; font-size:12px;" onclick="addComment('${p._id}')">ОК</button>
-                        </div>
+                    <div style="padding:10px; display:flex; gap:15px;">
+                        <button onclick="doLike('${p._id}', '${elementId}')" style="border:none; background:none; font-size:18px;">❤️ ${p.likes.length}</button>
                     </div>
                 `;
-                // Переход в профиль только при клике на шапку (но не на крестик)
-                div.querySelector('.post-h').onclick = (e) => { if(e.target.tagName !== 'SPAN') openProfile(p.author); };
                 list.appendChild(div);
             });
         }
 
         async function openProfile(n) {
             nav('profile');
+            closeProfFeed();
             const u = await api('/users/profile/'+n);
+            lastProfileData = u;
             const isMe = u.username === me;
             const isSub = u.subscribers && u.subscribers.includes(me);
 
             document.getElementById('prof-ui').innerHTML = `
                 <div class="prof-top">
-                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-l" onclick="zoom('${fixUrl(u.avatarUrl)}')">
-                    <h2 style="font-size: 20px;">${u.displayName || u.username}</h2>
-                    <p style="color:#888; font-size: 14px; margin-bottom: 10px;">@${u.username}</p>
+                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-l">
+                    <h2>${u.displayName || u.username}</h2>
                     <div class="p-stats">
-                        <div><b>${u.posts.length}</b><span>посты</span></div>
+                        <div><b>${u.posts.filter(p=>p.imageUrl).length}</b><span>медиа</span></div>
                         <div><b>${u.subscribersCount}</b><span>подписчики</span></div>
-                        <div><b>${u.subscriptionsCount}</b><span>подписки</span></div>
                     </div>
-                    <div style="display:flex; gap:8px; justify-content:center; padding: 0 20px;">
-                        ${isMe ? `<button class="btn btn-gray" style="flex:1" onclick="toggleEdit(true)">Редактировать</button>
-                                  <button class="btn btn-gray" onclick="localStorage.clear();location.reload()" style="color:red">Выход</button>` 
-                               : `<button class="btn" style="flex:1; background:${isSub?'#e4e6eb':'#0088cc'}; color:${isSub?'#000':'#fff'}" onclick="doFollow('${u.username}')">${isSub?'Отписаться':'Подписаться'}</button>
-                                  <button class="btn btn-gray" style="flex:1" onclick="startChat('${u.username}')">Сообщение</button>`}
-                    </div>
+                    ${isMe ? `<button class="btn btn-gray" onclick="toggleEdit(true)">Настройки</button>` : `<button class="btn" onclick="doFollow('${u.username}')">${isSub?'Отписаться':'Подписаться'}</button>`}
                 </div>
             `;
 
             const grid = document.getElementById('prof-posts');
             grid.innerHTML = '';
-            u.posts.forEach(p => {
-                const item = document.createElement('div');
-                item.className = 'grid-item';
-                if(p.imageUrl) {
-                    item.innerHTML = `<img src="${fixUrl(p.imageUrl)}">`;
-                } else {
-                    item.innerHTML = `<span>${p.text || ''}</span>`;
-                }
-                item.onclick = () => { if(p.imageUrl) zoom(fixUrl(p.imageUrl)); else alert(p.text); };
-                grid.appendChild(item);
+            // Фильтруем: только посты с картинками для сетки
+            u.posts.filter(p => p.imageUrl).forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'grid-item';
+                div.innerHTML = `<img src="${fixUrl(p.imageUrl)}">`;
+                div.onclick = () => openProfFeed(); // При клике открываем листалку
+                grid.appendChild(div);
             });
         }
 
-        async function saveProfile() {
-            const btn = document.getElementById('btn-save');
-            const displayName = document.getElementById('edit-name').value;
-            const file = document.getElementById('edit-ava').files[0];
-            btn.innerText = 'Загрузка...';
-            let avatarUrl = "";
-            if(file) avatarUrl = await compressImage(file);
-            await api('/users/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({displayName, avatarUrl}) });
-            btn.innerText = 'Сохранить изменения';
-            toggleEdit(false); openProfile(me);
+        function openProfFeed() {
+            document.getElementById('prof-posts').classList.add('hidden');
+            document.getElementById('prof-feed').classList.remove('hidden');
+            // В листалке показываем только медиа-посты по порядку
+            const mediaPosts = lastProfileData.posts.filter(p => p.imageUrl);
+            renderPostList(mediaPosts, 'prof-feed-list');
         }
 
-        async function doLike(id) { await api(`/posts/${id}/like`, {method:'POST'}); loadFeed(); }
-        async function deletePost(id) { if(confirm('Удалить пост?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); } }
-        async function addComment(id) {
-            const input = document.getElementById('ci-'+id);
-            if(!input.value.trim()) return;
-            await api(`/posts/${id}/comment`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text: input.value})});
-            input.value = ""; loadFeed();
+        function closeProfFeed() {
+            document.getElementById('prof-posts').classList.remove('hidden');
+            document.getElementById('prof-feed').classList.add('hidden');
         }
+
+        async function sendMsg() {
+            const input = document.getElementById('m-in');
+            if(!input.value.trim()) return;
+            await api('/messages', { method:'POST', body:JSON.stringify({receiver:curP, text: input.value}) });
+            input.value = ""; loadMsgs();
+        }
+
+        async function loadMsgs() {
+            const m = await api('/messages/'+curP);
+            document.getElementById('msg-box').innerHTML = m.map(msg => {
+                // Добавляем время
+                const time = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                return `<div class="m ${msg.sender === me ? 'm-out' : 'm-in'}">${msg.text}<span class="m-time">${time}</span></div>`;
+            }).join('');
+            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
+        }
+
+        async function doLike(id, listId) { 
+            await api(`/posts/${id}/like`, {method:'POST'}); 
+            if(listId === 'feed-list') loadFeed(); else openProfFeed();
+        }
+        async function deletePost(id) { if(confirm('Удалить?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); openProfile(me); } }
         async function doFollow(n) { await api('/users/follow/'+n, {method:'POST'}); openProfile(n); }
         function toggleEdit(v) { document.getElementById('prof-ui').classList.toggle('hidden', v); document.getElementById('prof-edit').classList.toggle('hidden', !v); }
-        function zoom(url) { if(!url || url===DEF) return; document.getElementById('modal-img').src = url; document.getElementById('modal').classList.remove('hidden'); }
+        function zoom(url) { document.getElementById('modal-img').src = url; document.getElementById('modal').classList.remove('hidden'); }
 
         async function doPost() {
-            const btn = document.getElementById('btn-post');
-            const text = document.getElementById('p-txt').value, file = document.getElementById('p-img').files[0];
-            if(!text && !file) return;
-            btn.disabled = true; btn.innerText = '...';
-            let imageUrl = "";
-            if(file) imageUrl = await compressImage(file);
-            await api('/posts', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, imageUrl}) });
-            document.getElementById('p-txt').value = ""; document.getElementById('p-img').value = ""; 
-            btn.disabled = false; btn.innerText = 'Опубликовать';
-            loadFeed();
+            const btn = document.getElementById('btn-post'), text = document.getElementById('p-txt').value, file = document.getElementById('p-img').files[0];
+            btn.disabled = true;
+            let imageUrl = ""; if(file) imageUrl = await compressImage(file);
+            await api('/posts', { method:'POST', body:JSON.stringify({text, imageUrl}) });
+            document.getElementById('p-txt').value = ""; document.getElementById('p-img').value = "";
+            btn.disabled = false; loadFeed();
         }
 
         async function loadChats() {
@@ -283,9 +281,8 @@
             const dot = document.getElementById('dot');
             if(d.unreadCount > 0) { dot.innerText = d.unreadCount; dot.classList.remove('hidden'); } else dot.classList.add('hidden');
             document.getElementById('chats-list').innerHTML = d.users.map(u => `
-                <div style="padding:12px 15px; background:#fff; border-bottom:1px solid #eee; display:flex; gap:12px; align-items:center;" onclick="startChat('${u.username}')">
-                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-s">
-                    <b style="font-size:16px;">${u.displayName || u.username}</b>
+                <div style="padding:15px; background:#fff; border-bottom:1px solid #eee; display:flex; gap:10px; align-items:center;" onclick="startChat('${u.username}')">
+                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-s"><b>${u.username}</b>
                 </div>
             `).join('');
         }
@@ -296,29 +293,11 @@
             document.getElementById('chat-name').innerText = n;
             loadMsgs(); if(chatL) clearInterval(chatL); chatL = setInterval(loadMsgs, 4000);
         }
-        function backToChats() { clearInterval(chatL); document.getElementById('chat-active').classList.add('hidden'); document.getElementById('chats-list').classList.remove('hidden'); loadChats(); }
-        async function loadMsgs() {
-            const m = await api('/messages/'+curP);
-            const box = document.getElementById('msg-box');
-            box.innerHTML = m.map(msg => `<div class="m ${msg.sender === me ? 'm-out' : 'm-in'}">${msg.text}</div>`).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-        async function sendMsg() {
-            const input = document.getElementById('m-in');
-            if(!input.value.trim()) return;
-            await api('/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({receiver:curP, text: input.value}) });
-            input.value = ""; loadMsgs();
-        }
-
+        function backToChats() { clearInterval(chatL); document.getElementById('chat-active').classList.add('hidden'); document.getElementById('chats-list').classList.remove('hidden'); }
         async function doSearch(q) {
-            if(!q) return document.getElementById('search-list').innerHTML = '';
+            if(!q) return;
             const uu = await api('/users/search?q='+q);
-            document.getElementById('search-list').innerHTML = uu.map(u => `
-                <div style="padding:12px 15px; background:#fff; border-bottom:1px solid #eee; display:flex; align-items:center; gap:12px;" onclick="openProfile('${u.username}')">
-                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-s">
-                    <b>${u.username}</b>
-                </div>
-            `).join('');
+            document.getElementById('search-list').innerHTML = uu.map(u => `<div style="padding:15px; background:#fff; border-bottom:1px solid #eee;" onclick="openProfile('${u.username}')">${u.username}</div>`).join('');
         }
 
         if(token) { document.getElementById('view-auth').classList.add('hidden'); document.getElementById('view-app').classList.remove('hidden'); loadFeed(); setInterval(loadChats, 15000); }
