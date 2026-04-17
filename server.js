@@ -5,22 +5,20 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const app = express();
-
-// Жесткая настройка CORS
-app.use(cors());
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    if (req.method === 'OPTIONS') return res.sendStatus(200);
-    next();
-});
-
-app.use(express.json({ limit: '15mb' })); 
-
 const SECRET = "KASTA_ULTIMATE_KEY_99";
+
+// 1. ЖЕСТКИЙ CORS (решает твою ошибку в консоли)
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json({ limit: '15mb' }));
+
 mongoose.connect(process.env.MONGO_URI);
 
+// МОДЕЛИ
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -36,114 +34,117 @@ const Post = mongoose.model('Post', {
     text: String,
     imageUrl: String,
     likes: { type: [String], default: [] },
+    comments: [{ author: String, text: String, createdAt: { type: Date, default: Date.now } }],
     createdAt: { type: Date, default: Date.now }
 });
 
 const Message = mongoose.model('Message', {
-    sender: String,
-    receiver: String,
-    text: String,
-    isRead: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
+    sender: String, receiver: String, text: String, isRead: { type: Boolean, default: false }, createdAt: { type: Date, default: Date.now }
 });
 
-const verifyToken = (req, res, next) => {
+const verify = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token || token === "null") return res.status(401).json({error: "No token"});
-    jwt.verify(token, SECRET, (err, decoded) => {
-        if (err) return res.status(401).json({error: "Invalid token"});
-        req.user = decoded;
-        next();
-    });
+    if (!token || token === "null") return res.status(401).send();
+    jwt.verify(token, SECRET, (err, d) => { if(err) return res.status(401).send(); req.user = d; next(); });
 };
 
+// РОУТЫ
 app.post('/register', async (req, res) => {
     try {
-        const username = req.body.username.trim();
-        const hashed = await bcrypt.hash(req.body.password, 10);
-        const user = new User({ username, password: hashed, displayName: username });
-        await user.save();
-        res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
-    } catch(e) { res.status(400).json({message: "Логин занят"}); }
+        const h = await bcrypt.hash(req.body.password, 10);
+        const u = new User({ username: req.body.username.trim(), password: h, displayName: req.body.username });
+        await u.save();
+        res.json({ token: jwt.sign({ username: u.username }, SECRET), username: u.username });
+    } catch(e) { res.status(400).json({message: "Занято"}); }
 });
 
 app.post('/login', async (req, res) => {
-    const u = req.body.username.trim();
-    const user = await User.findOne({ username: new RegExp('^' + u + '$', 'i') });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка"});
-    res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
+    const u = await User.findOne({ username: req.body.username.trim() });
+    if (!u || !await bcrypt.compare(req.body.password, u.password)) return res.status(400).json({message: "Ошибка"});
+    res.json({ token: jwt.sign({ username: u.username }, SECRET), username: u.username });
 });
 
 app.get('/posts', async (req, res) => {
-    const posts = await Post.find().sort({ createdAt: -1 }).limit(50);
-    res.json(posts);
+    const p = await Post.find().sort({ createdAt: -1 }).limit(50);
+    res.json(p);
 });
 
-app.post('/posts', verifyToken, async (req, res) => {
-    const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
-    await post.save();
-    res.json(post);
+app.post('/posts', verify, async (req, res) => {
+    const u = await User.findOne({ username: req.user.username });
+    const p = new Post({ author: u.username, authorAvatar: u.avatarUrl, text: req.body.text, imageUrl: req.body.imageUrl });
+    await p.save(); res.json(p);
 });
 
-app.post('/posts/:id/like', verifyToken, async (req, res) => {
-    const post = await Post.findById(req.params.id);
+app.delete('/posts/:id', verify, async (req, res) => {
+    const p = await Post.findById(req.params.id);
+    if(p.author === req.user.username) { await Post.findByIdAndDelete(req.params.id); res.json({ok:true}); }
+    else res.status(403).send();
+});
+
+app.post('/posts/:id/like', verify, async (req, res) => {
+    const p = await Post.findById(req.params.id);
+    const m = req.user.username;
+    p.likes.includes(m) ? p.likes = p.likes.filter(x => x !== m) : p.likes.push(m);
+    await p.save(); res.json(p);
+});
+
+app.post('/posts/:id/comment', verify, async (req, res) => {
+    const p = await Post.findById(req.params.id);
+    p.comments.push({ author: req.user.username, text: req.body.text });
+    await p.save(); res.json(p);
+});
+
+app.get('/users/profile/:n', async (req, res) => {
+    const u = await User.findOne({ username: req.params.n });
+    if(!u) return res.status(404).send();
+    const p = await Post.find({ author: u.username }).sort({ createdAt: -1 });
+    res.json({ ...u._doc, posts: p, subscribersCount: u.subscribers.length, subscriptionsCount: u.subscriptions.length });
+});
+
+app.post('/users/follow/:n', verify, async (req, res) => {
+    const t = await User.findOne({ username: req.params.n });
+    const me = await User.findOne({ username: req.user.username });
+    if(t.subscribers.includes(me.username)) {
+        t.subscribers = t.subscribers.filter(x => x !== me.username);
+        me.subscriptions = me.subscriptions.filter(x => x !== t.username);
+    } else {
+        t.subscribers.push(me.username);
+        me.subscriptions.push(t.username);
+    }
+    await t.save(); await me.save(); res.json({ok:true});
+});
+
+app.post('/users/update', verify, async (req, res) => {
+    await User.findOneAndUpdate({ username: req.user.username }, req.body);
+    if(req.body.avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
+    res.json({ok:true});
+});
+
+app.get('/chats', verify, async (req, res) => {
     const me = req.user.username;
-    post.likes.includes(me) ? post.likes = post.likes.filter(u => u !== me) : post.likes.push(me);
-    await post.save();
-    res.json({ likes: post.likes });
+    const s = await Message.distinct('sender', { receiver: me });
+    const r = await Message.distinct('receiver', { sender: me });
+    const p = [...new Set([...s, ...r])];
+    const users = await User.find({ username: { $in: p } }, 'username displayName avatarUrl');
+    const unread = await Message.countDocuments({ receiver: me, isRead: false });
+    res.json({ users, unreadCount: unread });
 });
 
-app.get('/users/profile/:username', async (req, res) => {
-    const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
-    if (!user) return res.status(404).send();
-    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
-    res.json({
-        username: user.username,
-        displayName: user.displayName || user.username,
-        avatarUrl: user.avatarUrl || "",
-        subscribersCount: user.subscribers.length,
-        subscriptionsCount: user.subscriptions.length,
-        subscribers: user.subscribers,
-        postsCount: posts.length,
-        posts: posts
-    });
+app.get('/messages/:with', verify, async (req, res) => {
+    const me = req.user.username, him = req.params.with;
+    const m = await Message.find({ $or: [{sender:me, receiver:him}, {sender:him, receiver:me}] }).sort({createdAt: 1});
+    await Message.updateMany({ sender: him, receiver: me }, { isRead: true });
+    res.json(m);
+});
+
+app.post('/messages', verify, async (req, res) => {
+    const m = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
+    await m.save(); res.json(m);
 });
 
 app.get('/users/search', async (req, res) => {
-    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
-    res.json(users);
-});
-
-app.post('/users/update', verifyToken, async (req, res) => {
-    const { displayName, avatarUrl } = req.body;
-    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
-    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
-    res.json({ ok: true });
-});
-
-app.get('/chats', verifyToken, async (req, res) => {
-    const me = req.user.username;
-    const senders = await Message.distinct('sender', { receiver: me });
-    const receivers = await Message.distinct('receiver', { sender: me });
-    const partners = [...new Set([...senders, ...receivers])];
-    const users = await User.find({ username: { $in: partners } }, 'username displayName avatarUrl');
-    const unreadCount = await Message.countDocuments({ receiver: me, isRead: false });
-    res.json({ users, unreadCount });
-});
-
-app.get('/messages/:with', verifyToken, async (req, res) => {
-    const me = req.user.username;
-    const him = req.params.with;
-    const msgs = await Message.find({ $or: [{sender:me, receiver:him}, {sender:him, receiver:me}] }).sort({createdAt: 1});
-    await Message.updateMany({ sender: him, receiver: me }, { isRead: true });
-    res.json(msgs);
-});
-
-app.post('/messages', verifyToken, async (req, res) => {
-    const msg = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
-    await msg.save();
-    res.json(msg);
+    const u = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
+    res.json(u);
 });
 
 app.listen(process.env.PORT || 80);
