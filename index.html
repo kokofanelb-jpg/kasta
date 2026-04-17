@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasta Premium v3</title>
+    <title>Kasta Premium v4</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     <style>
-        /* === ПЕРЕМЕННЫЕ И ТЕМЫ === */
         :root {
             --primary: #8a2be2;
             --bg: #f0f2f5;
@@ -32,12 +31,10 @@
             --del-txt: #000;
         }
 
-        /* === БАЗОВЫЙ СТИЛЬ === */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; transition: background var(--anim); }
         .hidden { display: none !important; }
 
-        /* === ЭФФЕКТ СТЕКЛА === */
         .glass {
             background: var(--surface);
             backdrop-filter: var(--glass);
@@ -47,240 +44,172 @@
             border-radius: 24px;
         }
 
-        /* === КОНТЕЙНЕР === */
-        .app-container {
-            max-width: 600px;
-            margin: 0 auto;
-            min-height: 100vh;
-            padding-bottom: 90px; /* Для мобильного меню */
-        }
+        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; padding-bottom: 100px; }
 
-        /* === АНИМАЦИИ === */
-        @keyframes shake {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.95); }
-        }
-        .btn:active { animation: shake 0.2s ease-in-out; }
-        .fade { animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* === ИСТОРИИ === */
-        .stories-container { display: flex; gap: 12px; padding: 15px; overflow-x: auto; scrollbar-width: none; }
-        .stories-container::-webkit-scrollbar { display: none; }
-        .story-item { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
-        .story-ring {
-            width: 68px; height: 68px; border-radius: 50%; padding: 3px;
+        /* ИСТОРИИ (КРУЖОЧКИ) */
+        .stories-bar { display: flex; gap: 12px; padding: 15px; overflow-x: auto; scrollbar-width: none; }
+        .stories-bar::-webkit-scrollbar { display: none; }
+        .story-node { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
+        .ring { 
+            width: 68px; height: 68px; border-radius: 50%; padding: 3px; 
             border: 2px solid var(--primary); margin: 0 auto 5px; transition: 0.3s;
         }
-        .story-ring.viewed { border-color: #8e8e93; }
-        .story-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .story-user { font-size: 11px; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; }
+        .ring.viewed { border-color: #8e8e93 !important; }
+        .ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .s-name { font-size: 11px; font-weight: 500; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-        /* === ЛЕНТА И ПОСТЫ === */
+        /* ПОСТЫ */
         .post { margin: 15px; overflow: hidden; }
-        .post-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
-        .post-ava { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .post-h { padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
+        .p-ava { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid transparent; }
+        .p-ava.has-st { border-color: var(--primary); padding: 2px; }
         .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
-        .post-actions { padding: 12px 15px; display: flex; align-items: center; gap: 15px; }
-        .post-btn { background: none; border: none; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 5px; font-weight: 600; }
-        .post-desc { padding: 0 15px 15px; font-size: 14.5px; line-height: 1.4; }
-        .btn-del { background: var(--del-bg); color: var(--del-txt); border: none; padding: 6px 12px; border-radius: 10px; font-size: 11px; cursor: pointer; margin-left: auto; }
+        .post-act { padding: 12px 15px; display: flex; gap: 15px; align-items: center; }
+        .act-btn { background: none; border: none; cursor: pointer; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 5px; font-size: 16px; }
+        .post-desc { padding: 0 15px 10px; font-size: 14px; }
+        .comm-sect { padding: 0 15px 15px; border-top: 1px solid var(--border); margin-top: 10px; }
+        .comm-item { font-size: 13px; margin-top: 8px; }
 
-        /* === МЕНЮ (АДАПТИВ) === */
+        /* МЕНЮ */
         .nav { position: fixed; z-index: 1000; display: flex; }
-
-        /* Мобильное: Снизу */
         @media (max-width: 1023px) {
-            .nav { bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; height: 65px; justify-content: space-around; align-items: center; }
-            .nav-item span { display: none; }
+            .nav { bottom: 15px; left: 50%; transform: translateX(-50%); width: 92%; height: 65px; justify-content: space-around; align-items: center; }
         }
-
-        /* PC: Справа */
         @media (min-width: 1024px) {
-            .nav { top: 0; right: 0; height: 100vh; width: 280px; flex-direction: column; justify-content: center; padding: 40px; border-radius: 0; border-left: 1px solid var(--border); }
-            .nav-item { width: 100%; padding: 15px 20px; display: flex; align-items: center; gap: 15px; font-size: 18px; margin-bottom: 10px; transition: 0.3s; border-radius: 15px; }
-            .nav-item:hover { background: var(--surface); }
-            .app-container { margin-right: 300px; max-width: 800px; }
+            .nav { top: 0; right: 0; height: 100vh; width: 260px; flex-direction: column; justify-content: center; padding: 40px; border-radius: 0; border-left: 1px solid var(--border); }
+            .container { margin-right: 280px; }
         }
-
-        .nav-item { cursor: pointer; text-decoration: none; color: var(--text-mut); transition: 0.3s; }
+        .nav-item { cursor: pointer; color: var(--text-mut); display: flex; align-items: center; gap: 12px; transition: 0.3s; font-weight: 600; }
         .nav-item.active { color: var(--primary); }
         .nav-item svg { width: 26px; height: 26px; }
 
-        /* === ПРОФИЛЬ === */
-        .profile-header { padding: 30px 20px; text-align: center; }
-        .profile-ava { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); padding: 4px; margin-bottom: 15px; }
-        .profile-bio { font-size: 14px; color: var(--text-mut); margin: 10px auto; max-width: 80%; line-height: 1.5; }
+        /* ЧАТ */
+        .search-box { margin: 15px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
+        .search-box input { background: none; border: none; color: var(--text); width: 100%; outline: none; }
+        #chat-win { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
+        .msg-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; }
+        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; }
+        .msg.them { align-self: flex-start; background: var(--surface); backdrop-filter: var(--glass); }
 
-        /* === ЧАТ === */
-        .search-chat { margin: 15px; padding: 12px 20px; border-radius: 15px; display: flex; align-items: center; gap: 10px; }
-        .search-chat input { background: none; border: none; color: var(--text); width: 100%; outline: none; font-size: 16px; }
+        /* КНОПКИ */
+        input, textarea { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 12px; outline: none; }
+        .btn { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.96); }
+        .btn-del { background: var(--del-bg); color: var(--del-txt); border: none; padding: 6px 12px; border-radius: 10px; font-size: 11px; cursor: pointer; margin-left: auto; }
 
-        /* === КНОПКИ И ФОРМЫ === */
-        input, textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 15px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); }
-        .btn { background: var(--primary); color: #fff; border: none; padding: 15px 25px; border-radius: 18px; font-weight: 700; cursor: pointer; width: 100%; }
-
-        /* Модалки */
-        .viewer { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:2000; display:none; flex-direction:column; }
-        .viewer-prog { display:flex; gap:4px; padding:10px; }
-        .p-step { height:3px; background:rgba(255,255,255,0.3); flex:1; border-radius:2px; overflow:hidden; }
-        .p-fill { height:100%; background:#fff; width:0%; }
+        /* ПРОФИЛЬ */
+        .p-top { padding: 30px 20px; text-align: center; }
+        .p-big-ava { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); padding: 4px; }
+        .p-bio { font-size: 14px; color: var(--text-mut); margin: 10px 0; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <div id="view-auth">
-        <div class="app-container" style="display:flex; align-items:center; justify-content:center; padding: 20px;">
-            <div class="glass fade" style="padding: 40px; width: 100%; text-align: center;">
-                <h1 style="font-size: 42px; color: var(--primary); margin-bottom: 10px; letter-spacing: 2px;">KASTA</h1>
-                <p style="margin-bottom: 30px; color: var(--text-mut);">Premium Social Network</p>
-                <input id="auth-u" placeholder="Логин (Никнейм)">
-                <input id="auth-p" type="password" placeholder="Пароль">
-                <button class="btn" onclick="handleAuth('login')">Войти</button>
-                <button class="btn" style="background:none; color:var(--text); margin-top:10px;" onclick="handleAuth('register')">Создать аккаунт</button>
+    <div id="v-auth">
+        <div class="container" style="display:flex; align-items:center; padding:20px;">
+            <div class="glass" style="padding:40px; width:100%; text-align:center;">
+                <h1 style="font-size:38px; color:var(--primary); margin-bottom:30px;">KASTA</h1>
+                <input id="u" placeholder="Логин">
+                <input id="p" type="password" placeholder="Пароль">
+                <button class="btn" style="width:100%" onclick="auth('login')">Войти</button>
+                <button class="btn" style="width:100%; background:none; color:var(--text); margin-top:10px;" onclick="auth('register')">Регистрация</button>
             </div>
         </div>
     </div>
 
-    <div id="view-app" class="hidden">
-        <div class="app-container">
+    <div id="v-app" class="hidden">
+        <div class="container">
             
-            <div id="sec-feed" class="fade">
-                <div class="stories-container glass" style="margin-top:10px;" id="stories-list">
-                    <div class="story-item" onclick="document.getElementById('st-file').click()">
-                        <div class="story-ring" style="border-style:dashed; border-color:var(--text-mut); display:flex; align-items:center; justify-content:center;">
-                            <span style="font-size:30px; color:var(--text-mut);">+</span>
-                        </div>
-                        <span class="story-user">Ваша</span>
-                        <input type="file" id="st-file" hidden accept="image/*" onchange="uploadStory(this)">
+            <div id="s-feed">
+                <div class="stories-bar glass" style="margin-top:10px;" id="st-list">
+                    <div class="story-node" onclick="document.getElementById('st-up').click()">
+                        <div class="ring" style="border-style:dashed; border-color:var(--text-mut); font-size:30px; line-height:60px;">+</div>
+                        <span class="s-name">Твоя</span>
+                        <input type="file" id="st-up" hidden accept="image/*" onchange="upStory(this)">
                     </div>
                 </div>
-                <div id="feed-list"></div>
+                <div id="f-list"></div>
             </div>
 
-            <div id="sec-chats" class="hidden fade">
-                <div class="search-chat glass">
-                    <span>🔍</span>
-                    <input id="chat-query" oninput="searchChats(this.value)" placeholder="Поиск в чатах...">
+            <div id="s-chats" class="hidden">
+                <div class="search-box glass">
+                    <input id="ch-search" oninput="searchCh(this.value)" placeholder="Поиск людей...">
                 </div>
-                <div id="chats-list"></div>
-                
-                <div id="chat-window" class="hidden">
-                    <div class="glass" style="margin:0 15px; padding:15px; display:flex; align-items:center; gap:10px; border-radius:20px 20px 0 0;">
-                        <button onclick="closeChat()" style="background:none; border:none; font-size:20px; color:var(--text);">←</button>
-                        <b id="active-chat-name">Пользователь</b>
-                    </div>
-                    <div id="msg-box" style="height:50vh; overflow-y:auto; padding:20px; background: rgba(0,0,0,0.03);"></div>
-                    <div class="glass" style="margin:0 15px 15px; padding:15px; display:flex; gap:10px; border-radius:0 0 20px 20px;">
-                        <input id="msg-input" placeholder="Сообщение..." style="margin:0;">
-                        <button class="btn" style="width:auto;" onclick="sendMsg()">➤</button>
-                    </div>
-                </div>
+                <div id="ch-list"></div>
             </div>
 
-            <div id="sec-profile" class="hidden fade">
-                <div id="profile-ui" class="profile-header glass" style="border-radius: 0 0 30px 30px;"></div>
-                
-                <div class="glass" style="margin:15px; padding:20px;">
-                    <textarea id="p-text" placeholder="Что у вас нового? Добавьте описание..." rows="2"></textarea>
+            <div id="s-prof" class="hidden">
+                <div id="p-ui" class="p-top glass" style="border-radius:0 0 30px 30px;"></div>
+                <div class="glass" style="margin:15px; padding:15px;">
+                    <textarea id="post-t" placeholder="Что нового? Описание поста..." rows="2"></textarea>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="cursor:pointer; color:var(--primary); font-weight:bold;">
-                            🖼️ Фото <input type="file" id="p-file" hidden accept="image/*">
-                        </label>
-                        <button class="btn" style="width:auto; padding:10px 25px;" onclick="createPost()">Пост</button>
+                        <input type="file" id="post-f" hidden accept="image/*">
+                        <button class="btn" style="background:none; color:var(--primary); padding:0;" onclick="document.getElementById('post-f').click()">🖼️ Фото</button>
+                        <button class="btn" style="padding:8px 20px;" onclick="sendPost()">Опубликовать</button>
                     </div>
                 </div>
-
-                <div id="profile-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:3px; padding:0 15px;"></div>
+                <div id="p-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; padding:0 15px;"></div>
             </div>
 
-            <div id="sec-settings" class="hidden fade">
-                <div class="glass" style="margin:15px; padding:25px;">
-                    <h2 style="margin-bottom:20px;">Настройки KASTA</h2>
-                    
-                    <p style="margin-bottom:10px; font-weight:bold;">Редактировать профиль:</p>
-                    <input id="set-name" placeholder="Ваше имя">
-                    <textarea id="set-bio" placeholder="О себе (Bio)"></textarea>
-                    <button class="btn" onclick="updateProfile()">Сохранить профиль</button>
-
-                    <p style="margin:20px 0 10px; font-weight:bold;">Оформление:</p>
-                    <div style="display:flex; gap:10px; margin-bottom:20px;">
-                        <button class="btn" style="background:#fff; color:#000; border:1px solid #ccc;" onclick="setTheme('light')">Светлая</button>
-                        <button class="btn" style="background:#000; color:#fff;" onclick="setTheme('dark')">Темная</button>
+            <div id="s-set" class="hidden">
+                <div class="glass" style="margin:15px; padding:20px;">
+                    <h3>Настройки профиля</h3>
+                    <input id="set-n" placeholder="Имя">
+                    <textarea id="set-b" placeholder="Описание (Bio)"></textarea>
+                    <button class="btn" style="width:100%" onclick="saveSet()">Сохранить</button>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="btn" style="flex:1; background:#fff; color:#000;" onclick="theme('light')">Светлая</button>
+                        <button class="btn" style="flex:1; background:#000; color:#fff;" onclick="theme('dark')">Темная</button>
                     </div>
-
-                    <p style="margin-bottom:10px; font-weight:bold;">Цвет интерфейса:</p>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
-                        <div onclick="setColor('#8a2be2')" style="background:#8a2be2; width:40px; height:40px; border-radius:50%; cursor:pointer;"></div>
-                        <div onclick="setColor('#0095f6')" style="background:#0095f6; width:40px; height:40px; border-radius:50%; cursor:pointer;"></div>
-                        <div onclick="setColor('#ff2d55')" style="background:#ff2d55; width:40px; height:40px; border-radius:50%; cursor:pointer;"></div>
-                        <div onclick="setColor('#34c759')" style="background:#34c759; width:40px; height:40px; border-radius:50%; cursor:pointer;"></div>
-                        <div onclick="setColor('#ff9500')" style="background:#ff9500; width:40px; height:40px; border-radius:50%; cursor:pointer;"></div>
-                    </div>
-
-                    <button class="btn" style="background:#ff3b30;" onclick="logout()">Выход из аккаунта</button>
+                    <button class="btn" style="width:100%; background:#ff3b30; margin-top:20px;" onclick="logout()">Выход</button>
                 </div>
             </div>
-
         </div>
 
         <nav class="nav glass">
-            <div class="nav-item active" onclick="nav('feed', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                <span>Лента</span>
-            </div>
-            <div class="nav-item" onclick="nav('chats', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Чаты</span>
-            </div>
-            <div class="nav-item" onclick="openMe()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>Профиль</span>
-            </div>
-            <div class="nav-item" onclick="nav('settings', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Опции</span>
-            </div>
+            <div class="nav-item active" onclick="nav('feed', this)">🏠 <span>Лента</span></div>
+            <div class="nav-item" onclick="nav('chats', this)">💬 <span>Чаты</span></div>
+            <div class="nav-item" onclick="openMe(this)">👤 <span>Профиль</span></div>
+            <div class="nav-item" onclick="nav('set', this)">⚙️ <span>Опции</span></div>
         </nav>
     </div>
 
-    <div id="st-viewer" class="viewer" onclick="closeStory()">
-        <div class="viewer-prog" id="st-prog-bar"></div>
-        <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-            <img id="st-img-full" style="max-width:100%; max-height:85vh; border-radius:15px;">
+    <div id="chat-win">
+        <div class="glass" style="padding:15px; display:flex; align-items:center; gap:15px;">
+            <button onclick="closeCh()" style="background:none; border:none; font-size:24px; color:var(--text);">←</button>
+            <b id="ch-target">Имя</b>
         </div>
-        <div id="st-info" style="padding:20px; color:#fff; display:flex; align-items:center; gap:10px;">
-            <img id="st-user-ava" style="width:40px; height:40px; border-radius:50%;">
-            <b id="st-user-name">Name</b>
+        <div id="msg-box" class="msg-list"></div>
+        <div class="glass" style="padding:15px; display:flex; gap:10px; border-radius:0;">
+            <input id="msg-in" placeholder="Сообщение..." style="margin:0;">
+            <button class="btn" onclick="sendMsg()">➤</button>
         </div>
     </div>
 
     <script>
         const API = "https://kasta-l49s.onrender.com";
-        let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), curP;
+        let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), activeCh = "";
 
-        // Фикс URL для фоток
-        function fix(u) { return u ? u.replace('http://localhost:3000', API) : 'https://via.placeholder.com/150'; }
+        // Принудительный HTTPS и заглушки
+        function fix(u) { 
+            if(!u) return 'https://ui-avatars.com/api/?name=User';
+            return u.replace('http://', 'https://'); 
+        }
 
-        // Универсальный fetch с обработкой ошибок
         async function call(path, opt={}) {
             const h = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
             opt.headers = { ...h, ...opt.headers };
             try {
                 const r = await fetch(API+path, opt);
                 if(r.status === 401) logout();
-                const ct = r.headers.get('content-type');
-                if(ct && ct.includes('application/json')) return await r.json();
-                return { error: true, message: "Server error" };
+                return await r.json();
             } catch(e) { return { error: true }; }
         }
 
-        // АВТОРИЗАЦИЯ
-        async function handleAuth(t) {
-            const u = document.getElementById('auth-u').value, p = document.getElementById('auth-p').value;
-            if(!u || !p) return alert("Заполни всё!");
-            const res = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
+        async function auth(t) {
+            const uVal = document.getElementById('u').value, pVal = document.getElementById('p').value;
+            const res = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:uVal, password:pVal}) });
             const d = await res.json();
             if(res.ok) { localStorage.setItem('token', d.token); localStorage.setItem('currentUser', d.username); location.reload(); }
             else alert(d.message);
@@ -288,144 +217,123 @@
 
         function logout() { localStorage.clear(); location.reload(); }
 
-        // НАВИГАЦИЯ
         function nav(s, btn) {
-            document.querySelectorAll('[id^="sec-"]').forEach(x => x.classList.add('hidden'));
-            document.getElementById('sec-'+s).classList.remove('hidden');
-            if(btn) {
-                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-            if(s==='feed') { loadFeed(); loadStories(); }
-            if(s==='chats') loadChats();
+            document.querySelectorAll('[id^="s-"]').forEach(x => x.classList.add('hidden'));
+            document.getElementById('s-'+s).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            if(s==='feed') { loadFeed(); loadSt(); }
+            if(s==='chats') loadCh();
         }
 
-        // ИСТОРИИ
-        async function loadStories() {
-            const res = await call('/stories');
-            const list = document.getElementById('stories-list');
-            const stories = res.error ? [] : res;
-            
-            // Оставляем только кнопку "+" и добавляем остальные
-            list.innerHTML = list.children[0].outerHTML; 
-            stories.forEach(s => {
-                const viewed = localStorage.getItem('view_'+s._id);
-                list.innerHTML += `
-                    <div class="story-item" onclick="viewStory('${s._id}', '${fix(s.image)}', '${s.username}', '${fix(s.userAva)}')">
-                        <div class="story-ring ${viewed?'viewed':''}" style="border-color:${s.color || 'var(--primary)'}">
-                            <img src="${fix(s.userAva)}">
-                        </div>
-                        <span class="story-user">${s.username}</span>
-                    </div>
-                `;
-            });
-        }
-
-        let stTimer;
-        function viewStory(id, img, name, ava) {
-            localStorage.setItem('view_'+id, '1');
-            const v = document.getElementById('st-viewer');
-            v.style.display = 'flex';
-            document.getElementById('st-img-full').src = img;
-            document.getElementById('st-user-ava').src = ava;
-            document.getElementById('st-user-name').innerText = name;
-            
-            const bar = document.getElementById('st-prog-bar');
-            bar.innerHTML = '<div class="p-step"><div class="p-fill" id="f"></div></div>';
-            
-            let w = 0; clearInterval(stTimer);
-            stTimer = setInterval(() => {
-                w += 1; document.getElementById('f').style.width = w+'%';
-                if(w >= 100) closeStory();
-            }, 50); // 5 секунд
-        }
-        function closeStory() { document.getElementById('st-viewer').style.display='none'; clearInterval(stTimer); loadStories(); }
-
-        async function uploadStory(el) {
-            const f = el.files[0]; if(!f) return;
-            const img = await compress(f);
-            await call('/stories', { method:'POST', body: JSON.stringify({ image:img, color: localStorage.getItem('color') || '#8a2be2' }) });
-            loadStories();
-        }
-
-        // ПОСТЫ
+        // ЛЕНТА, ЛАЙКИ И КОММЕНТЫ
         async function loadFeed() {
             const pp = await call('/posts');
             if(pp.error) return;
-            const now = Date.now();
-            // Фильтр 24 часа для ОБЩЕЙ ленты
-            const list = document.getElementById('feed-list');
-            list.innerHTML = pp.filter(p => (now - new Date(p.createdAt).getTime()) < 86400000).map(p => `
-                <div class="post glass fade">
-                    <div class="post-header">
-                        <img src="${fix(p.authorAvatar)}" class="post-ava" onclick="openProfile('${p.author}')">
-                        <b onclick="openProfile('${p.author}')">${p.author}</b>
+            document.getElementById('f-list').innerHTML = pp.map(p => `
+                <div class="post glass">
+                    <div class="post-h">
+                        <img src="${fix(p.authorAvatar)}" class="p-ava ${p.hasStory?'has-st':''}">
+                        <b>${p.author}</b>
                         ${p.author === me ? `<button class="btn-del" onclick="delPost('${p._id}')">Удалить</button>` : ''}
                     </div>
                     ${p.imageUrl ? `<img src="${fix(p.imageUrl)}" class="post-img">` : ''}
-                    <div class="post-actions">
-                        <button class="post-btn" onclick="like('${p._id}')">
-                            <span style="color:${p.likes.includes(me)?'var(--primary)':'inherit'}">❤️</span> ${p.likes.length}
-                        </button>
-                        <button class="post-btn">💬 ${p.comments.length}</button>
+                    <div class="post-act">
+                        <button class="act-btn" onclick="like('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
+                        <button class="act-btn">💬 ${p.comments.length}</button>
                     </div>
-                    ${p.text ? `<div class="post-desc"><b>${p.author}</b> ${p.text}</div>` : ''}
+                    <div class="post-desc"><b>${p.author}</b> ${p.text || ''}</div>
+                    <div class="comm-sect">
+                        ${p.comments.slice(-2).map(c => `<div class="comm-item"><b>${c.author}</b> ${c.text}</div>`).join('')}
+                        <input placeholder="Написать комментарий..." onkeydown="if(event.key==='Enter') addComm('${p._id}', this.value)" style="margin-top:10px; font-size:12px; padding:8px;">
+                    </div>
                 </div>
-            `).join('');
+            `).reverse().join('');
         }
 
-        // ПРОФИЛЬ
-        async function openProfile(n) {
-            nav('profile');
-            const u = await call('/users/profile/'+n);
-            document.getElementById('profile-ui').innerHTML = `
-                <img src="${fix(u.avatarUrl)}" class="profile-ava">
-                <h1>${u.displayName || u.username}</h1>
-                <p class="profile-bio">${u.bio || 'Нет описания'}</p>
-                <div style="display:flex; justify-content:center; gap:20px; margin-top:15px;">
+        async function like(id) { await call(`/posts/${id}/like`, {method:'POST'}); loadFeed(); }
+        async function addComm(id, txt) { if(!txt) return; await call(`/posts/${id}/comment`, {method:'POST', body:JSON.stringify({text:txt})}); loadFeed(); }
+
+        // ПРОФИЛЬ С ПОДПИСКАМИ И BIO
+        async function openMe(btn) {
+            nav('s-prof', btn);
+            const u = await call('/users/profile/'+me);
+            document.getElementById('p-ui').innerHTML = `
+                <img src="${fix(u.avatarUrl)}" class="p-big-ava">
+                <h2>${u.displayName || u.username}</h2>
+                <p class="p-bio">${u.bio || 'Нет описания профиля'}</p>
+                <div style="display:flex; justify-content:center; gap:25px; margin-top:15px;">
                     <span><b>${u.posts.length}</b><br>посты</span>
-                    <span><b>${u.subscribersCount}</b><br>друзья</span>
+                    <span><b>${u.subscribersCount || 0}</b><br>друзья</span>
+                    <span><b>${u.followingCount || 0}</b><br>подписки</span>
                 </div>
             `;
-            const grid = document.getElementById('profile-grid');
-            grid.innerHTML = u.posts.map(p => `<img src="${fix(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px;">`).join('');
-        }
-        function openMe() { openProfile(me); }
-
-        async function updateProfile() {
-            const n = document.getElementById('set-name').value;
-            const b = document.getElementById('set-bio').value;
-            await call('/users/update', { method:'POST', body: JSON.stringify({ displayName: n, bio: b }) });
-            alert("Обновлено!"); openMe();
+            document.getElementById('p-grid').innerHTML = u.posts.map(p => `<img src="${fix(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover;">`).join('');
+            document.getElementById('set-n').value = u.displayName || '';
+            document.getElementById('set-b').value = u.bio || '';
         }
 
-        async function createPost() {
-            const t = document.getElementById('p-text').value;
-            const f = document.getElementById('p-file').files[0];
-            let img = f ? await compress(f) : "";
-            await call('/posts', { method:'POST', body: JSON.stringify({ text:t, imageUrl:img }) });
-            document.getElementById('p-text').value = "";
-            openMe();
+        async function saveSet() {
+            const n = document.getElementById('set-n').value, b = document.getElementById('set-b').value;
+            await call('/users/update', {method:'POST', body:JSON.stringify({displayName:n, bio:b})});
+            alert("Сохранено!"); openMe();
         }
 
-        // ЧАТ
-        async function loadChats() {
+        // ЧАТЫ (РАБОЧИЕ)
+        async function loadCh() {
             const d = await call('/chats');
-            if(d.error) return;
-            document.getElementById('chats-list').innerHTML = d.users.map(u => `
-                <div class="glass" style="margin:10px 15px; padding:15px; display:flex; align-items:center; gap:12px;" onclick="startChat('${u.username}')">
-                    <img src="${fix(u.avatarUrl)}" class="post-ava" style="${u.hasStory?'border:2px solid var(--primary); padding:2px;':''}">
+            document.getElementById('ch-list').innerHTML = d.users.map(u => `
+                <div class="glass" style="margin:10px 15px; padding:15px; display:flex; align-items:center; gap:12px;" onclick="openWin('${u.username}')">
+                    <img src="${fix(u.avatarUrl)}" class="p-ava ${u.hasStory?'has-st':''}">
                     <b>${u.username}</b>
                 </div>
             `).join('');
         }
 
-        // ВСПОМОГАТЕЛЬНОЕ
-        function setTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
-        function setColor(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('color', c); }
-        function compress(file) {
+        async function openWin(name) {
+            activeCh = name;
+            document.getElementById('ch-target').innerText = name;
+            document.getElementById('chat-win').style.display = 'flex';
+            const msgs = await call('/messages/'+name);
+            document.getElementById('msg-box').innerHTML = msgs.map(m => `
+                <div class="msg ${m.sender===me?'me':'them'}">${m.text}</div>
+            `).join('');
+            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
+        }
+
+        async function sendMsg() {
+            const i = document.getElementById('msg-in'); if(!i.value) return;
+            await call('/messages', {method:'POST', body:JSON.stringify({recipient:activeCh, text:i.value})});
+            i.value = ""; openWin(activeCh);
+        }
+        function closeCh() { document.getElementById('chat-win').style.display='none'; }
+
+        // СТОРИЗ
+        async function loadSt() {
+            const res = await call('/stories');
+            if(res.error) return;
+            const bar = document.getElementById('st-list');
+            bar.innerHTML = bar.children[0].outerHTML;
+            res.forEach(s => {
+                bar.innerHTML += `
+                    <div class="story-node">
+                        <div class="ring"><img src="${fix(s.userAva)}"></div>
+                        <span class="s-name">${s.username}</span>
+                    </div>
+                `;
+            });
+        }
+
+        async function sendPost() {
+            const t = document.getElementById('post-t').value, f = document.getElementById('post-f').files[0];
+            let img = f ? await compress(f) : "";
+            await call('/posts', {method:'POST', body:JSON.stringify({text:t, imageUrl:img})});
+            document.getElementById('post-t').value = ""; openMe();
+        }
+
+        function compress(f) {
             return new Promise(r => {
-                const rd = new FileReader(); rd.readAsDataURL(file);
+                const rd = new FileReader(); rd.readAsDataURL(f);
                 rd.onload = e => {
                     const i = new Image(); i.src = e.target.result;
                     i.onload = () => {
@@ -438,14 +346,10 @@
             });
         }
 
-        // ЗАПУСК
-        setTheme(localStorage.getItem('theme') || 'light');
-        setColor(localStorage.getItem('color') || '#8a2be2');
-        if(token) {
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('view-app').classList.remove('hidden');
-            nav('feed');
-        }
+        function theme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('th', t); }
+        theme(localStorage.getItem('th') || 'light');
+
+        if(token) { document.getElementById('v-auth').classList.add('hidden'); document.getElementById('v-app').classList.remove('hidden'); nav('feed'); }
     </script>
 </body>
 </html>
