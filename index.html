@@ -39,7 +39,6 @@
         .m-out { align-self: flex-end; background: #dcf8c6; }
         .m-in { align-self: flex-start; background: #fff; }
 
-        /* Просмотр фото */
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
@@ -59,7 +58,7 @@
                 <div style="background:#fff; padding:15px; border-bottom:1px solid #ddd;">
                     <textarea id="p-txt" placeholder="Расскажи что-нибудь..."></textarea>
                     <input type="file" id="p-img" accept="image/*">
-                    <button class="btn" onclick="doPost()">Опубликовать</button>
+                    <button class="btn" onclick="doPost()" id="btn-post">Опубликовать</button>
                 </div>
                 <div id="feed-list"></div>
             </div>
@@ -90,10 +89,10 @@
                     <h3>Настройки</h3>
                     <input id="edit-name" placeholder="Отображаемое имя">
                     <input type="file" id="edit-ava" accept="image/*">
-                    <button class="btn" onclick="saveProfile()">Сохранить</button>
+                    <button class="btn" onclick="saveProfile()" id="btn-save">Сохранить</button>
                     <button class="btn btn-gray" onclick="toggleEdit(false)">Отмена</button>
                 </div>
-                <div id="prof-posts" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px;"></div>
+                <div id="prof-posts" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; background:#fff; padding-bottom: 20px;"></div>
             </div>
         </div>
 
@@ -112,11 +111,33 @@
         const DEF = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
         let token = localStorage.getItem('token'), me = localStorage.getItem('currentUser'), curP, chatL;
 
-        // ИСПРАВЛЕНИЕ СТАРЫХ ССЫЛОК (localhost)
         function fixUrl(url) {
             if(!url) return DEF;
             if(url.includes('localhost:3000')) return url.replace('http://localhost:3000', API);
             return url;
+        }
+
+        // --- НОВЫЙ ФИКС ЛАГОВ: КОМПРЕССОР ФОТОГРАФИЙ ---
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 800; // Ужимаем до 800px, чтобы не лагало
+                        let width = img.width, height = img.height;
+                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                        else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Сжимаем до 70% качества
+                    };
+                };
+            });
         }
 
         async function api(p, o={}) {
@@ -143,13 +164,14 @@
         }
 
         async function loadFeed() {
+            document.getElementById('feed-list').innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Загрузка...</div>';
             const pp = await api('/posts');
             document.getElementById('feed-list').innerHTML = pp.map(p => `
                 <div class="post">
                     <div class="post-h" onclick="openProfile('${p.author}')">
                         <img class="p-ava-s" src="${fixUrl(p.authorAvatar)}">
                         <b>${p.author}</b>
-                        ${p.author === me ? `<button style="margin-left:auto; border:none; background:none; color:red" onclick="event.stopPropagation(); deletePost('${p._id}')">✕</button>` : ''}
+                        ${p.author === me ? `<button style="margin-left:auto; border:none; background:none; color:red; font-size:18px;" onclick="event.stopPropagation(); deletePost('${p._id}')">✕</button>` : ''}
                     </div>
                     ${p.text ? `<div style="padding:0 12px 10px">${p.text}</div>` : ''}
                     ${p.imageUrl ? `<img src="${fixUrl(p.imageUrl)}" class="post-img" onclick="zoom('${fixUrl(p.imageUrl)}')">` : ''}
@@ -194,27 +216,28 @@
                     `}
                 </div>
             `;
+            // ИСПРАВЛЕНА СЕТКА ПОСТОВ (Красивый вид для текста и картинок)
             document.getElementById('prof-posts').innerHTML = u.posts.map(p => `
-                <div onclick="zoom('${fixUrl(p.imageUrl || '')}')" style="aspect-ratio:1/1; background:#ddd; overflow:hidden;">
-                    ${p.imageUrl ? `<img src="${fixUrl(p.imageUrl)}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="padding:5px; font-size:10px;">${p.text}</div>`}
+                <div style="aspect-ratio:1/1; background:#f8f9fa; border:1px solid #fff; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="zoom('${fixUrl(p.imageUrl || '')}')">
+                    ${p.imageUrl ? `<img src="${fixUrl(p.imageUrl)}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="padding:10px; font-size:12px; text-align:center; color:#555; word-break:break-word;">${p.text.substring(0,40)}${p.text.length>40?'...':''}</div>`}
                 </div>
             `).join('');
         }
 
         async function saveProfile() {
+            document.getElementById('btn-save').innerText = 'Загрузка...';
             const displayName = document.getElementById('edit-name').value;
             const file = document.getElementById('edit-ava').files[0];
             let avatarUrl = "";
-            if(file) {
-                const reader = new FileReader();
-                avatarUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
-            }
+            if(file) avatarUrl = await compressImage(file); // Сжимаем аватарку
+            
             await api('/users/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({displayName, avatarUrl}) });
+            document.getElementById('btn-save').innerText = 'Сохранить';
             toggleEdit(false); openProfile(me);
         }
 
         async function doLike(id) { await api(`/posts/${id}/like`, {method:'POST'}); loadFeed(); }
-        async function deletePost(id) { if(confirm('Удалить?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); } }
+        async function deletePost(id) { if(confirm('Удалить этот пост?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); } }
         async function addComment(id) {
             const text = document.getElementById('ci-'+id).value; if(!text) return;
             await api(`/posts/${id}/comment`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
@@ -225,14 +248,18 @@
         function zoom(url) { if(!url || url===DEF) return; document.getElementById('modal-img').src = url; document.getElementById('modal').classList.remove('hidden'); }
 
         async function doPost() {
+            const btn = document.getElementById('btn-post');
             const text = document.getElementById('p-txt').value, file = document.getElementById('p-img').files[0];
+            if(!text && !file) return;
+            
+            btn.innerText = 'Загрузка...';
             let imageUrl = "";
-            if(file) {
-                const reader = new FileReader();
-                imageUrl = await new Promise(r => { reader.readAsDataURL(file); reader.onload = () => r(reader.result); });
-            }
+            if(file) imageUrl = await compressImage(file); // Сжимаем фото перед отправкой!
+            
             await api('/posts', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, imageUrl}) });
-            document.getElementById('p-txt').value = ""; document.getElementById('p-img').value = ""; loadFeed();
+            document.getElementById('p-txt').value = ""; document.getElementById('p-img').value = ""; 
+            btn.innerText = 'Опубликовать';
+            loadFeed();
         }
 
         async function loadChats() {
