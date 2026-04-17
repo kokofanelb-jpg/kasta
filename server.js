@@ -7,21 +7,21 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const SECRET = "KASTA_ULTIMATE_KEY_99";
 
-// --- ЖЕСТКИЙ ИСПРАВЛЕННЫЙ CORS ---
+// 1. НАСТРОЙКА CORS — разрешаем всё, чтобы не было ошибок доступа
 app.use(cors({
-    origin: ['https://kokofanelb-jpg.github.io', 'http://localhost:3000'], // Твой домен
+    origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Обработка Preflight запросов (те самые ошибки в консоли)
-app.options('*', cors()); 
+// 2. ЛИМИТЫ ДАННЫХ — чтобы тяжелые фото не обрывали JSON
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use(express.json({ limit: '15mb' }));
-
+// Подключение к базе (MONGO_URI должен быть в настройках Render)
 mongoose.connect(process.env.MONGO_URI);
 
+// СХЕМЫ ДАННЫХ
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -42,45 +42,64 @@ const Post = mongoose.model('Post', {
 });
 
 const Message = mongoose.model('Message', {
-    sender: String, receiver: String, text: String, isRead: { type: Boolean, default: false }, createdAt: { type: Date, default: Date.now }
+    sender: String, 
+    receiver: String, 
+    text: String, 
+    isRead: { type: Boolean, default: false }, 
+    createdAt: { type: Date, default: Date.now }
 });
 
+// ПРОВЕРКА ТОКЕНА
 const verify = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token || token === "null") return res.status(401).send();
-    jwt.verify(token, SECRET, (err, d) => { if(err) return res.status(401).send(); req.user = d; next(); });
+    jwt.verify(token, SECRET, (err, d) => { 
+        if(err) return res.status(401).send(); 
+        req.user = d; 
+        next(); 
+    });
 };
 
+// РОУТЫ АВТОРИЗАЦИИ
 app.post('/register', async (req, res) => {
     try {
         const h = await bcrypt.hash(req.body.password, 10);
         const u = new User({ username: req.body.username.trim(), password: h, displayName: req.body.username });
         await u.save();
         res.json({ token: jwt.sign({ username: u.username }, SECRET), username: u.username });
-    } catch(e) { res.status(400).json({message: "Занято"}); }
+    } catch(e) { res.status(400).json({message: "Имя занято"}); }
 });
 
 app.post('/login', async (req, res) => {
     const u = await User.findOne({ username: req.body.username.trim() });
-    if (!u || !await bcrypt.compare(req.body.password, u.password)) return res.status(400).json({message: "Ошибка"});
+    if (!u || !await bcrypt.compare(req.body.password, u.password)) return res.status(400).json({message: "Ошибка входа"});
     res.json({ token: jwt.sign({ username: u.username }, SECRET), username: u.username });
 });
 
+// РОУТЫ ПОСТОВ
 app.get('/posts', async (req, res) => {
-    const p = await Post.find().sort({ createdAt: -1 }).limit(20);
+    const p = await Post.find().sort({ createdAt: -1 }).limit(50);
     res.json(p);
 });
 
 app.post('/posts', verify, async (req, res) => {
     const u = await User.findOne({ username: req.user.username });
-    const p = new Post({ author: u.username, authorAvatar: u.avatarUrl, text: req.body.text, imageUrl: req.body.imageUrl });
-    await p.save(); res.json(p);
+    const p = new Post({ 
+        author: u.username, 
+        authorAvatar: u.avatarUrl, 
+        text: req.body.text, 
+        imageUrl: req.body.imageUrl 
+    });
+    await p.save(); 
+    res.json(p);
 });
 
 app.delete('/posts/:id', verify, async (req, res) => {
     const p = await Post.findById(req.params.id);
-    if(p && p.author === req.user.username) { await Post.findByIdAndDelete(req.params.id); res.json({ok:true}); }
-    else res.status(403).send();
+    if(p && p.author === req.user.username) { 
+        await Post.findByIdAndDelete(req.params.id); 
+        res.json({ok:true}); 
+    } else res.status(403).send();
 });
 
 app.post('/posts/:id/like', verify, async (req, res) => {
@@ -88,20 +107,28 @@ app.post('/posts/:id/like', verify, async (req, res) => {
     const m = req.user.username;
     if(p.likes.includes(m)) p.likes = p.likes.filter(x => x !== m);
     else p.likes.push(m);
-    await p.save(); res.json(p);
+    await p.save(); 
+    res.json(p);
 });
 
 app.post('/posts/:id/comment', verify, async (req, res) => {
     const p = await Post.findById(req.params.id);
     p.comments.push({ author: req.user.username, text: req.body.text });
-    await p.save(); res.json(p);
+    await p.save(); 
+    res.json(p);
 });
 
+// ПРОФИЛЬ И ПОИСК
 app.get('/users/profile/:n', async (req, res) => {
     const u = await User.findOne({ username: req.params.n });
     if(!u) return res.status(404).json({message:"Нет юзера"});
     const p = await Post.find({ author: u.username }).sort({ createdAt: -1 });
-    res.json({ ...u._doc, posts: p, subscribersCount: u.subscribers.length, subscriptionsCount: u.subscriptions.length });
+    res.json({ 
+        ...u._doc, 
+        posts: p, 
+        subscribersCount: u.subscribers.length, 
+        subscriptionsCount: u.subscriptions.length 
+    });
 });
 
 app.post('/users/follow/:n', verify, async (req, res) => {
@@ -114,15 +141,24 @@ app.post('/users/follow/:n', verify, async (req, res) => {
         t.subscribers.push(me.username);
         me.subscriptions.push(t.username);
     }
-    await t.save(); await me.save(); res.json({ok:true});
+    await t.save(); await me.save(); 
+    res.json({ok:true});
 });
 
 app.post('/users/update', verify, async (req, res) => {
     await User.findOneAndUpdate({ username: req.user.username }, req.body);
-    if(req.body.avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
+    if(req.body.avatarUrl) {
+        await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
+    }
     res.json({ok:true});
 });
 
+app.get('/users/search', async (req, res) => {
+    const u = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
+    res.json(u);
+});
+
+// ЧАТЫ И СООБЩЕНИЯ
 app.get('/chats', verify, async (req, res) => {
     const me = req.user.username;
     const s = await Message.distinct('sender', { receiver: me });
@@ -135,19 +171,22 @@ app.get('/chats', verify, async (req, res) => {
 
 app.get('/messages/:with', verify, async (req, res) => {
     const me = req.user.username, him = req.params.with;
-    const m = await Message.find({ $or: [{sender:me, receiver:him}, {sender:him, receiver:me}] }).sort({createdAt: 1});
+    const m = await Message.find({ 
+        $or: [{sender:me, receiver:him}, {sender:him, receiver:me}] 
+    }).sort({createdAt: 1});
     await Message.updateMany({ sender: him, receiver: me }, { isRead: true });
     res.json(m);
 });
 
 app.post('/messages', verify, async (req, res) => {
-    const m = new Message({ sender: req.user.username, receiver: req.body.receiver, text: req.body.text });
-    await m.save(); res.json(m);
+    const m = new Message({ 
+        sender: req.user.username, 
+        receiver: req.body.receiver, 
+        text: req.body.text 
+    });
+    await m.save(); 
+    res.json(m);
 });
 
-app.get('/users/search', async (req, res) => {
-    const u = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
-    res.json(u);
-});
-
+// ЗАПУСК
 app.listen(process.env.PORT || 80);
