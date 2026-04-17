@@ -47,6 +47,7 @@ const verifyToken = (req, res, next) => {
     });
 };
 
+// API
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -71,12 +72,7 @@ app.get('/posts', async (req, res) => {
 
 app.post('/posts', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ 
-        author: req.user.username, 
-        authorAvatar: user.avatarUrl || "", 
-        text: req.body.text, 
-        imageUrl: req.body.imageUrl 
-    });
+    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
     await post.save();
     res.json(post);
 });
