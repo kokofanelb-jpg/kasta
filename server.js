@@ -25,7 +25,8 @@ const Post = mongoose.model('Post', {
     authorAvatar: String,
     text: String,
     imageUrl: String,
-    createdAt: { type: Date, default: Date.now }
+    likes: { type: [String], default: [] }, // ВЕРНУЛИ ЛАЙКИ
+    createdAt: { type: Date, default: Date.now } // ВРЕМЯ СОЗДАНИЯ
 });
 
 const Message = mongoose.model('Message', {
@@ -57,7 +58,6 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const username = req.body.username.trim();
-    // Ищем пользователя без учета регистра (большие/маленькие буквы)
     const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
     if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка входа"});
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
@@ -89,9 +89,25 @@ app.delete('/posts/:id', verifyToken, async (req, res) => {
     res.status(403).json({ error: "Access denied" });
 });
 
+// НОВЫЙ ЭНДПОИНТ ДЛЯ ЛАЙКОВ
+app.post('/posts/:id/like', verifyToken, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).send();
+        const me = req.user.username;
+        
+        if (post.likes.includes(me)) {
+            post.likes = post.likes.filter(u => u !== me); // Убрать лайк
+        } else {
+            post.likes.push(me); // Поставить лайк
+        }
+        await post.save();
+        res.json({ likes: post.likes });
+    } catch (e) { res.status(500).send(); }
+});
+
 app.get('/users/profile/:username', async (req, res) => {
     try {
-        // Умный поиск: найдет 'Ivan', даже если ты ищешь 'ivan'
         const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
         if (!user) return res.status(404).json({error: "User not found"});
         const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
@@ -120,7 +136,7 @@ app.post('/users/update', verifyToken, async (req, res) => {
 });
 
 app.get('/users/search', async (req, res) => {
-    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(10);
+    const users = await User.find({ username: new RegExp(req.query.q, 'i') }).limit(20);
     res.json(users);
 });
 
