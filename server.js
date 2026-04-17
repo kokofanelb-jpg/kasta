@@ -16,7 +16,8 @@ const User = mongoose.model('User', {
     password: { type: String },
     displayName: String,
     avatarUrl: String,
-    subscribers: { type: [String], default: [] }
+    subscribers: { type: [String], default: [] },
+    subscriptions: { type: [String], default: [] }
 });
 
 const Post = mongoose.model('Post', {
@@ -36,7 +37,7 @@ const Message = mongoose.model('Message', {
 
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({error: "No token"});
+    if (!token || token === "null") return res.status(401).json({error: "No token"});
     jwt.verify(token, SECRET, (err, decoded) => {
         if (err) return res.status(401).json({error: "Invalid token"});
         req.user = decoded;
@@ -57,9 +58,7 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     const username = req.body.username.trim().toLowerCase();
     const user = await User.findOne({ username });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
-        return res.status(400).json({message: "Ошибка входа"});
-    }
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Ошибка входа"});
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
@@ -86,7 +85,7 @@ app.delete('/posts/:id', verifyToken, async (req, res) => {
         await Post.deleteOne({ _id: req.params.id });
         return res.json({ success: true });
     }
-    res.status(403).send();
+    res.status(403).json({ error: "Access denied" });
 });
 
 app.get('/users/profile/:username', async (req, res) => {
@@ -98,25 +97,22 @@ app.get('/users/profile/:username', async (req, res) => {
         displayName: user.displayName || user.username,
         avatarUrl: user.avatarUrl,
         subscribersCount: user.subscribers.length,
+        subscriptionsCount: user.subscriptions.length,
+        postsCount: posts.length,
         subscribers: user.subscribers,
         posts: posts
     });
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    const { displayName, avatarUrl } = req.body;
-    const updateData = {};
-    if (displayName) updateData.displayName = displayName;
-    if (avatarUrl) updateData.avatarUrl = avatarUrl;
-
-    const updatedUser = await User.findOneAndUpdate({ username: req.user.username }, updateData, { new: true });
-    
-    // СИНХРОНИЗАЦИЯ: Обновляем аватарку во всех постах пользователя
-    if (avatarUrl) {
-        await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
+    const updates = {};
+    if(req.body.displayName) updates.displayName = req.body.displayName;
+    if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
+    await User.findOneAndUpdate({ username: req.user.username }, updates);
+    if(req.body.avatarUrl) {
+        await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
     }
-    
-    res.json({ ok: true, user: updatedUser });
+    res.json({ ok: true });
 });
 
 app.get('/users/search', async (req, res) => {
@@ -125,22 +121,27 @@ app.get('/users/search', async (req, res) => {
 });
 
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
-    const target = await User.findOne({ username: req.params.username.toLowerCase() });
-    if (!target) return res.status(404).send();
-    if (target.subscribers.includes(req.user.username)) {
-        target.subscribers = target.subscribers.filter(u => u !== req.user.username);
+    const targetName = req.params.username.toLowerCase();
+    const meName = req.user.username;
+    if (targetName === meName) return res.status(400).send();
+
+    const target = await User.findOne({ username: targetName });
+    const me = await User.findOne({ username: meName });
+
+    if (target.subscribers.includes(meName)) {
+        target.subscribers = target.subscribers.filter(u => u !== meName);
+        me.subscriptions = me.subscriptions.filter(u => u !== targetName);
     } else {
-        target.subscribers.push(req.user.username);
+        target.subscribers.push(meName);
+        me.subscriptions.push(targetName);
     }
     await target.save();
+    await me.save();
     res.json({ ok: true });
 });
 
 app.get('/messages/:with', verifyToken, async (req, res) => {
-    const msgs = await Message.find({ $or: [
-        {sender:req.user.username, receiver:req.params.with}, 
-        {sender:req.params.with, receiver:req.user.username}
-    ] });
+    const msgs = await Message.find({ $or: [{sender:req.user.username, receiver:req.params.with}, {sender:req.params.with, receiver:req.user.username}] });
     res.json(msgs);
 });
 
