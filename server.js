@@ -46,17 +46,21 @@ const verifyToken = (req, res, next) => {
 
 app.post('/register', async (req, res) => {
     try {
+        const username = req.body.username.trim().toLowerCase();
         const hashed = await bcrypt.hash(req.body.password, 10);
-        const user = new User({ username: req.body.username.trim(), password: hashed, displayName: req.body.username });
+        const user = new User({ username, password: hashed, displayName: username });
         await user.save();
-        res.json({ token: jwt.sign({ username: user.username }, SECRET) });
-    } catch(e) { res.status(400).json({message: "Юзер уже есть"}); }
+        res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
+    } catch(e) { res.status(400).json({message: "Логин занят"}); }
 });
 
 app.post('/login', async (req, res) => {
-    const user = await User.findOne({ username: req.body.username.trim() });
-    if (!user || !await bcrypt.compare(req.body.password, user.password)) return res.status(400).json({message: "Неверно"});
-    res.json({ token: jwt.sign({ username: user.username }, SECRET) });
+    const username = req.body.username.trim().toLowerCase();
+    const user = await User.findOne({ username });
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
+        return res.status(400).json({message: "Ошибка входа"});
+    }
+    res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
 app.get('/posts', async (req, res) => {
@@ -77,20 +81,18 @@ app.post('/posts', verifyToken, async (req, res) => {
 });
 
 app.delete('/posts/:id', verifyToken, async (req, res) => {
-    try {
-        const post = await Post.findOne({ _id: req.params.id });
-        if (post && post.author === req.user.username) {
-            await Post.deleteOne({ _id: req.params.id });
-            return res.json({ success: true });
-        }
-        res.status(403).send();
-    } catch(e) { res.status(500).send(); }
+    const post = await Post.findOne({ _id: req.params.id });
+    if (post && post.author === req.user.username) {
+        await Post.deleteOne({ _id: req.params.id });
+        return res.json({ success: true });
+    }
+    res.status(403).send();
 });
 
 app.get('/users/profile/:username', async (req, res) => {
-    const user = await User.findOne({ username: req.params.username });
-    if (!user) return res.status(404).json({error: "Not found"});
-    const posts = await Post.find({ author: req.params.username }).sort({ createdAt: -1 });
+    const user = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!user) return res.status(404).json({error: "User not found"});
+    const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
     res.json({
         username: user.username,
         displayName: user.displayName || user.username,
@@ -105,7 +107,6 @@ app.post('/users/update', verifyToken, async (req, res) => {
     const updates = {};
     if(req.body.displayName) updates.displayName = req.body.displayName;
     if(req.body.avatarUrl) updates.avatarUrl = req.body.avatarUrl;
-    
     await User.findOneAndUpdate({ username: req.user.username }, updates);
     if(updates.avatarUrl) {
         await Post.updateMany({ author: req.user.username }, { authorAvatar: updates.avatarUrl });
@@ -119,7 +120,7 @@ app.get('/users/search', async (req, res) => {
 });
 
 app.post('/users/follow/:username', verifyToken, async (req, res) => {
-    const target = await User.findOne({ username: req.params.username });
+    const target = await User.findOne({ username: req.params.username.toLowerCase() });
     if (!target) return res.status(404).send();
     if (target.subscribers.includes(req.user.username)) {
         target.subscribers = target.subscribers.filter(u => u !== req.user.username);
@@ -131,7 +132,10 @@ app.post('/users/follow/:username', verifyToken, async (req, res) => {
 });
 
 app.get('/messages/:with', verifyToken, async (req, res) => {
-    const msgs = await Message.find({ $or: [{sender:req.user.username, receiver:req.params.with}, {sender:req.params.with, receiver:req.user.username}] });
+    const msgs = await Message.find({ $or: [
+        {sender:req.user.username, receiver:req.params.with}, 
+        {sender:req.params.with, receiver:req.user.username}
+    ] });
     res.json(msgs);
 });
 
