@@ -83,7 +83,7 @@
             <div id="tab-profile" class="hidden">
                 <div class="profile-card">
                     <img id="my-ava" class="p-ava" src="https://via.placeholder.com/110">
-                    <h2 id="my-name" style="margin: 10px 0 0 0;">Имя</h2>
+                    <h2 id="my-name" style="margin: 10px 0 0 0;">Загрузка...</h2>
                     <p id="my-handle" style="color: var(--gray); margin: 5px 0 15px 0;">@username</p>
                     
                     <div style="display:flex; justify-content:center; gap:25px; border-top:1px solid #eee; padding-top:15px;">
@@ -115,7 +115,7 @@
             <div class="nav-item" onclick="showTab('feed')">🏠</div>
             <div class="nav-item" onclick="showTab('search')">🔍</div>
             <div class="nav-item" onclick="showTab('chats')">💬</div>
-            <div class="nav-item" onclick="showTab('profile')">👤</div>
+            <div class="nav-item" onclick="openUser(me)">👤</div>
             <div class="nav-item" onclick="showTab('settings')">⚙️</div>
         </nav>
     </div>
@@ -128,7 +128,6 @@
         let chatWith = null;
         let chatInterval = null;
 
-        // ФУНКЦИИ ДЛЯ РЕНДЕРА ПОСТОВ
         function createPostHTML(p) {
             return `
                 <div class="post">
@@ -170,7 +169,6 @@
             reader.onerror = e => reject(e);
         });
 
-        // ПУБЛИКАЦИЯ И МГНОВЕННОЕ ОБНОВЛЕНИЕ
         async function publishPost() {
             const textInput = document.getElementById('post-txt');
             const fileInput = document.getElementById('post-file');
@@ -184,20 +182,17 @@
                 body: JSON.stringify({text: textInput.value, imageUrl})
             });
             
-            // Очищаем форму и мгновенно грузим ленту (БЕЗ перезагрузки страницы)
             textInput.value = "";
             fileInput.value = "";
             loadFeed();
         }
 
-        // УДАЛЕНИЕ ПОСТА
         async function deletePost(postId) {
             if(!confirm("Точно удалить пост?")) return;
             await fetch(`${API}/posts/${postId}`, {
                 method: 'DELETE',
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            // Обновляем текущую вкладку
             if(!document.getElementById('tab-feed').classList.contains('hidden')) loadFeed();
             if(!document.getElementById('tab-profile').classList.contains('hidden')) openUser(me);
         }
@@ -233,7 +228,6 @@
             document.getElementById('s-p').innerText = d.postsCount || 0;
             document.getElementById('s-subers').innerText = d.subscribersCount || 0;
 
-            // ОТОБРАЖАЕМ ПОСТЫ ЭТОГО ПОЛЬЗОВАТЕЛЯ НА ЕГО СТРАНИЦЕ
             const profilePostsBox = document.getElementById('profile-posts-list');
             if (d.posts && d.posts.length > 0) {
                 profilePostsBox.innerHTML = "<h3 style='margin-top: 20px;'>Публикации</h3>" + d.posts.map(createPostHTML).join('');
@@ -258,7 +252,7 @@
                 method: 'POST',
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            openUser(username); // мгновенно обновит цифру подписчиков
+            openUser(username); 
         }
 
         async function runSearch(q) {
@@ -316,6 +310,7 @@
             renderMsgs();
         }
 
+        // ИСПРАВЛЕНО: Убрана рекурсия (вызов openUser(me) отсюда)
         function showTab(t) {
             const tabs = ['feed', 'profile', 'settings', 'chats', 'search'];
             tabs.forEach(id => {
@@ -327,7 +322,6 @@
             if(target) target.classList.remove('hidden');
 
             if(t === 'feed') loadFeed();
-            if(t === 'profile' && !chatWith) openUser(me);
         }
 
         function logout() { localStorage.clear(); location.reload(); }
