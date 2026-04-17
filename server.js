@@ -7,18 +7,21 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const SECRET = "KASTA_ULTIMATE_KEY_99";
 
-// ЖЕСТКИЙ CORS
+// --- ЖЕСТКИЙ ИСПРАВЛЕННЫЙ CORS ---
 app.use(cors({
-    origin: '*',
+    origin: ['https://kokofanelb-jpg.github.io', 'http://localhost:3000'], // Твой домен
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
+
+// Обработка Preflight запросов (те самые ошибки в консоли)
+app.options('*', cors()); 
 
 app.use(express.json({ limit: '15mb' }));
 
 mongoose.connect(process.env.MONGO_URI);
 
-// МОДЕЛИ
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -48,7 +51,6 @@ const verify = (req, res, next) => {
     jwt.verify(token, SECRET, (err, d) => { if(err) return res.status(401).send(); req.user = d; next(); });
 };
 
-// РОУТЫ
 app.post('/register', async (req, res) => {
     try {
         const h = await bcrypt.hash(req.body.password, 10);
@@ -65,7 +67,6 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/posts', async (req, res) => {
-    // УМЕНЬШИЛ ЛИМИТ ДО 20 ДЛЯ СКОРОСТИ
     const p = await Post.find().sort({ createdAt: -1 }).limit(20);
     res.json(p);
 });
@@ -78,14 +79,15 @@ app.post('/posts', verify, async (req, res) => {
 
 app.delete('/posts/:id', verify, async (req, res) => {
     const p = await Post.findById(req.params.id);
-    if(p.author === req.user.username) { await Post.findByIdAndDelete(req.params.id); res.json({ok:true}); }
+    if(p && p.author === req.user.username) { await Post.findByIdAndDelete(req.params.id); res.json({ok:true}); }
     else res.status(403).send();
 });
 
 app.post('/posts/:id/like', verify, async (req, res) => {
     const p = await Post.findById(req.params.id);
     const m = req.user.username;
-    p.likes.includes(m) ? p.likes = p.likes.filter(x => x !== m) : p.likes.push(m);
+    if(p.likes.includes(m)) p.likes = p.likes.filter(x => x !== m);
+    else p.likes.push(m);
     await p.save(); res.json(p);
 });
 
@@ -97,7 +99,7 @@ app.post('/posts/:id/comment', verify, async (req, res) => {
 
 app.get('/users/profile/:n', async (req, res) => {
     const u = await User.findOne({ username: req.params.n });
-    if(!u) return res.status(404).send();
+    if(!u) return res.status(404).json({message:"Нет юзера"});
     const p = await Post.find({ author: u.username }).sort({ createdAt: -1 });
     res.json({ ...u._doc, posts: p, subscribersCount: u.subscribers.length, subscriptionsCount: u.subscriptions.length });
 });
