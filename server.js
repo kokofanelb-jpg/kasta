@@ -9,8 +9,11 @@ app.use(cors());
 app.use(express.json({ limit: '15mb' })); 
 
 const SECRET = "KASTA_ULTIMATE_KEY_99";
+
+// Подключение к БД (Убедись, что MONGO_URI прописан в настройках Render)
 mongoose.connect(process.env.MONGO_URI);
 
+// Модель пользователя: со всеми счетчиками
 const User = mongoose.model('User', {
     username: { type: String, unique: true },
     password: { type: String },
@@ -20,6 +23,7 @@ const User = mongoose.model('User', {
     subscriptions: { type: [String], default: [] }
 });
 
+// Модель поста: с датой и картинкой
 const Post = mongoose.model('Post', {
     author: String,
     authorAvatar: String,
@@ -29,6 +33,7 @@ const Post = mongoose.model('Post', {
     createdAt: { type: Date, default: Date.now }
 });
 
+// Модель сообщения
 const Message = mongoose.model('Message', {
     sender: String,
     receiver: String,
@@ -37,6 +42,7 @@ const Message = mongoose.model('Message', {
     createdAt: { type: Date, default: Date.now }
 });
 
+// Проверка токена
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token || token === "null") return res.status(401).json({error: "No token"});
@@ -47,7 +53,7 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// API
+// Регистрация и Вход
 app.post('/register', async (req, res) => {
     try {
         const username = req.body.username.trim();
@@ -55,7 +61,7 @@ app.post('/register', async (req, res) => {
         const user = new User({ username, password: hashed, displayName: username });
         await user.save();
         res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
-    } catch(e) { res.status(400).json({message: "Логин занят"}); }
+    } catch(e) { res.status(400).json({message: "Логин уже занят"}); }
 });
 
 app.post('/login', async (req, res) => {
@@ -65,6 +71,7 @@ app.post('/login', async (req, res) => {
     res.json({ token: jwt.sign({ username: user.username }, SECRET), username: user.username });
 });
 
+// Работа с постами
 app.get('/posts', async (req, res) => {
     const posts = await Post.find().sort({ createdAt: -1 }).limit(50);
     res.json(posts);
@@ -72,7 +79,12 @@ app.get('/posts', async (req, res) => {
 
 app.post('/posts', verifyToken, async (req, res) => {
     const user = await User.findOne({ username: req.user.username });
-    const post = new Post({ author: req.user.username, authorAvatar: user.avatarUrl || "", text: req.body.text, imageUrl: req.body.imageUrl });
+    const post = new Post({ 
+        author: req.user.username, 
+        authorAvatar: user.avatarUrl || "", 
+        text: req.body.text, 
+        imageUrl: req.body.imageUrl 
+    });
     await post.save();
     res.json(post);
 });
@@ -85,12 +97,17 @@ app.post('/posts/:id/like', verifyToken, async (req, res) => {
     res.json({ likes: post.likes });
 });
 
+// Профиль и поиск
 app.get('/users/profile/:username', async (req, res) => {
     const user = await User.findOne({ username: new RegExp('^' + req.params.username + '$', 'i') });
     if (!user) return res.status(404).send();
     const posts = await Post.find({ author: user.username }).sort({ createdAt: -1 });
     res.json({
-        ...user._doc,
+        username: user.username,
+        displayName: user.displayName || user.username,
+        avatarUrl: user.avatarUrl || "",
+        subscribers: user.subscribers,
+        subscriptions: user.subscriptions,
         subscribersCount: user.subscribers.length,
         subscriptionsCount: user.subscriptions.length,
         postsCount: posts.length,
@@ -117,6 +134,7 @@ app.post('/users/follow/:username', verifyToken, async (req, res) => {
     res.json({ ok: true });
 });
 
+// Сообщения
 app.get('/chats', verifyToken, async (req, res) => {
     const me = req.user.username;
     const senders = await Message.distinct('sender', { receiver: me });
@@ -142,8 +160,9 @@ app.post('/messages', verifyToken, async (req, res) => {
 });
 
 app.post('/users/update', verifyToken, async (req, res) => {
-    await User.findOneAndUpdate({ username: req.user.username }, req.body);
-    if(req.body.avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: req.body.avatarUrl });
+    const { displayName, avatarUrl } = req.body;
+    await User.findOneAndUpdate({ username: req.user.username }, { displayName, avatarUrl });
+    if(avatarUrl) await Post.updateMany({ author: req.user.username }, { authorAvatar: avatarUrl });
     res.json({ ok: true });
 });
 
