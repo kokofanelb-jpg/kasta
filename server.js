@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const SECRET = "KASTA_ULTIMATE_KEY_99";
 
-// 1. ЖЕСТКИЙ CORS (решает твою ошибку в консоли)
+// ЖЕСТКИЙ CORS
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -65,7 +65,8 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/posts', async (req, res) => {
-    const p = await Post.find().sort({ createdAt: -1 }).limit(50);
+    // УМЕНЬШИЛ ЛИМИТ ДО 20 ДЛЯ СКОРОСТИ
+    const p = await Post.find().sort({ createdAt: -1 }).limit(20);
     res.json(p);
 });
 
