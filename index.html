@@ -12,16 +12,20 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding-bottom: 80px; overflow-x: hidden; }
         .hidden { display: none !important; }
         .container { max-width: 600px; margin: 0 auto; width: 100%; }
-        .btn { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn { background: var(--blue); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-gray { background: #e4e6eb; color: #000; }
         input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 16px; outline: none; }
         
+        /* ПОСТЫ */
         .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #ddd; }
-        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; }
+        .post-h { padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .p-ava-s { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #eee; }
-        .post-img { width: 100%; display: block; background: #000; }
-        
-        /* СЕТКА ПРОФИЛЯ */
+        .post-img { width: 100%; display: block; background: #000; max-height: 500px; object-fit: contain; }
+        .comm-sec { padding: 10px 15px; border-top: 1px solid #f0f0f0; font-size: 14px; }
+        .comm-item { margin-bottom: 5px; }
+        .comm-item b { color: var(--blue); }
+
+        /* СЕТКА */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #fff; }
         .grid-item { aspect-ratio: 1/1; background: #eee; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .grid-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -30,7 +34,6 @@
         .p-ava-l { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue); margin-bottom: 10px; }
         .p-stats { display: flex; justify-content: space-around; margin: 15px 0; }
         .p-stats b { display: block; font-size: 17px; }
-        .p-stats span { font-size: 12px; color: #777; }
 
         .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #ddd; display: flex; z-index: 1000; }
         .nav-btn { flex: 1; border: none; background: none; font-size: 24px; position: relative; }
@@ -38,9 +41,9 @@
 
         /* ЧАТ */
         #msg-box { height: calc(100vh - 125px); overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 8px; }
-        .m { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 15px; position: relative; min-width: 60px; }
-        .m-out { align-self: flex-end; background: #dcf8c6; }
-        .m-in { align-self: flex-start; background: #fff; }
+        .m { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 15px; position: relative; min-width: 70px; }
+        .m-out { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
+        .m-in { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
         .m-time { font-size: 10px; color: #888; text-align: right; margin-top: 4px; display: block; }
 
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; align-items:center; justify-content:center; }
@@ -60,9 +63,9 @@
         <div class="container">
             <div id="sec-feed">
                 <div style="background:#fff; padding:15px; border-bottom:1px solid #ddd;">
-                    <textarea id="p-txt" placeholder="Напиши что-нибудь..." rows="2"></textarea>
-                    <div style="display: flex; justify-content: space-between;">
-                        <input type="file" id="p-img" accept="image/*" style="width: auto; border: none;">
+                    <textarea id="p-txt" placeholder="Что нового?" rows="2" style="resize:none;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items:center;">
+                        <input type="file" id="p-img" accept="image/*" style="width: auto; border:none; font-size:12px;">
                         <button class="btn" id="btn-post" onclick="doPost()">Опубликовать</button>
                     </div>
                 </div>
@@ -70,7 +73,7 @@
             </div>
 
             <div id="sec-search" class="hidden">
-                <div style="padding:15px;"><input oninput="doSearch(this.value)" placeholder="Поиск..." style="margin:0;"></div>
+                <div style="padding:15px; background:#fff;"><input oninput="doSearch(this.value)" placeholder="Найти пользователя..." style="margin:0;"></div>
                 <div id="search-list"></div>
             </div>
 
@@ -92,14 +95,14 @@
             <div id="sec-profile" class="hidden">
                 <div id="prof-ui"></div>
                 <div id="prof-edit" class="hidden" style="padding:20px; background:#fff;">
-                    <input id="edit-name" placeholder="Имя">
+                    <input id="edit-name" placeholder="Новое имя">
                     <input type="file" id="edit-ava" accept="image/*">
                     <button class="btn" id="btn-save" onclick="saveProfile()" style="width:100%">Сохранить</button>
                     <button class="btn btn-gray" onclick="toggleEdit(false)" style="width:100%; margin-top:5px;">Отмена</button>
                 </div>
                 <div id="prof-posts" class="grid"></div>
-                <div id="prof-feed" class="hidden" style="background:#fff;">
-                   <button class="btn btn-gray" onclick="closeProfFeed()" style="width:100%; border-radius:0;">← Назад к сетке</button>
+                <div id="prof-feed" class="hidden">
+                   <button class="btn btn-gray" onclick="closeProfFeed()" style="width:100%; border-radius:0; border-bottom:1px solid #ddd;">← К сетке</button>
                    <div id="prof-feed-list"></div>
                 </div>
             </div>
@@ -113,7 +116,7 @@
         </nav>
     </div>
 
-    <div id="modal" class="hidden" onclick="this.classList.add('hidden')"><img id="modal-img" style="max-width:100%;"></div>
+    <div id="modal" class="hidden" onclick="this.classList.add('hidden')"><img id="modal-img" src=""></div>
 
     <script>
         const API = "https://kasta-l49s.onrender.com";
@@ -134,20 +137,21 @@
                     img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX = 800;
+                        const MAX = 600; 
                         let w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
                         else { if (h > MAX) { w *= MAX/h; h = MAX; } }
                         canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        res(canvas.toDataURL('image/jpeg', 0.7));
+                        res(canvas.toDataURL('image/jpeg', 0.6));
                     };
                 };
             });
         }
 
         async function api(path, opt={}) {
-            opt.headers = { ...opt.headers, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+            opt.headers = { ...headers, ...opt.headers };
             const r = await fetch(API+path, opt);
             if(r.status === 401) { localStorage.clear(); location.reload(); }
             return r.json();
@@ -184,12 +188,19 @@
                     <div class="post-h" onclick="openProfile('${p.author}')">
                         <img class="p-ava-s" src="${fixUrl(p.authorAvatar)}">
                         <b>${p.author}</b>
-                        ${p.author === me ? `<span style="margin-left:auto; color:red;" onclick="event.stopPropagation(); deletePost('${p._id}')">✕</span>` : ''}
+                        ${p.author === me ? `<span style="margin-left:auto; color:red; padding:5px;" onclick="event.stopPropagation(); deletePost('${p._id}')">✕</span>` : ''}
                     </div>
-                    ${p.text ? `<div style="padding:0 15px 10px;">${p.text}</div>` : ''}
+                    ${p.text ? `<div style="padding:0 15px 10px; font-size:15px;">${p.text}</div>` : ''}
                     ${p.imageUrl ? `<img src="${fixUrl(p.imageUrl)}" class="post-img" onclick="zoom('${fixUrl(p.imageUrl)}')">` : ''}
-                    <div style="padding:10px; display:flex; gap:15px;">
-                        <button onclick="doLike('${p._id}', '${elementId}')" style="border:none; background:none; font-size:18px;">❤️ ${p.likes.length}</button>
+                    <div style="padding:12px; display:flex; gap:15px;">
+                        <button onclick="doLike('${p._id}', '${elementId}')" style="border:none; background:none; font-size:18px;">❤️ ${p.likes ? p.likes.length : 0}</button>
+                    </div>
+                    <div class="comm-sec">
+                        <div id="comm-list-${p._id}">${(p.comments || []).map(c => `<div class="comm-item"><b>${c.author}:</b> ${c.text}</div>`).join('')}</div>
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                            <input id="ci-${p._id}" placeholder="Коммент..." style="margin:0; padding:6px; font-size:13px; border-radius:4px;">
+                            <button class="btn" style="padding:5px 10px; font-size:12px;" onclick="addComment('${p._id}', '${elementId}')">ОК</button>
+                        </div>
                     </div>
                 `;
                 list.appendChild(div);
@@ -207,9 +218,9 @@
             document.getElementById('prof-ui').innerHTML = `
                 <div class="prof-top">
                     <img src="${fixUrl(u.avatarUrl)}" class="p-ava-l">
-                    <h2>${u.displayName || u.username}</h2>
+                    <h2 style="margin-bottom:5px;">${u.displayName || u.username}</h2>
                     <div class="p-stats">
-                        <div><b>${u.posts.filter(p=>p.imageUrl).length}</b><span>медиа</span></div>
+                        <div><b>${u.posts.filter(p=>p.imageUrl).length}</b><span>фото</span></div>
                         <div><b>${u.subscribersCount}</b><span>подписчики</span></div>
                     </div>
                     ${isMe ? `<button class="btn btn-gray" onclick="toggleEdit(true)">Настройки</button>` : `<button class="btn" onclick="doFollow('${u.username}')">${isSub?'Отписаться':'Подписаться'}</button>`}
@@ -218,12 +229,11 @@
 
             const grid = document.getElementById('prof-posts');
             grid.innerHTML = '';
-            // Фильтруем: только посты с картинками для сетки
             u.posts.filter(p => p.imageUrl).forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'grid-item';
                 div.innerHTML = `<img src="${fixUrl(p.imageUrl)}">`;
-                div.onclick = () => openProfFeed(); // При клике открываем листалку
+                div.onclick = () => openProfFeed();
                 grid.appendChild(div);
             });
         }
@@ -231,14 +241,33 @@
         function openProfFeed() {
             document.getElementById('prof-posts').classList.add('hidden');
             document.getElementById('prof-feed').classList.remove('hidden');
-            // В листалке показываем только медиа-посты по порядку
-            const mediaPosts = lastProfileData.posts.filter(p => p.imageUrl);
-            renderPostList(mediaPosts, 'prof-feed-list');
+            renderPostList(lastProfileData.posts.filter(p => p.imageUrl), 'prof-feed-list');
         }
 
         function closeProfFeed() {
             document.getElementById('prof-posts').classList.remove('hidden');
             document.getElementById('prof-feed').classList.add('hidden');
+        }
+
+        async function addComment(id, listId) {
+            const input = document.getElementById('ci-'+id);
+            if(!input.value.trim()) return;
+            await api(`/posts/${id}/comment`, {method:'POST', body:JSON.stringify({text: input.value})});
+            input.value = ""; 
+            if(listId === 'feed-list') loadFeed(); else {
+                const u = await api('/users/profile/'+lastProfileData.username);
+                lastProfileData = u; openProfFeed();
+            }
+        }
+
+        async function loadMsgs() {
+            const m = await api('/messages/'+curP);
+            const box = document.getElementById('msg-box');
+            box.innerHTML = m.map(msg => {
+                const time = new Date(msg.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                return `<div class="m ${msg.sender === me ? 'm-out' : 'm-in'}">${msg.text}<span class="m-time">${time}</span></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
         }
 
         async function sendMsg() {
@@ -248,41 +277,45 @@
             input.value = ""; loadMsgs();
         }
 
-        async function loadMsgs() {
-            const m = await api('/messages/'+curP);
-            document.getElementById('msg-box').innerHTML = m.map(msg => {
-                // Добавляем время
-                const time = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                return `<div class="m ${msg.sender === me ? 'm-out' : 'm-in'}">${msg.text}<span class="m-time">${time}</span></div>`;
-            }).join('');
-            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
-        }
-
         async function doLike(id, listId) { 
             await api(`/posts/${id}/like`, {method:'POST'}); 
-            if(listId === 'feed-list') loadFeed(); else openProfFeed();
+            if(listId === 'feed-list') loadFeed(); else {
+                const u = await api('/users/profile/'+lastProfileData.username);
+                lastProfileData = u; openProfFeed();
+            }
         }
-        async function deletePost(id) { if(confirm('Удалить?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); openProfile(me); } }
-        async function doFollow(n) { await api('/users/follow/'+n, {method:'POST'}); openProfile(n); }
-        function toggleEdit(v) { document.getElementById('prof-ui').classList.toggle('hidden', v); document.getElementById('prof-edit').classList.toggle('hidden', !v); }
-        function zoom(url) { document.getElementById('modal-img').src = url; document.getElementById('modal').classList.remove('hidden'); }
 
         async function doPost() {
             const btn = document.getElementById('btn-post'), text = document.getElementById('p-txt').value, file = document.getElementById('p-img').files[0];
-            btn.disabled = true;
+            if(!text && !file) return;
+            btn.disabled = true; btn.innerText = "...";
             let imageUrl = ""; if(file) imageUrl = await compressImage(file);
             await api('/posts', { method:'POST', body:JSON.stringify({text, imageUrl}) });
             document.getElementById('p-txt').value = ""; document.getElementById('p-img').value = "";
-            btn.disabled = false; loadFeed();
+            btn.disabled = false; btn.innerText = "Опубликовать"; loadFeed();
         }
 
+        async function saveProfile() {
+            const displayName = document.getElementById('edit-name').value;
+            const file = document.getElementById('edit-ava').files[0];
+            let avatarUrl = ""; if(file) avatarUrl = await compressImage(file);
+            await api('/users/update', { method:'POST', body:JSON.stringify({displayName, avatarUrl}) });
+            toggleEdit(false); openProfile(me);
+        }
+
+        async function deletePost(id) { if(confirm('Удалить пост?')) { await api(`/posts/${id}`, {method:'DELETE'}); loadFeed(); openProfile(me); } }
+        async function doFollow(n) { await api('/users/follow/'+n, {method:'POST'}); openProfile(n); }
+        function toggleEdit(v) { document.getElementById('prof-ui').classList.toggle('hidden', v); document.getElementById('prof-edit').classList.toggle('hidden', !v); }
+        function zoom(url) { document.getElementById('modal-img').src = url; document.getElementById('modal').classList.remove('hidden'); }
+        function backToChats() { clearInterval(chatL); document.getElementById('chat-active').classList.add('hidden'); document.getElementById('chats-list').classList.remove('hidden'); }
+        
         async function loadChats() {
             const d = await api('/chats');
             const dot = document.getElementById('dot');
             if(d.unreadCount > 0) { dot.innerText = d.unreadCount; dot.classList.remove('hidden'); } else dot.classList.add('hidden');
             document.getElementById('chats-list').innerHTML = d.users.map(u => `
                 <div style="padding:15px; background:#fff; border-bottom:1px solid #eee; display:flex; gap:10px; align-items:center;" onclick="startChat('${u.username}')">
-                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-s"><b>${u.username}</b>
+                    <img src="${fixUrl(u.avatarUrl)}" class="p-ava-s"><b>${u.displayName || u.username}</b>
                 </div>
             `).join('');
         }
@@ -293,9 +326,9 @@
             document.getElementById('chat-name').innerText = n;
             loadMsgs(); if(chatL) clearInterval(chatL); chatL = setInterval(loadMsgs, 4000);
         }
-        function backToChats() { clearInterval(chatL); document.getElementById('chat-active').classList.add('hidden'); document.getElementById('chats-list').classList.remove('hidden'); }
+
         async function doSearch(q) {
-            if(!q) return;
+            if(!q) return document.getElementById('search-list').innerHTML = '';
             const uu = await api('/users/search?q='+q);
             document.getElementById('search-list').innerHTML = uu.map(u => `<div style="padding:15px; background:#fff; border-bottom:1px solid #eee;" onclick="openProfile('${u.username}')">${u.username}</div>`).join('');
         }
