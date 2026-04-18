@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA </title>
+    <title>KASTA - PERFECTION FIXED</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
     <style>
-        /* ОСТАВЛЯЕМ ВСЁ КАК ЕСТЬ: СВЕТЛАЯ ТЕМА И ГОЛУБОЙ АКЦЕНТ */
         :root {
             --primary: #007aff;
             --bg-body: #f0f2f5;
@@ -224,7 +223,7 @@
 
     window.setSafeData = function(key, val) {
         try { localStorage.setItem(key, val); return true; }
-        catch(e) { alert("Ошибка! Файл слишком большой. Выбери файл поменьше."); return false; }
+        catch(e) { alert("Файл слишком большой."); return false; }
     };
 
     window.sec = function(u) { if (!u) return ''; if (u.startsWith('http://')) return u.replace('http://', 'https://'); return u; };
@@ -261,7 +260,7 @@
             localStorage.setItem('token', d.token); 
             localStorage.setItem('me', d.username); 
             location.reload(); 
-        } else alert(d.message || "Ошибка");
+        } else alert("Ошибка");
     };
 
     window.switchTab = function(id, e) {
@@ -274,12 +273,11 @@
         if(id === 'profile') window.loadProfile();
     };
 
-    // ФУНКЦИЯ ЛЕНТЫ: ТЕПЕРЬ С ЖЕСТКОЙ СОРТИРОВКОЙ "НОВЫЕ СВЕРХУ"
     window.loadFeed = async function() {
         const d = await window.call('/posts');
         if(!d || d.error || !Array.isArray(d)) return;
         
-        // СОРТИРОВКА: Новые посты (по дате создания) всегда в начале массива
+        // НОВЫЕ СВЕРХУ
         const sortedPosts = [...d].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         document.getElementById('feed-cont').innerHTML = sortedPosts.map(p => {
@@ -311,11 +309,11 @@
                     </button>
                 </div>
                 <div class="comments-section">
-                    <p style="margin-bottom: 10px; font-size: 15px;">${p.text || ''}</p>
+                    <p style="margin-bottom: 10px; font-size: 15px; color: var(--text);">${p.text || ''}</p>
                     <div style="margin-bottom: 10px;">${commentsHtml}</div>
-                    <div style="display:flex; gap:10px;">
-                        <input id="comm-in-${p._id}" placeholder="Комментарий..." style="margin:0; padding:10px;">
-                        <button class="btn-main" style="width:70px; padding:0;" onclick="window.addComm('${p._id}')">OK</button>
+                    <div style="display:flex; gap:10px; width: 100%;">
+                        <input id="comm-in-${p._id}" placeholder="Комментарий..." style="flex: 1; margin:0; padding:10px;">
+                        <button class="btn-main" style="width:60px; padding:0; height: 40px;" onclick="window.addComm('${p._id}')">ОК</button>
                     </div>
                 </div>
             </div>`
@@ -324,10 +322,9 @@
     };
 
     window.delPost = async function(id) {
-        if(!confirm("Удалить этот пост навсегда?")) return;
+        if(!confirm("Удалить?")) return;
         await window.call('/posts/' + id, 'DELETE');
-        const el = document.getElementById('post-' + id);
-        if(el) el.remove(); 
+        window.loadFeed();
     };
 
     window.loadStories = async function() {
@@ -336,7 +333,6 @@
         list.innerHTML = "";
         const now = Date.now();
         const activeStories = local.filter(s => now - s.id < 86400000); 
-
         activeStories.forEach(i => {
             const safeAva = window.sec(window.getAva(i.author));
             const preview = window.isVid(i.imageUrl) ? safeAva : i.imageUrl;
@@ -347,7 +343,7 @@
     window.uploadSt = async function(el) {
         const f = el.files[0]; if(!f) return;
         const img = await window.pack(f);
-        const caption = prompt("Подпись к истории:");
+        const caption = prompt("Подпись:");
         const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
         local.push({ id: Date.now(), author: window.me, imageUrl: img, caption: caption });
         window.setSafeData('local_stories', JSON.stringify(local));
