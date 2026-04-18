@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA ULTIMATE FIX</title>
+    <title>KASTA PRO v8</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     <style>
         :root {
             --primary: #8a2be2;
-            --bg: #f0f2f5;
-            --surface: rgba(255, 255, 255, 0.4);
-            --text: #1a1a1a;
-            --text-mut: #65676b;
-            --border: rgba(255, 255, 255, 0.5);
-            --glass: blur(25px);
-            --shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-
-        [data-theme="dark"] {
             --bg: #0a0a0b;
-            --surface: rgba(30, 30, 35, 0.4);
+            --surface: rgba(255, 255, 255, 0.08);
             --text: #ffffff;
-            --text-mut: #b0b3b8;
+            --text-mut: #a0a0a0;
             --border: rgba(255, 255, 255, 0.1);
+            --glass: blur(25px);
+            --shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
+        [data-theme="light"] {
+            --bg: #f0f2f5;
+            --surface: rgba(255, 255, 255, 0.6);
+            --text: #1c1e21;
+            --text-mut: #65676b;
+            --border: rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: background 0.4s; overflow-x: hidden; }
 
         .app-shell {
             width: 100%;
-            max-width: 550px;
+            max-width: 550px; /* Идеальная ширина для ленты */
             position: relative;
             padding-bottom: 100px;
         }
@@ -42,154 +42,166 @@
             -webkit-backdrop-filter: var(--glass);
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
-            border-radius: 24px;
+            border-radius: 28px;
         }
 
         .hidden { display: none !important; }
 
         /* STORIES */
-        .stories-container { display: flex; gap: 12px; padding: 15px; overflow-x: auto; scrollbar-width: none; margin: 10px 0; }
-        .stories-container::-webkit-scrollbar { display: none; }
-        .st-node { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
-        .st-ring { width: 68px; height: 68px; border-radius: 50%; padding: 3px; border: 2px solid var(--primary); margin: 0 auto 5px; }
-        .st-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #ccc; }
+        .st-bar { display: flex; gap: 15px; padding: 15px; overflow-x: auto; scrollbar-width: none; margin: 10px 0; }
+        .st-bar::-webkit-scrollbar { display: none; }
+        .st-item { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .st-item:active { transform: scale(0.9); }
+        .st-ring { width: 70px; height: 70px; border-radius: 50%; padding: 3px; border: 2px solid var(--primary); margin-bottom: 5px; }
+        .st-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #333; }
 
         /* POSTS */
-        .post { margin: 15px; overflow: hidden; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .post-h { padding: 12px 15px; display: flex; align-items: center; gap: 12px; }
-        .p-ava { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
-        .post-img { width: 100%; display: block; max-height: 550px; object-fit: cover; }
-        .post-act { padding: 12px 15px; display: flex; gap: 18px; }
-        .act-btn { background: none; border: none; color: var(--text); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 16px; }
-        .btn-del { background: #000; color: #fff; border: none; padding: 5px 12px; border-radius: 10px; font-size: 11px; margin-left: auto; cursor: pointer; }
-        [data-theme="dark"] .btn-del { background: #fff; color: #000; }
+        .post { margin: 15px; overflow: hidden; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+        .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
+        .p-ava { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+        .post-img { width: 100%; display: block; max-height: 600px; object-fit: cover; }
+        .post-act { padding: 15px; display: flex; gap: 20px; border-bottom: 1px solid var(--border); }
+        .act-btn { background: none; border: none; color: var(--text); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; }
+        .btn-del { background: #ff3b30; color: #fff; border: none; padding: 6px 12px; border-radius: 12px; font-size: 11px; margin-left: auto; cursor: pointer; }
 
-        /* PROFILE */
-        .prof-top { padding: 30px 20px; text-align: center; }
-        .prof-ava { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--primary); padding: 4px; margin-bottom: 15px; }
-        .prof-stats { display: flex; justify-content: center; gap: 30px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; }
-        .prof-stats b { display: block; font-size: 18px; }
-        .prof-stats span { font-size: 12px; color: var(--text-mut); }
+        /* COMMENTS */
+        .comm-box { padding: 15px; background: rgba(0,0,0,0.03); }
+        .comm-in { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; outline: none; }
 
         /* NAV */
-        .bottom-nav {
+        .nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 480px; height: 70px;
+            width: 92%; max-width: 450px; height: 70px;
             display: flex; justify-content: space-around; align-items: center; z-index: 1000;
         }
-        .nav-link { cursor: pointer; color: var(--text-mut); text-align: center; transition: 0.3s; flex: 1; }
-        .nav-link.active { color: var(--primary); transform: translateY(-4px); }
-        .nav-link i { display: block; font-style: normal; font-size: 24px; margin-bottom: 2px; }
-        .nav-link span { font-size: 10px; font-weight: bold; }
+        .nav-btn { cursor: pointer; color: var(--text-mut); text-align: center; flex: 1; transition: 0.3s; }
+        .nav-btn.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-btn b { display: block; font-size: 26px; line-height: 1; margin-bottom: 2px; }
+        .nav-btn span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* CHAT */
-        #chat-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .msg-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg-bubble { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
-        .msg-me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-        .msg-them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; }
+        /* PROFILE */
+        .p-card { padding: 40px 20px; text-align: center; }
+        .p-ava-big { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); padding: 5px; margin-bottom: 15px; }
+        .p-stats { display: flex; justify-content: center; gap: 30px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .p-stats b { display: block; font-size: 20px; }
+        .p-stats span { font-size: 12px; color: var(--text-mut); }
 
-        /* UI ELEMENTS */
-        input, textarea { width: 100%; padding: 15px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline: none; margin-bottom: 12px; }
-        .main-btn { background: var(--primary); color: #fff; border: none; padding: 16px; border-radius: 18px; font-weight: bold; cursor: pointer; width: 100%; }
-        .comm-input { font-size: 13px; padding: 10px 15px; margin: 0; border: none; background: rgba(0,0,0,0.05); }
-        [data-theme="dark"] .comm-input { background: rgba(255,255,255,0.05); }
+        /* CHATS & SEARCH */
+        .search-wrap { margin: 15px; padding: 15px; display: flex; align-items: center; gap: 10px; }
+        .search-wrap input { flex: 1; background: none; border: none; color: var(--text); outline: none; font-size: 16px; }
+        .chat-item { 
+            margin: 10px 15px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .chat-item:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
+
+        /* CHAT WINDOW */
+        #chat-window { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
+        .chat-h { padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
+        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { padding: 12px 18px; border-radius: 20px; max-width: 80%; font-size: 14px; line-height: 1.5; }
+        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+        .msg.them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; }
+
+        /* INPUTS */
+        input, textarea { width: 100%; padding: 16px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline: none; margin-bottom: 15px; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 16px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.95); opacity: 0.8; }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
 <div class="app-shell">
-    <div id="page-auth" style="display:flex; align-items:center; min-height:100vh;">
+    <div id="scr-auth" style="display:flex; align-items:center; min-height:100vh;">
         <div class="glass" style="padding:40px; width:90%; margin:auto; text-align:center;">
-            <h1 style="font-size:45px; color:var(--primary); margin-bottom:10px; letter-spacing:-2px;">KASTA</h1>
-            <p style="margin-bottom:30px; opacity:0.6;">Premium Network</p>
-            <input id="in-u" placeholder="Ваш никнейм">
-            <input id="in-p" type="password" placeholder="Ваш пароль">
-            <button class="main-btn" onclick="auth('login')">Войти</button>
-            <p onclick="auth('register')" style="margin-top:20px; font-size:13px; cursor:pointer; text-decoration:underline;">Зарегистрироваться</p>
+            <h1 style="font-size:50px; color:var(--primary); margin-bottom:10px; letter-spacing:-2px;">KASTA</h1>
+            <p style="margin-bottom:35px; opacity:0.5; font-size:14px;">Welcome to the Elite Social Space</p>
+            <input id="login-u" placeholder="Никнейм">
+            <input id="login-p" type="password" placeholder="Пароль">
+            <button class="btn-main" onclick="auth('login')">Войти</button>
+            <p onclick="auth('register')" style="margin-top:25px; font-size:12px; cursor:pointer; opacity:0.7;">Нет аккаунта? Регистрация</p>
         </div>
     </div>
 
-    <div id="page-app" class="hidden">
+    <div id="scr-app" class="hidden">
         
-        <div id="sec-feed">
-            <div class="stories-container glass" id="stories-list">
-                <div class="st-node" onclick="document.getElementById('st-file').click()">
+        <div id="view-feed">
+            <div class="st-bar glass" id="st-list">
+                <div class="st-item" onclick="document.getElementById('st-input').click()">
                     <div class="st-ring" style="border-style:dashed; border-color:var(--text-mut); display:flex; align-items:center; justify-content:center; font-size:30px;">+</div>
-                    <span style="font-size:10px;">Стори</span>
-                    <input type="file" id="st-file" hidden accept="image/*" onchange="uploadSt(this)">
+                    <span style="font-size:10px;">Твоя</span>
+                    <input type="file" id="st-input" hidden accept="image/*" onchange="uploadStory(this)">
                 </div>
             </div>
-            <div id="feed-items"></div>
+            <div id="feed-container"></div>
         </div>
 
-        <div id="sec-chats" class="hidden">
-            <div class="glass" style="margin:15px; padding:15px;">
-                <input id="user-search" oninput="searchUsers(this.value)" placeholder="🔍 Найти друзей..." style="margin:0;">
+        <div id="view-chats" class="hidden">
+            <div class="glass search-wrap">
+                <span>🔍</span>
+                <input id="search-input" oninput="searchUsers(this.value)" placeholder="Найти друзей...">
             </div>
-            <div id="chat-list"></div>
+            <div id="chats-container"></div>
         </div>
 
-        <div id="sec-profile" class="hidden">
-            <div id="profile-head" class="glass prof-top" style="margin-top:10px;"></div>
+        <div id="view-profile" class="hidden">
+            <div id="profile-card" class="glass p-card" style="margin-top:10px;"></div>
             
             <div class="glass" style="margin:15px; padding:20px;">
-                <textarea id="post-text" placeholder="О чем вы думаете?" rows="2"></textarea>
+                <textarea id="new-post-text" placeholder="О чем вы думаете?" rows="2"></textarea>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button class="act-btn" onclick="document.getElementById('post-file').click()">🖼️ Фото</button>
-                    <input type="file" id="post-file" hidden accept="image/*">
-                    <button class="main-btn" style="width:auto; padding:10px 25px;" onclick="createPost()">Пост</button>
+                    <button class="act-btn" onclick="document.getElementById('post-img-input').click()">🖼️ Фото</button>
+                    <input type="file" id="post-img-input" hidden accept="image/*">
+                    <button class="btn-main" style="width:auto; padding:10px 30px;" onclick="addPost()">Опубликовать</button>
                 </div>
             </div>
-            <div id="profile-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:3px; padding:0 15px;"></div>
+            <div id="profile-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; padding:0 15px;"></div>
         </div>
 
-        <div id="sec-settings" class="hidden">
+        <div id="view-settings" class="hidden">
             <div class="glass" style="margin:15px; padding:30px;">
-                <h3>Настройки профиля</h3>
-                <div style="margin:20px 0;">
-                    <input id="set-display-name" placeholder="Отображаемое имя">
-                    <textarea id="set-bio" placeholder="Расскажите о себе (Bio)"></textarea>
-                    <button class="main-btn" onclick="saveSettings()">Сохранить изменения</button>
+                <h3 style="margin-bottom:20px;">Настройки</h3>
+                <label style="font-size:12px; color:var(--text-mut);">Имя в профиле</label>
+                <input id="edit-name" placeholder="Твое имя">
+                <label style="font-size:12px; color:var(--text-mut);">О себе</label>
+                <textarea id="edit-bio" placeholder="Bio..."></textarea>
+                <button class="btn-main" onclick="saveProfile()">Сохранить профиль</button>
+                
+                <div style="display:flex; gap:15px; margin-top:30px;">
+                    <button class="btn-main" style="background:#fff; color:#000;" onclick="setTheme('light')">Light</button>
+                    <button class="btn-main" style="background:#222; color:#fff;" onclick="setTheme('dark')">Dark</button>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="main-btn" style="background:#fff; color:#000;" onclick="switchTheme('light')">Светлая</button>
-                    <button class="main-btn" style="background:#111; color:#fff;" onclick="switchTheme('dark')">Темная</button>
-                </div>
-                <button class="main-btn" style="background:#ff3b30; margin-top:30px;" onclick="logOut()">Выйти из аккаунта</button>
+                <button class="btn-main" style="background:#ff3b30; margin-top:30px;" onclick="logOut()">Выйти</button>
             </div>
         </div>
 
-        <nav class="bottom-nav glass">
-            <div class="nav-link active" id="nav-feed" onclick="tab('feed')"><i>🏠</i><span>Лента</span></div>
-            <div class="nav-link" id="nav-chats" onclick="tab('chats')"><i>💬</i><span>Чаты</span></div>
-            <div class="nav-link" id="nav-profile" onclick="tab('profile')"><i>👤</i><span>Профиль</span></div>
-            <div class="nav-link" id="nav-settings" onclick="tab('settings')"><i>⚙️</i><span>Опции</span></div>
+        <nav class="nav glass">
+            <div class="nav-btn active" id="n-feed" onclick="goTab('feed')"><b>🏠</b><span>Лента</span></div>
+            <div class="nav-btn" id="n-chats" onclick="goTab('chats')"><b>💬</b><span>Чаты</span></div>
+            <div class="nav-btn" id="n-profile" onclick="goTab('profile')"><b>👤</b><span>Профиль</span></div>
+            <div class="nav-btn" id="n-settings" onclick="goTab('settings')"><b>⚙️</b><span>Опции</span></div>
         </nav>
     </div>
 </div>
 
-<div id="chat-ui">
-    <div class="glass" style="padding:15px; display:flex; align-items:center; gap:15px; border-radius:0;">
-        <button onclick="document.getElementById('chat-ui').style.display='none'" style="background:none; border:none; font-size:30px; color:var(--text);">←</button>
-        <b id="chat-user-name">Чат</b>
+<div id="chat-window">
+    <div class="chat-h glass" style="border-radius:0;">
+        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; font-size:28px; color:var(--text); cursor:pointer;">←</button>
+        <b id="active-chat-name">Имя</b>
     </div>
-    <div id="chat-messages" class="msg-area"></div>
+    <div id="chat-msgs" class="chat-body"></div>
     <div class="glass" style="padding:15px; display:flex; gap:10px; border-radius:0;">
         <input id="chat-input" placeholder="Сообщение..." style="margin:0;">
-        <button class="main-btn" style="width:auto; padding:0 20px;" onclick="sendMsg()">➤</button>
+        <button class="btn-main" style="width:auto; padding:0 25px;" onclick="sendMsg()">➤</button>
     </div>
 </div>
 
 <script>
     const API = "https://kasta-l49s.onrender.com";
-    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), activeChat = "";
+    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), currentChat = "";
 
-    function safeImg(url) { 
-        if(!url) return 'https://ui-avatars.com/api/?background=random&name=U';
-        return url.replace('http://', 'https://'); 
-    }
+    function clean(u) { return u ? u.replace('http://', 'https://') : 'https://ui-avatars.com/api/?background=random&name=U'; }
 
     async function call(path, method='GET', body=null) {
         const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -197,13 +209,15 @@
             const res = await fetch(API+path, { method, headers, body: body ? JSON.stringify(body) : null });
             if(res.status === 401) logOut();
             return await res.json();
-        } catch(e) { return { error: true }; }
+        } catch(e) { 
+            console.warn("Network error or CORS:", path);
+            return { error: true }; 
+        }
     }
 
     // AUTH
     async function auth(type) {
-        const u = document.getElementById('in-u').value, p = document.getElementById('in-p').value;
-        if(!u || !p) return alert("Заполни поля!");
+        const u = document.getElementById('login-u').value, p = document.getElementById('login-p').value;
         const res = await fetch(`${API}/${type}`, {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({username:u, password:p})
@@ -216,144 +230,154 @@
     }
     function logOut() { localStorage.clear(); location.reload(); }
 
-    // TABS
-    function tab(id) {
-        ['feed', 'chats', 'profile', 'settings'].forEach(s => {
-            const el = document.getElementById('sec-' + s);
-            const nav = document.getElementById('nav-' + s);
-            if(el) el.classList.add('hidden');
-            if(nav) nav.classList.remove('active');
+    // ТАБЫ
+    function goTab(id) {
+        ['feed', 'chats', 'profile', 'settings'].forEach(t => {
+            const scr = document.getElementById('view-' + t);
+            const btn = document.getElementById('n-' + t);
+            if(scr) scr.classList.add('hidden');
+            if(btn) btn.classList.remove('active');
         });
-
-        const target = document.getElementById('sec-' + id);
-        const targetNav = document.getElementById('nav-' + id);
+        const target = document.getElementById('view-' + id);
+        const targetBtn = document.getElementById('n-' + id);
         if(target) target.classList.remove('hidden');
-        if(targetNav) targetNav.classList.add('active');
+        if(targetBtn) targetBtn.classList.add('active');
 
         if(id === 'feed') { loadFeed(); loadStories(); }
         if(id === 'chats') loadChats();
-        if(id === 'profile') openProfile();
+        if(id === 'profile') loadMe();
     }
 
-    // FEED & POSTS
+    // ЛЕНТА И ПОСТЫ
     async function loadFeed() {
-        const pp = await call('/posts');
-        if(!Array.isArray(pp)) return;
-        document.getElementById('feed-items').innerHTML = pp.reverse().map(p => `
+        const data = await call('/posts');
+        if(!Array.isArray(data)) return;
+        document.getElementById('feed-container').innerHTML = data.reverse().map(p => `
             <div class="post glass">
                 <div class="post-h">
-                    <img src="${safeImg(p.authorAvatar)}" class="p-ava">
+                    <img src="${clean(p.authorAvatar)}" class="p-ava">
                     <b>${p.author}</b>
                     ${p.author === me ? `<button class="btn-del" onclick="delPost('${p._id}')">Удалить</button>` : ''}
                 </div>
-                ${p.imageUrl ? `<img src="${safeImg(p.imageUrl)}" class="post-img">` : ''}
+                ${p.imageUrl ? `<img src="${clean(p.imageUrl)}" class="post-img">` : ''}
                 <div class="post-act">
-                    <button class="act-btn" onclick="likePost('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
+                    <button class="act-btn" onclick="like('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
                     <button class="act-btn">💬 ${p.comments.length}</button>
                 </div>
-                <div style="padding:0 15px 10px; font-size:14px;"><b>${p.author}</b> ${p.text || ''}</div>
-                <input class="comm-input" placeholder="Написать комментарий..." onkeydown="if(event.key==='Enter') addComment('${p._id}', this.value)">
+                <div style="padding:0 15px 15px; font-size:14px;"><b>${p.author}</b> ${p.text || ''}</div>
+                <div class="comm-box">
+                    <input class="comm-in" placeholder="Комментировать..." onkeydown="if(event.key==='Enter') addComment('${p._id}', this.value)">
+                </div>
             </div>
         `).join('');
     }
 
-    window.delPost = async (id) => { if(confirm("Удалить?")) { await call('/posts/'+id, 'DELETE'); loadFeed(); } }
-    window.likePost = async (id) => { await call(`/posts/${id}/like`, 'POST'); loadFeed(); }
-    window.addComment = async (id, txt) => { if(!txt) return; await call(`/posts/${id}/comment`, 'POST', {text:txt}); loadFeed(); }
+    async function like(id) { await call(`/posts/${id}/like`, 'POST'); loadFeed(); }
+    async function delPost(id) { if(confirm("Удалить?")) { await call('/posts/'+id, 'DELETE'); loadFeed(); } }
+    async function addComment(id, text) { if(!text) return; await call(`/posts/${id}/comment`, 'POST', {text}); loadFeed(); }
 
-    // STORIES
+    // СТОРИЗ
     async function loadStories() {
-        try {
-            const res = await call('/stories');
-            const box = document.getElementById('stories-list');
-            box.innerHTML = box.children[0].outerHTML;
-            if(Array.isArray(res)) {
-                res.forEach(s => {
-                    box.innerHTML += `<div class="st-node"><div class="st-ring"><img src="${safeImg(s.userAva)}"></div><span style="font-size:10px;">${s.username}</span></div>`;
-                });
-            }
-        } catch(e) {}
+        const res = await call('/stories');
+        const list = document.getElementById('st-list');
+        list.innerHTML = list.children[0].outerHTML; // Оставляем только кнопку "+"
+        if(Array.isArray(res)) {
+            res.forEach(s => {
+                list.innerHTML += `<div class="st-item"><div class="st-ring"><img src="${clean(s.userAva)}"></div><span style="font-size:10px;">${s.username}</span></div>`;
+            });
+        }
     }
 
-    async function uploadSt(el) {
+    async function uploadStory(el) {
         const f = el.files[0]; if(!f) return;
-        const img = await compressImg(f);
+        const img = await pack(f);
         await call('/stories', 'POST', {image:img});
         loadStories();
     }
 
-    // PROFILE
-    async function openProfile() {
+    // ПРОФИЛЬ
+    async function loadMe() {
         if(!me) return;
         const u = await call('/users/profile/'+me);
         if(!u || u.error) return;
-
-        document.getElementById('profile-head').innerHTML = `
-            <img src="${safeImg(u.avatarUrl)}" class="prof-ava">
+        document.getElementById('profile-card').innerHTML = `
+            <img src="${clean(u.avatarUrl)}" class="p-ava-big">
             <h2>${u.displayName || u.username}</h2>
-            <p style="opacity:0.6; font-size:13px;">@${u.username}</p>
-            <div style="margin:10px 0; font-size:14px; padding:0 20px;">${u.bio || 'Описания нет'}</div>
-            <div class="prof-stats">
-                <div><b>${u.posts ? u.posts.length : 0}</b><span>Посты</span></div>
+            <p style="opacity:0.5; font-size:13px; margin:5px 0;">@${u.username}</p>
+            <p style="padding:0 20px; font-size:14px; margin-top:10px;">${u.bio || 'Этот пользователь предпочитает молчать...'}</p>
+            <div class="p-stats">
+                <div><b>${u.posts ? u.posts.length : 0}</b><span>Публикации</span></div>
                 <div><b>${u.subscribersCount || 0}</b><span>Друзья</span></div>
             </div>
         `;
-
         if(u.posts) {
             document.getElementById('profile-grid').innerHTML = u.posts.map(p => `
-                <img src="${safeImg(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px;">
+                <img src="${clean(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:15px;">
             `).join('');
         }
-        document.getElementById('set-display-name').value = u.displayName || '';
-        document.getElementById('set-bio').value = u.bio || '';
+        document.getElementById('edit-name').value = u.displayName || '';
+        document.getElementById('edit-bio').value = u.bio || '';
     }
 
-    async function saveSettings() {
-        const n = document.getElementById('set-display-name').value;
-        const b = document.getElementById('set-bio').value;
-        await call('/users/update', 'POST', { displayName: n, bio: b });
-        alert("Сохранено!"); tab('profile');
+    async function saveProfile() {
+        const n = document.getElementById('edit-name').value, b = document.getElementById('edit-bio').value;
+        await call('/users/update', 'POST', {displayName:n, bio:b});
+        alert("Профиль обновлен!"); goTab('profile');
     }
 
-    // CHATS
+    // ЧАТЫ И ПОИСК (ПОЧИНИЛ)
     async function loadChats() {
         const d = await call('/chats');
         if(d.error) return;
-        document.getElementById('chat-list').innerHTML = d.users.map(u => `
-            <div class="glass" style="margin:10px 15px; padding:15px; display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="openChat('${u.username}')">
-                <img src="${safeImg(u.avatarUrl)}" class="p-ava">
+        document.getElementById('chats-container').innerHTML = d.users.map(u => `
+            <div class="chat-item glass" data-name="${u.username}" onclick="openChat('${u.username}')">
+                <img src="${clean(u.avatarUrl)}" class="p-ava">
                 <b>${u.username}</b>
             </div>
         `).join('');
     }
 
-    window.openChat = async (name) => {
-        activeChat = name;
-        document.getElementById('chat-user-name').innerText = name;
-        document.getElementById('chat-ui').style.display = 'flex';
+    function searchUsers(q) {
+        const query = q.toLowerCase();
+        const items = document.querySelectorAll('.chat-item');
+        items.forEach(item => {
+            const name = item.getAttribute('data-name').toLowerCase();
+            // Если имя совпадает с поиском — показываем, если нет — скрываем
+            if(name.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    async function openChat(name) {
+        currentChat = name;
+        document.getElementById('active-chat-name').innerText = name;
+        document.getElementById('chat-window').style.display = 'flex';
         const msgs = await call('/messages/'+name);
         if(Array.isArray(msgs)) {
-            document.getElementById('chat-messages').innerHTML = msgs.map(m => `
-                <div class="msg-bubble ${m.sender===me?'msg-me':'msg-them'}">${m.text}</div>
+            document.getElementById('chat-msgs').innerHTML = msgs.map(m => `
+                <div class="msg ${m.sender===me?'me':'them'}">${m.text}</div>
             `).join('');
-            const b = document.getElementById('chat-messages'); b.scrollTop = b.scrollHeight;
+            const b = document.getElementById('chat-msgs'); b.scrollTop = b.scrollHeight;
         }
     }
 
-    window.sendMsg = async () => {
+    async function sendMsg() {
         const i = document.getElementById('chat-input'); if(!i.value) return;
-        await call('/messages', 'POST', { recipient: activeChat, text: i.value });
-        i.value = ""; openChat(activeChat);
+        await call('/messages', 'POST', {recipient:currentChat, text:i.value});
+        i.value = ""; openChat(currentChat);
     }
 
-    async function createPost() {
-        const t = document.getElementById('post-text').value, f = document.getElementById('post-file').files[0];
-        let img = f ? await compressImg(f) : "";
-        await call('/posts', 'POST', { text: t, imageUrl: img });
-        document.getElementById('post-text').value = ""; tab('profile');
+    async function addPost() {
+        const t = document.getElementById('new-post-text').value, f = document.getElementById('post-img-input').files[0];
+        let img = f ? await pack(f) : "";
+        await call('/posts', 'POST', {text:t, imageUrl:img});
+        document.getElementById('new-post-text').value = ""; goTab('profile');
     }
 
-    function compressImg(f) {
+    function pack(f) {
         return new Promise(r => {
             const rd = new FileReader(); rd.readAsDataURL(f);
             rd.onload = e => {
@@ -368,13 +392,13 @@
         });
     }
 
-    function switchTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('th', t); }
-    switchTheme(localStorage.getItem('th') || 'light');
+    function setTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('th', t); }
+    setTheme(localStorage.getItem('th') || 'dark');
 
     if(token && me) {
-        document.getElementById('page-auth').classList.add('hidden');
-        document.getElementById('page-app').classList.remove('hidden');
-        tab('feed');
+        document.getElementById('scr-auth').classList.add('hidden');
+        document.getElementById('scr-app').classList.remove('hidden');
+        goTab('feed');
     }
 </script>
 </body>
