@@ -3,88 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA - ULTRA FIX</title>
+    <title>KASTA - FINAL STABLE</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
     <style>
         :root {
             --primary: #ff0000;
-            --bg-body: #050505;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-body: #080808;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text: #ffffff;
             --text-mut: rgba(255, 255, 255, 0.5);
-            --chat-bg: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
         }
 
         [data-theme="light"] {
-            --bg-body: #f0f2f5;
+            --bg-body: #f8f9fa;
             --bg-card: #ffffff;
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --text: #1c1e21;
-            --text-mut: rgba(0, 0, 0, 0.5);
-            --chat-bg: linear-gradient(135deg, #e4e7eb 0%, #f0f2f5 100%);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text: #1a1a1a;
+            --text-mut: #707070;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg-body); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: 0.3s; }
+        body { background: var(--bg-body); color: var(--text); min-height: 100vh; transition: 0.3s; overflow-x: hidden; }
 
-        /* NAVIGATION */
+        /* НАВИГАЦИЯ СБОКУ */
         .nav-side {
             position: fixed; left: 0; top: 0; width: 80px; height: 100vh;
-            background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-card); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border-right: 1px solid var(--glass-border); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; padding: 25px 0; gap: 30px;
+            display: flex; flex-direction: column; align-items: center; padding: 30px 0; gap: 30px;
         }
         
-        .app-shell { margin-left: 80px; width: calc(100% - 80px); max-width: 680px; padding: 20px; }
+        .app-shell { margin-left: 80px; width: calc(100% - 80px); max-width: 680px; padding: 20px; position: relative; }
         
         @media (max-width: 700px) {
             .nav-side { top: auto; bottom: 0; width: 100%; height: 75px; flex-direction: row; justify-content: space-around; border-right: none; border-top: 1px solid var(--glass-border); padding: 0; }
             .app-shell { margin-left: 0; width: 100%; padding-bottom: 100px; }
         }
 
-        .glass { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; }
+        .glass { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 24px; backdrop-filter: blur(10px); }
         .hidden { display: none !important; }
 
-        .nav-item { cursor: pointer; color: var(--text); opacity: 0.4; transition: 0.3s; padding: 12px; border-radius: 15px; }
-        .nav-item.active { opacity: 1; color: var(--primary); background: rgba(255,255,255,0.05); }
+        .nav-item { cursor: pointer; color: var(--text); opacity: 0.4; transition: 0.3s; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 16px; }
+        .nav-item.active { opacity: 1; color: var(--primary); background: rgba(255,255,255,0.06); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .nav-item svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
 
-        /* POSTS */
+        /* ПОСТЫ */
         .post { margin-bottom: 25px; overflow: hidden; }
-        .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
-        .p-ava { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
-        .media-box { width: 100%; background: #000; }
+        .post-h { padding: 15px 20px; display: flex; align-items: center; gap: 12px; }
+        .p-ava { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; background: #222; }
+        
+        .media-box { width: 100%; background: #000; display: block; overflow: hidden; }
         .media-box img, .media-box video { width: 100%; display: block; max-height: 550px; object-fit: contain; }
         
-        .post-act { padding: 15px; display: flex; gap: 20px; border-bottom: 1px solid var(--glass-border); }
-        .act-btn { background: none; border: none; color: var(--text); display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: bold; }
-        .act-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; }
+        .post-act { padding: 12px 20px; display: flex; gap: 25px; border-bottom: 1px solid var(--glass-border); }
+        .act-btn { background: none; border: none; color: var(--text); display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .act-btn svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; }
         .act-btn.liked { color: var(--primary); }
-        .act-btn.liked svg { fill: var(--primary); }
+        .act-btn.liked svg { fill: var(--primary); stroke: var(--primary); }
 
-        /* PROFILE */
-        .p-banner { width: 100%; height: 150px; background: var(--primary); opacity: 0.2; background-size: cover; background-position: center; border-radius: 20px 20px 0 0; }
-        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 5px solid var(--bg-body); margin-top: -50px; object-fit: cover; background: #222; }
+        /* ПРОФИЛЬ */
+        .p-banner { width: 100%; height: 160px; background: var(--primary); opacity: 0.3; background-size: cover; background-position: center; border-radius: 24px 24px 0 0; }
+        .p-ava-main { width: 110px; height: 110px; border-radius: 50%; border: 6px solid var(--bg-body); margin-top: -55px; position: relative; object-fit: cover; background: #222; }
 
-        /* GRID */
-        .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .grid-item { aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--bg-card); position: relative; border: 1px solid var(--glass-border); }
+        /* СЕТКА ПРОФИЛЯ */
+        .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .grid-item { aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--glass-border); position: relative; }
         .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
-        .grid-text { padding: 10px; font-size: 11px; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; background: linear-gradient(45deg, rgba(255,0,0,0.1), rgba(255,0,0,0.3)); }
+        .grid-txt { padding: 10px; font-size: 10px; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; background: linear-gradient(45deg, var(--bg-card), rgba(255,0,0,0.1)); color: var(--text); }
 
-        /* CHAT */
+        /* ОКНО ЧАТА */
         #chat-window { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: none; flex-direction: column; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--chat-bg); }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; }
+        .chat-header { padding: 15px 20px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px; background: var(--bg-card); }
+        .chat-body { 
+            flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; 
+            background: linear-gradient(135deg, var(--bg-body) 0%, rgba(255,0,0,0.05) 100%);
+            background-size: cover; background-position: center;
+        }
+        .msg { padding: 12px 18px; border-radius: 20px; max-width: 80%; font-size: 15px; line-height: 1.4; }
         .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
         .msg.them { align-self: flex-start; background: var(--bg-card); border-bottom-left-radius: 4px; border: 1px solid var(--glass-border); }
 
-        /* INPUTS */
-        input, textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 12px; }
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; }
+        /* ФОРМЫ */
+        input, textarea { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 12px; font-size: 15px; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-main:active { transform: scale(0.97); }
+
+        .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.3s; }
+        .color-dot.active { border-color: var(--text); transform: scale(1.1); }
     </style>
 </head>
 <body data-theme="dark">
@@ -93,87 +101,89 @@
     <div class="nav-item active" onclick="window.switchTab('feed', event)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></div>
     <div class="nav-item" onclick="window.switchTab('chats', event)"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
     <div class="nav-item" onclick="window.switchTab('profile', event)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
-    <div class="nav-item" onclick="window.switchTab('settings', event)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+    <div class="nav-item" onclick="window.switchTab('settings', event)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
 </nav>
 
 <div class="app-shell">
     <div id="scr-auth" style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh;">
         <div class="glass" style="padding: 40px; text-align: center;">
-            <h1 style="color: var(--primary); letter-spacing: 5px; margin-bottom: 30px;">KASTA</h1>
-            <input id="login-u" placeholder="Логин">
+            <h1 style="color: var(--primary); letter-spacing: 8px; margin-bottom: 30px;">KASTA</h1>
+            <input id="login-u" placeholder="Имя пользователя">
             <input id="login-p" type="password" placeholder="Пароль">
             <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
-            <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer;">Регистрация</p>
+            <p onclick="window.doAuth('register')" style="margin-top: 25px; font-size: 13px; opacity: 0.5; cursor: pointer;">Нет аккаунта? Зарегистрироваться</p>
         </div>
     </div>
 
     <div id="scr-app" class="hidden">
+        
         <div id="view-feed">
-            <div id="st-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto;">
-                <div onclick="document.getElementById('st-in').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>
-                <input type="file" id="st-in" hidden onchange="window.uploadSt(this)">
+            <div id="st-container" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 25px; overflow-x: auto;">
+                <div onclick="document.getElementById('st-input').click()" style="min-width: 65px; height: 65px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 28px;">+</div>
+                <input type="file" id="st-input" hidden onchange="window.uploadSt(this)">
+                <div id="st-list" style="display: flex; gap: 15px;"></div>
             </div>
             <div id="feed-cont"></div>
         </div>
 
         <div id="view-chats" class="hidden">
-            <h2 style="margin-bottom: 20px;">Чаты</h2>
+            <h2 style="margin-bottom: 20px;">Сообщения</h2>
             <div id="chats-list"></div>
         </div>
 
         <div id="view-profile" class="hidden">
-            <div id="p-card" class="glass" style="text-align: center; margin-bottom: 20px; overflow: hidden; padding-bottom: 20px;"></div>
+            <div id="profile-header" class="glass" style="text-align: center; margin-bottom: 20px; overflow: hidden; padding-bottom: 25px;"></div>
             
-            <div class="glass" style="padding: 15px; margin-bottom: 20px;">
-                <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
-                    <input type="file" id="post-media" hidden accept="image/*,video/*">
+            <div class="glass" style="padding: 20px; margin-bottom: 20px;">
+                <textarea id="new-post-text" placeholder="Расскажите о чем-нибудь..." rows="2"></textarea>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('new-post-file').click()">ФОТО / ВИДЕО</button>
+                    <input type="file" id="new-post-file" hidden accept="image/*,video/*">
                     <button class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
                 </div>
             </div>
 
-            <div class="p-grid" id="p-grid"></div>
+            <div id="profile-grid" class="p-grid"></div>
         </div>
 
         <div id="view-settings" class="hidden">
-            <div class="glass" style="padding: 20px;">
-                <h3 style="margin-bottom: 20px; color: var(--primary);">Настройки</h3>
+            <div class="glass" style="padding: 25px;">
+                <h3 style="margin-bottom: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px;">Настройки</h3>
                 
-                <p style="font-size: 12px; margin-bottom: 8px;">ЦВЕТ АКЦЕНТА</p>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <div style="width:30px; height:30px; background:#ff0000; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff0000')"></div>
-                    <div style="width:30px; height:30px; background:#007aff; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#007aff')"></div>
-                    <div style="width:30px; height:30px; background:#34c759; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#34c759')"></div>
+                <p style="font-size: 11px; margin-bottom: 10px; opacity: 0.6;">ЦВЕТ АКЦЕНТА</p>
+                <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                    <div class="color-dot" style="background: #ff0000;" onclick="window.setAccent('#ff0000', this)"></div>
+                    <div class="color-dot" style="background: #007aff;" onclick="window.setAccent('#007aff', this)"></div>
+                    <div class="color-dot" style="background: #34c759;" onclick="window.setAccent('#34c759', this)"></div>
+                    <div class="color-dot" style="background: #a044ff;" onclick="window.setAccent('#a044ff', this)"></div>
                 </div>
 
-                <p style="font-size: 12px; margin-bottom: 8px;">ТЕМА</p>
-                <button class="btn-main" style="background:var(--bg-card); margin-bottom: 20px;" onclick="window.toggleTheme()">Сменить тему</button>
-
-                <p style="font-size: 12px; margin-bottom: 8px;">ПРОФИЛЬ</p>
-                <input id="set-nick" placeholder="Изменить ник">
-                <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('banner-in').click()">ЗАГРУЗИТЬ БАННЕР</button>
-                <input type="file" id="banner-in" hidden onchange="window.saveBanner(this)">
+                <p style="font-size: 11px; margin-bottom: 10px; opacity: 0.6;">ОФОРМЛЕНИЕ</p>
+                <button class="btn-main" style="background: var(--bg-card); margin-bottom: 15px;" onclick="window.toggleTheme()">Сменить тему (Тёмная/Светлая)</button>
                 
-                <p style="font-size: 12px; margin: 10px 0 8px;">ОБОИ ЧАТА (URL)</p>
-                <input id="set-wall" placeholder="Ссылка на картинку">
+                <input id="settings-nick" placeholder="Изменить никнейм">
+                <button class="btn-main" style="background: var(--bg-card); margin-bottom: 15px;" onclick="document.getElementById('banner-upload').click()">ЗАГРУЗИТЬ БАННЕР ПРОФИЛЯ</button>
+                <input type="file" id="banner-upload" hidden onchange="window.saveBanner(this)">
                 
-                <button class="btn-main" onclick="window.saveSettings()">СОХРАНИТЬ ВСЁ</button>
-                <button class="btn-main" style="background: #ff3b30; margin-top: 20px;" onclick="window.logOut()">ВЫЙТИ</button>
+                <p style="font-size: 11px; margin-bottom: 10px; opacity: 0.6;">ОБОИ ЧАТОВ (URL)</p>
+                <input id="settings-wall" placeholder="Вставьте ссылку на картинку">
+                
+                <button class="btn-main" onclick="window.saveGlobalSettings()">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
+                <button class="btn-main" style="background: #ff3b30; margin-top: 25px;" onclick="window.logOut()">ВЫЙТИ ИЗ СИСТЕМЫ</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="chat-window">
-    <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px;">
-        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; color:var(--text); font-size: 24px;">←</button>
-        <b id="chat-user">Чат</b>
+    <div class="chat-header">
+        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; color:var(--text); font-size: 26px;">←</button>
+        <b id="chat-title" style="font-size: 18px;">Чат</b>
     </div>
     <div id="chat-msgs" class="chat-body"></div>
-    <div style="padding: 15px; display: flex; gap: 10px; background: var(--bg-card);">
-        <input id="chat-in" style="margin: 0;" placeholder="Сообщение...">
-        <button class="btn-main" style="width: 60px;" onclick="window.sendMsg()">></button>
+    <div style="padding: 15px; display: flex; gap: 10px; background: var(--bg-card); border-top: 1px solid var(--glass-border);">
+        <input id="chat-input" style="margin: 0;" placeholder="Напишите сообщение...">
+        <button class="btn-main" style="width: 65px;" onclick="window.sendMsg()">></button>
     </div>
 </div>
 
@@ -182,8 +192,9 @@
     let token = localStorage.getItem('token'), me = localStorage.getItem('me'), curChat = "";
     let myPosts = [];
 
+    // ХЕЛПЕРЫ
     const isVid = (u) => u && (u.includes('.mp4') || u.includes('.webm') || u.startsWith('data:video'));
-    const getAva = (n) => `https://ui-avatars.com/api/?name=${n}&background=random&color=fff`;
+    const getAva = (n) => `https://ui-avatars.com/api/?name=${n}&background=random&color=fff&size=128`;
 
     async function call(p, m='GET', b=null) {
         try {
@@ -191,11 +202,12 @@
                 method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: b ? JSON.stringify(b) : null
             });
-            if (!r.ok && r.status === 404) return { error: 404 };
+            if (!r.ok) return { error: r.status };
             return await r.json();
         } catch(e) { return { error: true }; }
     }
 
+    // АВТОРИЗАЦИЯ
     window.doAuth = async (t) => {
         const u = document.getElementById('login-u').value, p = document.getElementById('login-p').value;
         const res = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
@@ -203,9 +215,16 @@
         if(res.ok) { localStorage.setItem('token', d.token); localStorage.setItem('me', d.username); location.reload(); } else alert(d.message);
     };
 
+    // ПЕРЕКЛЮЧЕНИЕ ТАБОВ
     window.switchTab = (id, e) => {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if(e && e.currentTarget) e.currentTarget.classList.add('active');
+        else {
+            const items = document.querySelectorAll('.nav-item');
+            const map = {feed:0, chats:1, profile:2, settings:3};
+            if(items[map[id]]) items[map[id]].classList.add('active');
+        }
+        
         document.querySelectorAll('#scr-app > div').forEach(v => v.classList.add('hidden'));
         document.getElementById('view-'+id).classList.remove('hidden');
         if(id === 'feed') window.loadFeed();
@@ -213,6 +232,7 @@
         if(id === 'profile') window.loadProfile();
     };
 
+    // ЛЕНТА И ПОСТЫ
     window.loadFeed = async () => {
         const d = await call('/posts');
         if(!Array.isArray(d)) return;
@@ -220,22 +240,26 @@
             <div class="glass post">
                 <div class="post-h">
                     <img src="${getAva(p.author)}" class="p-ava">
-                    <b>${p.author}</b>
+                    <b style="font-size: 16px;">${p.author}</b>
                 </div>
-                ${p.imageUrl ? `<div class="media-box">${isVid(p.imageUrl) ? `<video src="${p.imageUrl}" controls></video>` : `<img src="${p.imageUrl}">`}</div>` : ''}
+                ${p.imageUrl ? `<div class="media-box">${isVid(p.imageUrl) ? `<video src="${p.imageUrl}" controls playsinline></video>` : `<img src="${p.imageUrl}" loading="lazy">`}</div>` : ''}
                 <div class="post-act">
                     <button class="act-btn ${p.likes.includes(me)?'liked':''}" onclick="window.like('${p._id}')">
-                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         ${p.likes.length}
                     </button>
+                    <button class="act-btn" onclick="document.getElementById('c-inp-${p._id}').focus()">
+                        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        ${p.comments.length}
+                    </button>
                 </div>
-                <div style="padding: 15px;">
-                    <p>${p.text || ''}</p>
-                    <div style="margin-top:10px; font-size:13px; opacity:0.8;">
-                        ${p.comments.map(c => `<div><b>${c.author}:</b> ${c.text}</div>`).join('')}
+                <div style="padding: 15px 20px 20px;">
+                    <p style="font-size: 15px; margin-bottom: 12px;">${p.text || ''}</p>
+                    <div style="font-size:13px; opacity:0.8;">
+                        ${p.comments.map(c => `<div style="margin-bottom:4px;"><b>${c.author}:</b> ${c.text}</div>`).join('')}
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <input id="comm-${p._id}" placeholder="Ваш комментарий..." style="margin:0; padding:8px;">
+                    <div style="display:flex; gap:10px; margin-top:12px;">
+                        <input id="c-inp-${p._id}" placeholder="Комментировать..." style="margin:0; padding:10px; font-size:13px;">
                         <button class="btn-main" style="width:60px; padding:0;" onclick="window.addComm('${p._id}')">OK</button>
                     </div>
                 </div>
@@ -244,12 +268,13 @@
         window.loadStories();
     };
 
+    // СТОРИС (С ОБРАБОТКОЙ ОШИБОК)
     window.loadStories = async () => {
         const s = await call('/stories');
-        const row = document.getElementById('st-row');
-        row.innerHTML = `<div onclick="document.getElementById('st-in').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>`;
+        const list = document.getElementById('st-list');
+        list.innerHTML = "";
         if(Array.isArray(s)) s.forEach(i => {
-            row.innerHTML += `<img src="${getAva(i.author)}" style="width:60px; height:60px; border-radius:50%; border:2px solid var(--primary); padding:2px;">`;
+            list.innerHTML += `<img src="${getAva(i.author)}" style="width:65px; height:65px; border-radius:50%; border:2px solid var(--primary); padding:2px; object-fit:cover;">`;
         });
     };
 
@@ -261,7 +286,7 @@
     };
 
     window.addComm = async (id) => {
-        const inp = document.getElementById('comm-'+id);
+        const inp = document.getElementById('c-inp-'+id);
         if(!inp.value) return;
         await call(`/posts/${id}/comment`, 'POST', {text: inp.value});
         inp.value = ""; window.loadFeed();
@@ -269,49 +294,54 @@
 
     window.like = async (id) => { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
 
+    // ПРОФИЛЬ
     window.loadProfile = async () => {
         const u = await call('/users/profile/'+me);
         if(!u || u.error) return;
         myPosts = u.posts || [];
-        const banner = localStorage.getItem('k_banner');
-        document.getElementById('p-card').innerHTML = `
-            <div class="p-banner" style="background-image:url(${banner})"></div>
+        const ban = localStorage.getItem('k_banner') || "";
+        document.getElementById('profile-header').innerHTML = `
+            <div class="p-banner" style="background-image:url(${ban})"></div>
             <img src="${getAva(me)}" class="p-ava-main">
-            <h2 style="margin-top:10px;">${u.displayName || me}</h2>
-            <p style="opacity:0.5;">@${me}</p>
+            <h2 style="margin-top:12px;">${u.displayName || me}</h2>
+            <p style="opacity:0.5; font-size:14px;">@${me}</p>
         `;
-        document.getElementById('p-grid').innerHTML = myPosts.map(p => `
+        document.getElementById('profile-grid').innerHTML = myPosts.map(p => `
             <div class="grid-item">
-                ${p.imageUrl ? (isVid(p.imageUrl) ? `<video src="${p.imageUrl}"></video>` : `<img src="${p.imageUrl}">`) : `<div class="grid-text">${p.text || 'KASTA POST'}</div>`}
+                ${p.imageUrl ? (isVid(p.imageUrl) ? `<video src="${p.imageUrl}"></video>` : `<img src="${p.imageUrl}">`) : `<div class="grid-txt">${p.text || 'KASTA'}</div>`}
             </div>
         `).join('');
     };
 
     window.createPost = async () => {
-        const t = document.getElementById('post-text').value, f = document.getElementById('post-media').files[0];
+        const t = document.getElementById('new-post-text').value, f = document.getElementById('new-post-file').files[0];
         let img = ""; if(f) img = await window.pack(f);
         await call('/posts', 'POST', {text:t, imageUrl:img});
-        document.getElementById('post-text').value = "";
+        document.getElementById('new-post-text').value = "";
         window.switchTab('feed');
     };
 
+    // ЧАТЫ
     window.loadChats = async () => {
         const d = await call('/chats');
         if(!d.users) return;
         document.getElementById('chats-list').innerHTML = d.users.map(u => `
-            <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
-                <img src="${getAva(u.username)}" style="width:40px; border-radius:50%;">
-                <b>${u.username}</b>
+            <div class="glass" onclick="window.openChat('${u.username}')" style="padding:18px; margin-bottom:12px; display:flex; align-items:center; gap:15px; cursor:pointer;">
+                <img src="${getAva(u.username)}" style="width:45px; border-radius:50%;">
+                <b style="font-size:17px;">${u.username}</b>
             </div>
         `).join('');
     };
 
     window.openChat = async (n) => {
-        curChat = n; document.getElementById('chat-user').innerText = n;
+        curChat = n; document.getElementById('chat-title').innerText = n;
         document.getElementById('chat-window').style.display = 'flex';
         const box = document.getElementById('chat-msgs');
         const wall = localStorage.getItem('k_wall');
-        box.style.background = wall ? `url(${wall}) center/cover` : 'var(--chat-bg)';
+        
+        // Либо обои, либо градиент
+        if(wall) box.style.backgroundImage = `url(${wall})`;
+        else box.style.background = `linear-gradient(135deg, var(--bg-body) 0%, rgba(255,0,0,0.15) 100%)`;
         
         const m = await call('/messages/'+n);
         if(Array.isArray(m)) box.innerHTML = m.map(msg => `<div class="msg ${msg.sender===me?'me':'them'}">${msg.text}</div>`).join('');
@@ -319,17 +349,18 @@
     };
 
     window.sendMsg = async () => {
-        const i = document.getElementById('chat-in'); if(!i.value) return;
+        const i = document.getElementById('chat-input'); if(!i.value) return;
         await call('/messages', 'POST', {recipient:curChat, text:i.value});
         i.value = ""; window.openChat(curChat);
     };
 
-    window.saveSettings = async () => {
-        const nick = document.getElementById('set-nick').value;
-        const wall = document.getElementById('set-wall').value;
+    // НАСТРОЙКИ
+    window.saveGlobalSettings = async () => {
+        const nick = document.getElementById('settings-nick').value;
+        const wall = document.getElementById('settings-wall').value;
         if(nick) await call('/users/update', 'POST', {displayName: nick});
         if(wall) localStorage.setItem('k_wall', wall);
-        alert("Настройки сохранены!");
+        alert("Настройки применены!");
         location.reload();
     };
 
@@ -337,12 +368,14 @@
         const f = el.files[0]; if(!f) return;
         const img = await window.pack(f);
         localStorage.setItem('k_banner', img);
-        alert("Баннер загружен!");
+        alert("Баннер сохранен локально!");
     };
 
-    window.setAccent = (c) => {
+    window.setAccent = (c, el) => {
         document.documentElement.style.setProperty('--primary', c);
         localStorage.setItem('k_accent', c);
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        if(el) el.classList.add('active');
     };
 
     window.toggleTheme = () => {
@@ -359,17 +392,17 @@
 
     window.logOut = () => { localStorage.clear(); location.reload(); };
 
-    // START
+    // ЗАПУСК ПРИЛОЖЕНИЯ
     if(token) {
         document.getElementById('scr-auth').classList.add('hidden');
         document.getElementById('scr-app').classList.remove('hidden');
         window.switchTab('feed');
     }
 
-    // RESTORE
+    // ВОССТАНОВЛЕНИЕ ТЕМЫ
     window.setAccent(localStorage.getItem('k_accent') || '#ff0000');
     document.body.setAttribute('data-theme', localStorage.getItem('k_theme') || 'dark');
-    document.getElementById('set-wall').value = localStorage.getItem('k_wall') || '';
+    document.getElementById('settings-wall').value = localStorage.getItem('k_wall') || '';
 </script>
 </body>
 </html>
