@@ -3,89 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA </title>
+    <title>KASTA ULTIMATE</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     <style>
         :root {
-            --primary: #8a2be2;
-            --bg: #0a0a0b;
-            --surface: rgba(255, 255, 255, 0.08);
-            --text: #ffffff;
-            --text-mut: #a0a0a0;
-            --border: rgba(255, 255, 255, 0.1);
-            --glass: blur(25px);
+            --primary: #8a2be2; --bg: #0a0a0b; --surface: rgba(255, 255, 255, 0.08);
+            --text: #ffffff; --text-mut: #a0a0a0; --border: rgba(255, 255, 255, 0.1); --glass: blur(25px);
         }
-
         [data-theme="light"] {
-            --bg: #f0f2f5;
-            --surface: rgba(255, 255, 255, 0.7);
-            --text: #1c1e21;
-            --text-mut: #65676b;
-            --border: rgba(0, 0, 0, 0.1);
+            --bg: #f0f2f5; --surface: rgba(255, 255, 255, 0.7); --text: #1c1e21; --text-mut: #65676b; --border: rgba(0, 0, 0, 0.1);
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; transition: 0.3s; }
         .app-shell { width: 100%; max-width: 550px; position: relative; padding-bottom: 100px; }
-        .glass { background: var(--surface); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); border: 1px solid var(--border); border-radius: 24px; }
+        .glass { background: var(--surface); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); border: 1px solid var(--border); border-radius: 25px; }
         .hidden { display: none !important; }
 
-        /* STORIES */
-        .st-bar { display: flex; gap: 15px; padding: 15px; overflow-x: auto; scrollbar-width: none; margin: 10px 0; }
-        .st-bar::-webkit-scrollbar { display: none; }
-        .st-item { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
-        .st-ring { width: 70px; height: 70px; border-radius: 50%; padding: 3px; border: 2px solid var(--primary); margin-bottom: 5px; }
-        .st-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #333; }
-
         /* POSTS */
-        .post { margin: 15px; overflow: hidden; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .post { margin: 15px; overflow: hidden; }
         .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
-        .p-ava { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        .post-img { width: 100%; display: block; max-height: 600px; object-fit: cover; }
-        .post-act { padding: 12px 15px; display: flex; gap: 20px; }
-        .act-btn { background: none; border: none; color: var(--text); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 16px; }
-        .btn-del { background: #ff3b30; color: #fff; border: none; padding: 6px 12px; border-radius: 12px; font-size: 11px; margin-left: auto; cursor: pointer; }
+        .p-ava { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+        .post-time { font-size: 10px; opacity: 0.5; margin-left: auto; }
+        .post-img { width: 100%; display: block; max-height: 550px; object-fit: cover; }
+        .post-act { padding: 12px 15px; display: flex; gap: 20px; border-bottom: 1px solid var(--border); }
+        .act-btn { background: none; border: none; color: var(--text); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 15px; }
+        .btn-del { background: #ff3b30; color: #fff; border: none; padding: 5px 10px; border-radius: 10px; font-size: 10px; cursor: pointer; }
 
         /* COMMENTS */
-        .comm-box { padding: 0 15px 15px; }
-        .comm-in { width: 100%; padding: 12px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; outline: none; margin-top: 10px; }
-        .comm-item { font-size: 13px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
+        .comm-section { padding: 10px 15px 15px; background: rgba(0,0,0,0.1); }
+        .comm-list { max-height: 150px; overflow-y: auto; margin-bottom: 10px; }
+        .comm-item { font-size: 13px; margin-bottom: 5px; line-height: 1.4; }
+        .comm-in { width: 100%; padding: 10px 15px; border-radius: 18px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; outline: none; }
 
         /* NAV */
-        .nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; height: 70px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-btn { cursor: pointer; color: var(--text-mut); text-align: center; flex: 1; transition: 0.3s; }
+        .nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; height: 70px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-btn { cursor: pointer; color: var(--text-mut); text-align: center; flex: 1; transition: 0.2s; }
         .nav-btn.active { color: var(--primary); transform: translateY(-3px); }
         .nav-btn b { display: block; font-size: 24px; margin-bottom: 2px; }
-        .nav-btn span { font-size: 10px; font-weight: 800; }
+        .nav-btn span { font-size: 10px; font-weight: bold; text-transform: uppercase; }
 
         /* PROFILE */
-        .p-card { padding: 30px 20px; text-align: center; margin-top: 10px; }
-        .p-ava-big { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--primary); padding: 4px; margin-bottom: 15px; }
-        .p-stats { display: flex; justify-content: center; gap: 40px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .p-stats b { display: block; font-size: 20px; }
-        .p-stats span { font-size: 12px; color: var(--text-mut); }
+        .p-card { padding: 30px 20px; text-align: center; margin: 10px; }
+        .p-ava-big { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); padding: 3px; margin-bottom: 15px; }
+        .p-stats { display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .p-stats div { text-align: center; }
+        .p-stats b { display: block; font-size: 18px; }
+        .p-stats span { font-size: 11px; color: var(--text-mut); }
 
-        /* SEARCH & CHATS */
-        .search-wrap { margin: 15px; padding: 15px; display: flex; align-items: center; gap: 10px; }
-        .search-wrap input { flex: 1; background: none; border: none; color: var(--text); outline: none; font-size: 16px; }
-        .chat-item { margin: 10px 15px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
-        .chat-item:active { transform: scale(0.98); }
+        /* INPUTS */
+        input, textarea { width: 100%; padding: 15px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline: none; margin-bottom: 12px; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 18px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        /* CHAT WINDOW */
+        /* CHAT */
         #chat-window { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .chat-h { padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); border-radius: 0; }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 12px 18px; border-radius: 20px; max-width: 80%; font-size: 14px; }
-        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-        .msg.them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; }
-
-        /* INPUTS & BUTTONS */
-        input, textarea { width: 100%; padding: 16px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline: none; margin-bottom: 15px; }
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 16px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn-main:active { transform: scale(0.98); }
+        .chat-h { padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
+        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 16px; border-radius: 18px; max-width: 75%; font-size: 14px; position: relative; }
+        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
+        .msg.them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 2px; }
+        .msg-t { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; text-align: right; }
     </style>
 </head>
 <body data-theme="dark">
@@ -93,64 +70,58 @@
 <div class="app-shell">
     <div id="scr-auth" style="display:flex; align-items:center; min-height:100vh;">
         <div class="glass" style="padding:40px; width:90%; margin:auto; text-align:center;">
-            <h1 style="font-size:45px; color:var(--primary); margin-bottom:5px;">KASTA</h1>
-            <p style="margin-bottom:30px; color:var(--text-mut); font-size:14px;">Social Network</p>
-            <input id="login-u" placeholder="Логин">
+            <h1 style="font-size:45px; color:var(--primary); margin-bottom:10px;">KASTA</h1>
+            <input id="login-u" placeholder="Никнейм">
             <input id="login-p" type="password" placeholder="Пароль">
             <button class="btn-main" onclick="window.doAuth('login')">Войти</button>
-            <p onclick="window.doAuth('register')" style="margin-top:20px; font-size:13px; cursor:pointer; color:var(--text-mut);">Зарегистрироваться</p>
+            <p onclick="window.doAuth('register')" style="margin-top:20px; font-size:12px; cursor:pointer; opacity:0.6;">Нет аккаунта? Регистрация</p>
         </div>
     </div>
 
     <div id="scr-app" class="hidden">
         
         <div id="view-feed">
-            <div class="st-bar glass" id="st-list">
-                <div class="st-item" onclick="document.getElementById('st-input').click()">
-                    <div class="st-ring" style="border-style:dashed; border-color:var(--text-mut); display:flex; align-items:center; justify-content:center; font-size:30px;">+</div>
-                    <span style="font-size:10px;">Сториз</span>
-                    <input type="file" id="st-input" hidden accept="image/*" onchange="window.uploadStory(this)">
-                </div>
+            <div class="glass" id="st-list" style="margin: 10px; display: flex; gap: 12px; padding: 12px; overflow-x: auto;">
+                <div onclick="document.getElementById('st-input').click()" style="min-width: 65px; height: 65px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 30px;">+</div>
+                <input type="file" id="st-input" hidden onchange="window.uploadStory(this)">
             </div>
             <div id="feed-container"></div>
         </div>
 
         <div id="view-chats" class="hidden">
-            <div class="glass search-wrap">
+            <div class="glass" style="margin: 15px; padding: 15px; display: flex; align-items: center; gap: 10px;">
                 <span>🔍</span>
-                <input id="search-input" oninput="window.doSearch(this.value)" placeholder="Найти чат...">
+                <input id="search-input" style="margin:0; padding:5px; background:none; border:none;" placeholder="Поиск друзей..." oninput="window.doSearch(this.value)">
             </div>
             <div id="chats-container"></div>
         </div>
 
         <div id="view-profile" class="hidden">
             <div id="profile-card" class="glass p-card"></div>
-            
-            <div class="glass" style="margin:15px; padding:20px;">
-                <textarea id="new-post-text" placeholder="Что нового?"></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="glass" style="margin: 10px; padding: 20px;">
+                <textarea id="post-text" placeholder="Расскажи, что нового..."></textarea>
+                <div style="display:flex; justify-content:space-between;">
                     <button class="act-btn" onclick="document.getElementById('post-img-input').click()">🖼️ Фото</button>
                     <input type="file" id="post-img-input" hidden accept="image/*">
-                    <button class="btn-main" style="width:auto; padding:10px 25px;" onclick="window.createPost()">Пост</button>
+                    <button class="btn-main" style="width:auto; padding:10px 30px;" onclick="window.createPost()">Пост</button>
                 </div>
             </div>
-            <div id="profile-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; padding:0 15px;"></div>
+            <div id="profile-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 10px;"></div>
         </div>
 
         <div id="view-settings" class="hidden">
-            <div class="glass" style="margin:15px; padding:30px;">
-                <h3>Настройки</h3>
-                <input id="edit-name" placeholder="Имя">
+            <div class="glass" style="margin: 15px; padding: 25px;">
+                <h3 style="margin-bottom:20px;">Опции</h3>
+                <input id="edit-name" placeholder="Твое имя">
                 <textarea id="edit-bio" placeholder="О себе..."></textarea>
-                <button class="btn-main" onclick="window.saveProfile()">Сохранить</button>
+                <button class="btn-main" onclick="window.saveProfile()">Сохранить изменения</button>
                 
-                <h4 style="margin: 25px 0 15px;">Тема оформления</h4>
+                <p style="margin: 25px 0 10px; font-size: 12px; color: var(--text-mut);">ТЕМА ПРИЛОЖЕНИЯ</p>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-main" style="background:#e0e0e0; color:#000;" onclick="window.switchTheme('light')">Светлая</button>
+                    <button class="btn-main" style="background:#ddd; color:#000;" onclick="window.switchTheme('light')">Светлая</button>
                     <button class="btn-main" style="background:#111; color:#fff;" onclick="window.switchTheme('dark')">Темная</button>
                 </div>
-
-                <button class="btn-main" style="background:#ff3b30; margin-top:40px;" onclick="window.logOut()">Выйти</button>
+                <button class="btn-main" style="background:#ff3b30; margin-top:30px;" onclick="window.logOut()">Выйти из KASTA</button>
             </div>
         </div>
 
@@ -164,217 +135,191 @@
 </div>
 
 <div id="chat-window">
-    <div class="chat-h glass">
-        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; font-size:28px; color:var(--text);">←</button>
-        <b id="active-chat-name">Чат</b>
+    <div class="chat-h glass" style="border-radius:0;">
+        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; font-size:25px; color:var(--text); cursor:pointer;">←</button>
+        <b id="active-chat-name">Имя</b>
     </div>
     <div id="chat-msgs" class="chat-body"></div>
     <div class="glass" style="padding:15px; display:flex; gap:10px; border-radius:0;">
         <input id="chat-input" placeholder="Сообщение..." style="margin:0;">
-        <button class="btn-main" style="width:auto; padding:0 25px;" onclick="window.sendMsg()">➤</button>
+        <button class="btn-main" style="width:auto; padding:0 20px;" onclick="window.sendMsg()">➤</button>
     </div>
 </div>
 
 <script>
-    // Все функции вешаем на объект window, чтобы onclick их видел 100%
     const API = "https://kasta-l49s.onrender.com";
-    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), currentChat = "";
+    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), curChat = "";
 
-    function clean(u) { return u ? u.replace('http://', 'https://') : 'https://ui-avatars.com/api/?background=random&name=U'; }
+    function fmtTime(d) { return d ? new Date(d).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''; }
+    function clean(u) { return u ? u.replace('http://', 'https://') : `https://ui-avatars.com/api/?background=random&name=U`; }
 
-    // Ядро запросов
-    async function call(path, method='GET', body=null) {
-        const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-        try {
-            const res = await fetch(API+path, { method, headers, body: body ? JSON.stringify(body) : null });
-            if(res.status === 401) window.logOut();
-            const data = await res.json();
-            return data;
-        } catch(e) { 
-            console.error("API Error on " + path); 
-            return { error: true }; 
-        }
-    }
-
-    // --- АВТОРИЗАЦИЯ ---
-    window.doAuth = async function(type) {
+    // ГЛОБАЛЬНЫЕ ФУНКЦИИ
+    window.doAuth = async (t) => {
         const u = document.getElementById('login-u').value, p = document.getElementById('login-p').value;
-        if(!u || !p) return alert("Заполни поля!");
-        
         try {
-            const res = await fetch(`${API}/${type}`, { 
-                method:'POST', 
-                headers:{'Content-Type':'application/json'}, 
-                body: JSON.stringify({username:u, password:p}) 
+            const r = await fetch(`${API}/${t}`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
             });
-            const d = await res.json();
-            if(res.ok) {
-                localStorage.setItem('token', d.token);
-                localStorage.setItem('me', d.username);
+            const d = await r.json();
+            if (r.ok) {
+                localStorage.setItem('token', d.token); localStorage.setItem('me', d.username);
                 location.reload();
             } else alert(d.message);
-        } catch(e) { alert("Ошибка сервера. Попробуй позже."); }
+        } catch (e) { alert("Сервер лежит или ошибка сети"); }
     };
 
-    window.logOut = function() { localStorage.clear(); location.reload(); };
+    window.logOut = () => { localStorage.clear(); location.reload(); };
 
-    // --- НАВИГАЦИЯ ---
-    window.switchTab = function(id) {
-        ['feed', 'chats', 'profile', 'settings'].forEach(t => {
-            const scr = document.getElementById('view-' + t);
-            const btn = document.getElementById('n-' + t);
-            if(scr) scr.classList.add('hidden');
-            if(btn) btn.classList.remove('active');
+    window.switchTab = (id) => {
+        ['feed','chats','profile','settings'].forEach(v => {
+            document.getElementById('view-'+v).classList.add('hidden');
+            document.getElementById('n-'+v).classList.remove('active');
         });
-        document.getElementById('view-' + id).classList.remove('hidden');
-        document.getElementById('n-' + id).classList.add('active');
-
-        if(id === 'feed') { window.loadFeed(); window.loadStories(); }
-        if(id === 'chats') window.loadChats();
-        if(id === 'profile') window.loadProfile();
+        document.getElementById('view-'+id).classList.remove('hidden');
+        document.getElementById('n-'+id).classList.add('active');
+        if (id==='feed') { loadFeed(); loadStories(); }
+        if (id==='chats') loadChats();
+        if (id==='profile') loadProfile();
     };
 
-    // --- ЛЕНТА И ПОСТЫ ---
-    window.loadFeed = async function() {
-        const data = await call('/posts');
-        if(!Array.isArray(data)) return;
-        
-        // Сначала новые посты!
-        const rev = [...data].reverse();
+    async function call(p, m='GET', b=null) {
+        try {
+            const r = await fetch(API+p, {
+                method: m, headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+                body: b ? JSON.stringify(b) : null
+            });
+            if (r.status === 401) window.logOut();
+            return await r.json();
+        } catch (e) { return {error: true}; }
+    }
 
-        document.getElementById('feed-container').innerHTML = rev.map(p => `
+    // ЛЕНТА
+    window.loadFeed = async () => {
+        const d = await call('/posts');
+        if (!Array.isArray(d)) return;
+        document.getElementById('feed-container').innerHTML = [...d].reverse().map(p => `
             <div class="post glass">
                 <div class="post-h">
                     <img src="${clean(p.authorAvatar)}" class="p-ava">
-                    <b>${p.author}</b>
-                    ${p.author === me ? `<button class="btn-del" onclick="window.deletePost('${p._id}')">Удалить</button>` : ''}
+                    <div><b>${p.author}</b><div class="post-time">${fmtTime(p.createdAt)}</div></div>
+                    ${p.author === me ? `<button class="btn-del" onclick="window.delPost('${p._id}')">Удалить</button>` : ''}
                 </div>
                 ${p.imageUrl ? `<img src="${clean(p.imageUrl)}" class="post-img">` : ''}
                 <div class="post-act">
-                    <button class="act-btn" onclick="window.likePost('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
+                    <button class="act-btn" onclick="window.like('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
                     <button class="act-btn">💬 ${p.comments.length}</button>
                 </div>
-                <div style="padding:0 15px; font-size:14px;"><b>${p.author}</b> ${p.text || ''}</div>
-                
-                <div class="comm-box">
-                    ${(p.comments || []).map(c => `<div class="comm-item"><b>${c.author}:</b> ${c.text}</div>`).join('')}
-                    <input class="comm-in" placeholder="Комментировать (Enter)" onkeydown="if(event.key==='Enter' && this.value) { window.addComment('${p._id}', this.value); this.value=''; }">
+                <div style="padding: 10px 15px; font-size: 14px;"><b>${p.author}</b> ${p.text || ''}</div>
+                <div class="comm-section">
+                    <div class="comm-list">
+                        ${(p.comments || []).map(c => `<div class="comm-item"><b>${c.author}:</b> ${c.text}</div>`).join('')}
+                    </div>
+                    <input class="comm-in" placeholder="Написать комментарий..." onkeydown="if(event.key==='Enter' && this.value){window.addComm('${p._id}', this.value); this.value=''}">
                 </div>
             </div>
         `).join('');
     };
 
-    window.likePost = async function(id) { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
-    window.deletePost = async function(id) { if(confirm("Удалить?")) { await call('/posts/'+id, 'DELETE'); window.loadFeed(); } };
-    window.addComment = async function(id, text) { await call(`/posts/${id}/comment`, 'POST', {text}); window.loadFeed(); };
+    window.like = async (id) => { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
+    window.delPost = async (id) => { if(confirm("Удалить?")) { await call('/posts/'+id, 'DELETE'); window.loadFeed(); } };
+    window.addComm = async (id, text) => { await call(`/posts/${id}/comment`, 'POST', {text}); window.loadFeed(); };
 
-    window.createPost = async function() {
-        const t = document.getElementById('new-post-text').value, f = document.getElementById('post-img-input').files[0];
+    window.createPost = async () => {
+        const t = document.getElementById('post-text').value, f = document.getElementById('post-img-input').files[0];
         let img = f ? await window.pack(f) : "";
-        await call('/posts', 'POST', {text:t, imageUrl:img});
-        document.getElementById('new-post-text').value = ""; window.switchTab('profile');
+        await call('/posts', 'POST', {text: t, imageUrl: img});
+        document.getElementById('post-text').value = ""; window.switchTab('profile');
     };
 
-    // --- СТОРИЗ ---
-    window.loadStories = async function() {
+    // СТОРИЗ
+    window.loadStories = async () => {
         const res = await call('/stories');
         const list = document.getElementById('st-list');
-        list.innerHTML = list.children[0].outerHTML; // Сохраняем кнопку +
+        list.innerHTML = list.children[0].outerHTML;
         if(Array.isArray(res)) {
             res.forEach(s => {
-                list.innerHTML += `<div class="st-item"><div class="st-ring"><img src="${clean(s.userAva)}"></div><span style="font-size:10px;">${s.username}</span></div>`;
+                list.innerHTML += `<div style="min-width:65px; text-align:center;"><img src="${clean(s.userAva)}" style="width:65px; height:65px; border-radius:50%; border:2px solid var(--primary); object-fit:cover;"><div style="font-size:10px; margin-top:4px;">${s.username}</div></div>`;
             });
         }
     };
 
-    window.uploadStory = async function(el) {
+    window.uploadStory = async (el) => {
         const f = el.files[0]; if(!f) return;
         const img = await window.pack(f);
-        await call('/stories', 'POST', {image:img});
+        await call('/stories', 'POST', {image: img});
         window.loadStories();
     };
 
-    // --- ПРОФИЛЬ ---
-    window.loadProfile = async function() {
-        if(!me) return;
-        const u = await call('/users/profile/'+me);
-        if(!u || u.error) return;
-        
-        document.getElementById('profile-card').innerHTML = `
-            <img src="${clean(u.avatarUrl)}" class="p-ava-big">
-            <h2>${u.displayName || u.username}</h2>
-            <p style="opacity:0.6; font-size:13px;">@${u.username}</p>
-            <p style="font-size:14px; margin-top:10px; padding:0 15px;">${u.bio || 'Нет описания'}</p>
-            <div class="p-stats">
-                <div><b>${u.posts ? u.posts.length : 0}</b><span>Посты</span></div>
-                <div><b>${u.subscribersCount || 0}</b><span>Подписки</span></div>
-            </div>
-        `;
-
-        if(u.posts) {
-            document.getElementById('profile-grid').innerHTML = u.posts.map(p => `
-                <img src="${clean(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px;">
-            `).join('');
-        }
-        document.getElementById('edit-name').value = u.displayName || '';
-        document.getElementById('edit-bio').value = u.bio || '';
-    };
-
-    window.saveProfile = async function() {
-        const n = document.getElementById('edit-name').value, b = document.getElementById('edit-bio').value;
-        await call('/users/update', 'POST', {displayName:n, bio:b});
-        alert("Сохранено!"); window.switchTab('profile');
-    };
-
-    // --- ЧАТЫ И ПОИСК ---
-    window.loadChats = async function() {
+    // ЧАТЫ И ПОИСК
+    window.loadChats = async () => {
         const d = await call('/chats');
-        if(d.error || !d.users) return;
+        if (!d.users) return;
         document.getElementById('chats-container').innerHTML = d.users.map(u => `
-            <div class="chat-item glass chat-entry" data-name="${u.username.toLowerCase()}" onclick="window.openChat('${u.username}')">
+            <div class="chat-item glass chat-row" data-name="${u.username.toLowerCase()}" onclick="window.openChat('${u.username}')">
                 <img src="${clean(u.avatarUrl)}" class="p-ava">
                 <b>${u.username}</b>
             </div>
         `).join('');
     };
 
-    window.doSearch = function(val) {
+    window.doSearch = (val) => {
         const q = val.toLowerCase();
-        const items = document.querySelectorAll('.chat-entry');
-        items.forEach(item => {
-            const name = item.getAttribute('data-name');
-            // Скрываем полностью, если не совпадает
-            item.style.display = name.includes(q) ? 'flex' : 'none';
+        document.querySelectorAll('.chat-row').forEach(el => {
+            el.style.display = el.getAttribute('data-name').includes(q) ? 'flex' : 'none';
         });
     };
 
-    window.openChat = async function(name) {
-        currentChat = name;
+    window.openChat = async (name) => {
+        curChat = name;
         document.getElementById('active-chat-name').innerText = name;
         document.getElementById('chat-window').style.display = 'flex';
         const msgs = await call('/messages/'+name);
-        if(Array.isArray(msgs)) {
+        if (Array.isArray(msgs)) {
             document.getElementById('chat-msgs').innerHTML = msgs.map(m => `
-                <div class="msg ${m.sender===me?'me':'them'}">${m.text}</div>
+                <div class="msg ${m.sender===me?'me':'them'}">${m.text}<span class="msg-t">${fmtTime(m.createdAt)}</span></div>
             `).join('');
             const b = document.getElementById('chat-msgs'); b.scrollTop = b.scrollHeight;
         }
     };
 
-    window.sendMsg = async function() {
+    window.sendMsg = async () => {
         const i = document.getElementById('chat-input'); if(!i.value) return;
-        await call('/messages', 'POST', {recipient:currentChat, text:i.value});
-        i.value = ""; window.openChat(currentChat);
+        await call('/messages', 'POST', {recipient: curChat, text: i.value});
+        i.value = ""; window.openChat(curChat);
     };
 
-    // --- ТЕМА И КАРТИНКИ ---
-    window.switchTheme = function(t) { 
-        document.body.setAttribute('data-theme', t); 
-        localStorage.setItem('theme', t); 
+    // ПРОФИЛЬ
+    window.loadProfile = async () => {
+        const u = await call('/users/profile/' + me);
+        if (!u || u.error) return;
+        document.getElementById('profile-card').innerHTML = `
+            <img src="${clean(u.avatarUrl)}" class="p-ava-big">
+            <h2>${u.displayName || u.username}</h2>
+            <p style="opacity:0.6; font-size:14px; margin-top:5px;">${u.bio || 'Нет описания...'}</p>
+            <div class="p-stats">
+                <div><b>${u.posts ? u.posts.length : 0}</b><span>Посты</span></div>
+                <div><b>${u.subscribersCount || 0}</b><span>Подписки</span></div>
+            </div>
+        `;
+        if (u.posts) {
+            document.getElementById('profile-grid').innerHTML = u.posts.map(p => `
+                <img src="${clean(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:15px;">
+            `).join('');
+        }
+        document.getElementById('edit-name').value = u.displayName || '';
+        document.getElementById('edit-bio').value = u.bio || '';
     };
-    window.switchTheme(localStorage.getItem('theme') || 'dark');
 
-    window.pack = function(f) {
+    window.saveProfile = async () => {
+        const n = document.getElementById('edit-name').value, b = document.getElementById('edit-bio').value;
+        await call('/users/update', 'POST', {displayName: n, bio: b});
+        alert("Профиль обновлен!"); window.switchTab('profile');
+    };
+
+    window.switchTheme = (t) => { document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); };
+
+    window.pack = (f) => {
         return new Promise(r => {
             const rd = new FileReader(); rd.readAsDataURL(f);
             rd.onload = e => {
@@ -390,11 +335,12 @@
     };
 
     // СТАРТ
-    if(token && me) {
+    if (token && me) {
         document.getElementById('scr-auth').classList.add('hidden');
         document.getElementById('scr-app').classList.remove('hidden');
         window.switchTab('feed');
     }
+    window.switchTheme(localStorage.getItem('theme') || 'dark');
 </script>
 </body>
 </html>
