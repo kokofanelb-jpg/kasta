@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA - PRO</title>
+    <title>KASTA</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
@@ -14,7 +14,6 @@
             --bg-card: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
-            --blur: 15px;
         }
 
         [data-theme="light"] {
@@ -25,23 +24,24 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg-body); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: 0.3s; }
+        body { background: var(--bg-body); color: var(--text); min-height: 100vh; overflow-x: hidden; transition: 0.3s; display: flex; }
 
         .nav-side {
             position: fixed; left: 0; top: 0; width: 80px; height: 100vh;
-            background: var(--bg-card); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
+            background: var(--bg-card); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border-right: 1px solid var(--glass-border); z-index: 1000;
             display: flex; flex-direction: column; align-items: center; padding: 25px 0; gap: 30px;
         }
         
-        .app-shell { margin-left: 80px; width: calc(100% - 80px); max-width: 680px; padding: 20px; }
+        .main-wrapper { flex: 1; display: flex; justify-content: center; padding-left: 80px; }
+        .app-shell { width: 100%; max-width: 680px; padding: 20px; }
         
         @media (max-width: 700px) {
             .nav-side { top: auto; bottom: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-right: none; border-top: 1px solid var(--glass-border); padding: 0; }
-            .app-shell { margin-left: 0; width: 100%; padding-bottom: 90px; }
+            .main-wrapper { padding-left: 0; padding-bottom: 70px; }
         }
 
-        .glass { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); }
+        .glass { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
         .hidden { display: none !important; }
 
         .nav-item { cursor: pointer; color: var(--text); opacity: 0.4; transition: 0.3s; padding: 12px; border-radius: 15px; }
@@ -49,9 +49,14 @@
         .nav-item svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
 
         /* ПОСТЫ И КОММЕНТЫ */
-        .post { margin-bottom: 25px; overflow: hidden; }
+        .post { margin-bottom: 25px; overflow: hidden; position: relative; }
         .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
         .p-ava { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; background: #222; }
+        .post-meta { display: flex; flex-direction: column; }
+        .post-time { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+        .post-del { position: absolute; right: 15px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .post-del:hover { opacity: 1; color: red; }
+
         .media-box { width: 100%; background: #000; }
         .media-box img, .media-box video { width: 100%; display: block; max-height: 550px; object-fit: contain; }
         
@@ -67,6 +72,7 @@
         /* ПРОФИЛЬ И БАННЕР */
         .p-banner { width: 100%; height: 160px; background-color: var(--primary); background-size: cover; background-position: center; border-radius: 20px 20px 0 0; }
         .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-body); margin-top: -50px; object-fit: cover; background: #222; position: relative; z-index: 2; }
+        .audio-player { width: 90%; margin: 15px auto; border-radius: 15px; outline: none; }
 
         .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .grid-item { aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--bg-card); position: relative; border: 1px solid var(--glass-border); }
@@ -75,13 +81,14 @@
         /* ЧАТЫ */
         #chat-window { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: none; flex-direction: column; }
         .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background-size: cover; background-position: center; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; backdrop-filter: blur(5px); }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; backdrop-filter: blur(5px); display: flex; flex-direction: column; }
+        .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
         .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
         .msg.them { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
 
         /* ИНПУТЫ И КНОПКИ */
-        input, textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 12px; }
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        input:not([type="file"], [type="range"]), textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 12px; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; text-align: center; }
         .btn-main:active { transform: scale(0.98); }
         
         /* СТОРИС */
@@ -89,7 +96,7 @@
         
         /* FULLSCREEN STORY VIEWER */
         #story-viewer { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        #sv-img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+        .sv-media { max-width: 100%; max-height: 80vh; object-fit: contain; }
         #sv-caption { position: absolute; bottom: 40px; width: 90%; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; text-align: center; color: #fff; font-size: 16px; backdrop-filter: blur(10px); }
         #sv-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; z-index: 3001; }
         #sv-author { position: absolute; top: 25px; left: 20px; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 10px; }
@@ -98,7 +105,7 @@
         #archive-modal { position: fixed; inset: 0; background: var(--bg-body); z-index: 2500; display: none; flex-direction: column; }
         .archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; overflow-y: auto; }
         .arch-item { position: relative; border-radius: 15px; overflow: hidden; height: 250px; background: #222; }
-        .arch-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .arch-item img, .arch-item video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .arch-del { position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
@@ -111,77 +118,83 @@
     <div class="nav-item" onclick="window.switchTab('settings', event)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
 </nav>
 
-<div class="app-shell">
-    <div id="scr-auth" style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh;">
-        <div class="glass" style="padding: 40px; text-align: center;">
-            <h1 style="color: var(--primary); letter-spacing: 5px; margin-bottom: 30px;">KASTA</h1>
-            <input id="login-u" placeholder="Логин">
-            <input id="login-p" type="password" placeholder="Пароль">
-            <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
-            <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer;">Регистрация</p>
-        </div>
-    </div>
-
-    <div id="scr-app" class="hidden">
-        <div id="view-feed">
-            <div id="st-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto;">
-                <div onclick="document.getElementById('st-in').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>
-                <input type="file" id="st-in" hidden accept="image/*,video/*" onchange="window.uploadSt(this)">
-                <div id="st-list" style="display: flex; gap: 10px;"></div>
+<div class="main-wrapper">
+    <div class="app-shell">
+        <div id="scr-auth" style="display: flex; flex-direction: column; justify-content: center; min-height: 80vh;">
+            <div class="glass" style="padding: 40px; text-align: center;">
+                <h1 style="color: var(--primary); letter-spacing: 5px; margin-bottom: 30px;">KASTA</h1>
+                <input id="login-u" placeholder="Логин">
+                <input id="login-p" type="password" placeholder="Пароль">
+                <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
+                <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer;">Регистрация</p>
             </div>
-            <div id="feed-cont"></div>
         </div>
 
-        <div id="view-chats" class="hidden">
-            <h2 style="margin-bottom: 20px;">Чаты</h2>
-            <div id="chats-list"></div>
-        </div>
-
-        <div id="view-profile" class="hidden">
-            <div id="p-card" class="glass" style="text-align: center; margin-bottom: 20px; padding-bottom: 20px;"></div>
-            
-            <button class="btn-main" style="background: var(--bg-card); margin-bottom: 20px; font-size: 14px;" onclick="window.openArchive()">📦 Архив Историй</button>
-            
-            <div class="glass" style="padding: 15px; margin-bottom: 20px;">
-                <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
-                    <input type="file" id="post-media" hidden accept="image/*,video/*">
-                    <button class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
+        <div id="scr-app" class="hidden">
+            <div id="view-feed">
+                <div id="st-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto;">
+                    <div onclick="document.getElementById('st-in').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>
+                    <input type="file" id="st-in" hidden accept="image/*,video/*" onchange="window.uploadSt(this)">
+                    <div id="st-list" style="display: flex; gap: 10px;"></div>
                 </div>
+                <div id="feed-cont"></div>
             </div>
-            <div class="p-grid" id="p-grid"></div>
-        </div>
 
-        <div id="view-settings" class="hidden">
-            <div class="glass" style="padding: 20px;">
-                <h3 style="margin-bottom: 20px; color: var(--primary);">Кастомизация & Настройки</h3>
+            <div id="view-chats" class="hidden">
+                <h2 style="margin-bottom: 20px;">Чаты</h2>
+                <div id="chats-list"></div>
+            </div>
+
+            <div id="view-profile" class="hidden">
+                <div id="p-card" class="glass" style="text-align: center; margin-bottom: 20px; padding-bottom: 20px;"></div>
                 
-                <p style="font-size: 12px; margin-bottom: 8px;">ЦВЕТ АКЦЕНТА</p>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <div style="width:30px; height:30px; background:#ff0000; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff0000')"></div>
-                    <div style="width:30px; height:30px; background:#007aff; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#007aff')"></div>
-                    <div style="width:30px; height:30px; background:#34c759; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#34c759')"></div>
-                    <div style="width:30px; height:30px; background:#ff9500; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff9500')"></div>
-                    <div style="width:30px; height:30px; background:#af52de; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#af52de')"></div>
+                <button class="btn-main" style="background: var(--bg-card); margin-bottom: 20px; font-size: 14px;" onclick="window.openArchive()">📦 Архив Историй</button>
+                
+                <div class="glass" style="padding: 15px; margin-bottom: 20px;">
+                    <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
+                        <input type="file" id="post-media" hidden accept="image/*,video/*">
+                        <button class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
+                    </div>
                 </div>
+                <div class="p-grid" id="p-grid"></div>
+            </div>
 
-                <p style="font-size: 12px; margin-bottom: 8px;">ЭФФЕКТ СТЕКЛА (РАЗМЫТИЕ)</p>
-                <input type="range" id="blur-range" min="0" max="30" value="15" onchange="window.setBlur(this.value)" style="margin-bottom: 20px;">
+            <div id="view-settings" class="hidden">
+                <div class="glass" style="padding: 20px;">
+                    <h3 style="margin-bottom: 20px; color: var(--primary);">Настройки профиля</h3>
+                    
+                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('ava-in').click()">📸 ДОБАВИТЬ АВАТАРКУ</button>
+                    <input type="file" id="ava-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'ava')">
 
-                <p style="font-size: 12px; margin-bottom: 8px;">ТЕМА</p>
-                <button class="btn-main" style="background:var(--bg-card); margin-bottom: 20px;" onclick="window.toggleTheme()">Сменить тему</button>
+                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('banner-in').click()">🖼 ЗАГРУЗИТЬ БАННЕР</button>
+                    <input type="file" id="banner-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'banner')">
+                    
+                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('audio-in').click()">🎵 ДОБАВИТЬ ПЕСНЮ В ПРОФИЛЬ</button>
+                    <input type="file" id="audio-in" hidden accept="audio/*" onchange="window.saveLocalFile(this, 'audio')">
 
-                <p style="font-size: 12px; margin-bottom: 8px;">ПРОФИЛЬ (НИК И БАННЕР)</p>
-                <input id="set-nick" placeholder="Изменить ник">
-                <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('banner-in').click()">ЗАГРУЗИТЬ БАННЕР ПРОФИЛЯ</button>
-                <input type="file" id="banner-in" hidden onchange="window.saveBanner(this)">
-                
-                <p style="font-size: 12px; margin: 10px 0 8px;">ОБОИ В ЧАТАХ (URL)</p>
-                <input id="set-wall" placeholder="Ссылка на картинку">
-                
-                <button class="btn-main" onclick="window.saveSettings()">СОХРАНИТЬ ВСЁ</button>
-                <button class="btn-main" style="background: #ff3b30; margin-top: 20px;" onclick="window.logOut()">ВЫЙТИ</button>
+                    <p style="font-size: 12px; margin: 20px 0 8px;">ЦВЕТ АКЦЕНТА</p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <div style="width:30px; height:30px; background:#ff0000; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff0000')"></div>
+                        <div style="width:30px; height:30px; background:#007aff; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#007aff')"></div>
+                        <div style="width:30px; height:30px; background:#34c759; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#34c759')"></div>
+                        <div style="width:30px; height:30px; background:#ff9500; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff9500')"></div>
+                        <div style="width:30px; height:30px; background:#af52de; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#af52de')"></div>
+                    </div>
+
+                    <p style="font-size: 12px; margin-bottom: 8px;">ИМЯ В ПРОФИЛЕ</p>
+                    <input id="set-nick" placeholder="Изменить ник">
+                    
+                    <p style="font-size: 12px; margin: 10px 0 8px;">ОБОИ В ЧАТАХ (ФОТО)</p>
+                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('wall-in').click()">📱 ЗАГРУЗИТЬ ОБОИ ЧАТА</button>
+                    <input type="file" id="wall-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'wall')">
+                    
+                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 20px;" onclick="window.toggleTheme()">Сменить тему (Светлая/Темная)</button>
+
+                    <button class="btn-main" onclick="window.saveSettings()">СОХРАНИТЬ ИМЯ</button>
+                    <button class="btn-main" style="background: #ff3b30; margin-top: 20px;" onclick="window.logOut()">ВЫЙТИ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -200,9 +213,10 @@
 </div>
 
 <div id="story-viewer">
-    <button id="sv-close" onclick="document.getElementById('story-viewer').style.display='none'">×</button>
+    <button id="sv-close" onclick="document.getElementById('story-viewer').style.display='none'; document.getElementById('sv-vid').pause();">×</button>
     <div id="sv-author"></div>
-    <img id="sv-img" src="">
+    <img id="sv-img" class="sv-media hidden" src="">
+    <video id="sv-vid" class="sv-media hidden" controls autoplay></video>
     <div id="sv-caption" class="hidden"></div>
 </div>
 
@@ -219,23 +233,32 @@
     let token = localStorage.getItem('token'), me = localStorage.getItem('me'), curChat = "";
     let myPosts = [];
 
-    // ФИЛЬТР БЕЗОПАСНОСТИ ДЛЯ ССЫЛОК (Решает проблему Mixed Content)
-    const sec = (u) => {
-        if (!u) return '';
-        if (u.startsWith('http://')) return u.replace('http://', 'https://');
-        return u;
+    // Безопасное сохранение (у браузеров лимит 5мб на localStorage)
+    const setSafeData = (key, val) => {
+        try { localStorage.setItem(key, val); return true; }
+        catch(e) { alert("Ошибка! Файл слишком большой. Выбери файл поменьше (до 3МБ)."); return false; }
     };
 
+    const sec = (u) => { if (!u) return ''; if (u.startsWith('http://')) return u.replace('http://', 'https://'); return u; };
     const isVid = (u) => u && (u.includes('.mp4') || u.includes('.webm') || u.startsWith('data:video'));
-    const getAva = (n) => `https://ui-avatars.com/api/?name=${n}&background=random&color=fff&size=128`;
+    
+    // ДОБЫВАЕМ АВАТАРКУ ИЛИ СТАНДАРТНУЮ
+    const getAva = (n) => {
+        const local = localStorage.getItem(`k_ava_${n}`);
+        return local ? local : `https://ui-avatars.com/api/?name=${n}&background=random&color=fff&size=128`;
+    };
+    
+    const formatTime = (d) => {
+        const date = new Date(d);
+        return date.toLocaleString('ru-RU', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
+    };
 
     async function call(p, m='GET', b=null) {
         try {
-            const r = await fetch(API+p, {
-                method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: b ? JSON.stringify(b) : null
-            });
+            const r = await fetch(API+p, { method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : null });
             if (!r.ok) return { error: true, status: r.status };
+            // Обработка DELETE запроса (он может не возвращать JSON)
+            if (m === 'DELETE') return { success: true };
             return await r.json();
         } catch(e) { return { error: true, message: e.message }; }
     }
@@ -257,28 +280,32 @@
         if(id === 'profile') window.loadProfile();
     };
 
-    // ЗАГРУЗКА ЛЕНТЫ (С ПРАВИЛЬНОЙ СОРТИРОВКОЙ)
+    // ЗАГРУЗКА ЛЕНТЫ (Сначала новые + Время + Кнопка удаления)
     window.loadFeed = async () => {
         const d = await call('/posts');
         if(!d || d.error || !Array.isArray(d)) return;
         
-        // Надежная сортировка: новые сверху
+        // ЖЕСТКАЯ СОРТИРОВКА: Новые сверху
         const sortedPosts = [...d].reverse();
         
         document.getElementById('feed-cont').innerHTML = sortedPosts.map(p => {
-            const commentsHtml = (p.comments || []).map(c => 
-                `<div class="comment-item"><b>${c.author}:</b> ${c.text}</div>`
-            ).join('');
-
-            // Пропускаем аватарки и картинки через фильтр HTTPS
+            const commentsHtml = (p.comments || []).map(c => `<div class="comment-item"><b>${c.author}:</b> ${c.text}</div>`).join('');
             const safeAva = sec(getAva(p.author));
             const safeImg = sec(p.imageUrl);
+            const timeStr = p.createdAt ? formatTime(p.createdAt) : formatTime(Date.now());
+            
+            // КНОПКА УДАЛЕНИЯ ТОЛЬКО ДЛЯ СВОИХ ПОСТОВ
+            const delBtn = p.author === me ? `<button class="post-del" onclick="window.delPost('${p._id}')">🗑</button>` : '';
 
             return `
-            <div class="glass post">
+            <div class="glass post" id="post-${p._id}">
+                ${delBtn}
                 <div class="post-h">
                     <img src="${safeAva}" class="p-ava">
-                    <b>${p.author}</b>
+                    <div class="post-meta">
+                        <b>${p.author}</b>
+                        <span class="post-time">${timeStr}</span>
+                    </div>
                 </div>
                 ${safeImg ? `<div class="media-box">${isVid(safeImg) ? `<video src="${safeImg}" controls></video>` : `<img src="${safeImg}">`}</div>` : ''}
                 <div class="post-act">
@@ -304,200 +331,11 @@
         window.loadStories();
     };
 
-    // === СИСТЕМА СТОРИС И АРХИВА (ЛОКАЛЬНАЯ) ===
-    window.loadStories = async () => {
-        // Так как на сервере нет /stories, работаем с локальным кэшем, чтобы фича жила
-        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
-        const list = document.getElementById('st-list');
-        list.innerHTML = "";
-        
-        // Оставляем только сторис за последние 24 часа в ленте
-        const now = Date.now();
-        const activeStories = local.filter(s => now - s.id < 86400000); 
-
-        activeStories.forEach(i => {
-            const safeAva = sec(getAva(i.author));
-            // Сохраняем данные сторис в data-атрибуты для открытия
-            list.innerHTML += `<img src="${i.imageUrl || safeAva}" class="story-ring" 
-                onclick="window.viewStory('${i.imageUrl}', '${i.caption || ''}', '${i.author}')">`;
-        });
-    };
-
-    // ЗАГРУЗКА СТОРИС С ПОДПИСЬЮ
-    window.uploadSt = async (el) => {
-        const f = el.files[0]; if(!f) return;
-        const img = await window.pack(f);
-        
-        // Запрашиваем подпись
-        const caption = prompt("Добавьте подпись к истории (или оставьте пустым):");
-        
-        // Сохраняем в локальный архив
-        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
-        local.push({ id: Date.now(), author: me, imageUrl: img, caption: caption });
-        localStorage.setItem('local_stories', JSON.stringify(local));
-        
+    // ФУНКЦИЯ УДАЛЕНИЯ ПОСТОВ
+    window.delPost = async (id) => {
+        if(!confirm("Удалить этот пост навсегда?")) return;
+        await call(`/posts/${id}`, 'DELETE');
+        // Если сервак не умеет удалять, просто прячем визуально, чтобы интерфейс не бесил
+        const el = document.getElementById(`post-${id}`);
+        if(el) el.remove(); 
         window.loadFeed();
-    };
-
-    // ПРОСМОТР СТОРИС НА ВЕСЬ ЭКРАН
-    window.viewStory = (imgUrl, caption, author) => {
-        const viewer = document.getElementById('story-viewer');
-        document.getElementById('sv-img').src = sec(imgUrl);
-        
-        const capEl = document.getElementById('sv-caption');
-        if(caption && caption !== "null") {
-            capEl.innerText = caption;
-            capEl.classList.remove('hidden');
-        } else {
-            capEl.classList.add('hidden');
-        }
-        
-        document.getElementById('sv-author').innerHTML = `<img src="${sec(getAva(author))}" style="width:35px; border-radius:50%; border:2px solid var(--primary)"> ${author}`;
-        viewer.style.display = 'flex';
-    };
-
-    // АРХИВ СТОРИС
-    window.openArchive = () => {
-        const modal = document.getElementById('archive-modal');
-        const grid = document.getElementById('archive-grid');
-        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
-        
-        // Фильтруем только МОИ истории
-        const myStories = local.filter(s => s.author === me).reverse();
-        
-        grid.innerHTML = myStories.length === 0 ? "<p style='padding: 20px; opacity: 0.5'>Архив пуст.</p>" : myStories.map(s => `
-            <div class="arch-item">
-                <img src="${s.imageUrl}">
-                <button class="arch-del" onclick="window.delStory(${s.id})">УДАЛИТЬ</button>
-            </div>
-        `).join('');
-        
-        modal.style.display = 'flex';
-    };
-
-    window.delStory = (id) => {
-        if(!confirm("Точно удалить историю?")) return;
-        let local = JSON.parse(localStorage.getItem('local_stories') || '[]');
-        local = local.filter(s => s.id !== id);
-        localStorage.setItem('local_stories', JSON.stringify(local));
-        window.openArchive(); // обновляем архив
-        window.loadFeed(); // обновляем ленту
-    };
-    // ============================================
-
-    window.addComm = async (id) => {
-        const inp = document.getElementById('comm-in-'+id);
-        if(!inp.value) return;
-        await call(`/posts/${id}/comment`, 'POST', {text: inp.value});
-        inp.value = ""; window.loadFeed();
-    };
-
-    window.like = async (id) => { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
-
-    // ПРОФИЛЬ
-    window.loadProfile = async () => {
-        const u = await call('/users/profile/'+me);
-        if(!u || u.error) return;
-        myPosts = u.posts || [];
-        
-        const banner = localStorage.getItem('k_banner') || '';
-        const safeAva = sec(getAva(me));
-        
-        document.getElementById('p-card').innerHTML = `
-            <div class="p-banner" style="background-image: ${banner ? `url(${banner})` : 'none'}"></div>
-            <img src="${safeAva}" class="p-ava-main">
-            <h2 style="margin-top:10px;">${u.displayName || me}</h2>
-            <p style="opacity:0.5;">@${me}</p>
-        `;
-        
-        // ФИЛЬТР: ТОЛЬКО ПОСТЫ С КАРТИНКАМИ В ПРОФИЛЕ
-        const mediaPosts = myPosts.filter(p => p.imageUrl);
-        
-        document.getElementById('p-grid').innerHTML = mediaPosts.length === 0 ? 
-            "<p style='grid-column: span 3; text-align: center; opacity: 0.5; padding: 20px;'>Нет фото или видео</p>" : 
-            mediaPosts.map(p => `
-            <div class="grid-item">
-                ${isVid(p.imageUrl) ? `<video src="${sec(p.imageUrl)}"></video>` : `<img src="${sec(p.imageUrl)}">`}
-            </div>
-        `).join('');
-    };
-
-    window.createPost = async () => {
-        const t = document.getElementById('post-text').value, f = document.getElementById('post-media').files[0];
-        let img = ""; if(f) img = await window.pack(f);
-        await call('/posts', 'POST', {text:t, imageUrl:img});
-        document.getElementById('post-text').value = "";
-        window.switchTab('feed');
-    };
-
-    window.loadChats = async () => {
-        const d = await call('/chats');
-        if(!d || !d.users) return;
-        document.getElementById('chats-list').innerHTML = d.users.map(u => `
-            <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
-                <img src="${sec(getAva(u.username))}" style="width:40px; border-radius:50%;">
-                <b>${u.username}</b>
-            </div>
-        `).join('');
-    };
-
-    window.openChat = async (n) => {
-        curChat = n; document.getElementById('chat-user').innerText = n;
-        document.getElementById('chat-window').style.display = 'flex';
-        const box = document.getElementById('chat-msgs');
-        
-        const wall = localStorage.getItem('k_wall');
-        if (wall) box.style.backgroundImage = `url(${wall})`;
-        else box.style.background = `linear-gradient(180deg, var(--bg-body) 0%, rgba(0,0,0,0.5) 100%)`;
-        
-        const m = await call('/messages/'+n);
-        if(Array.isArray(m)) box.innerHTML = m.map(msg => `<div class="msg ${msg.sender===me?'me':'them'}">${msg.text}</div>`).join('');
-        else box.innerHTML = '';
-        box.scrollTop = box.scrollHeight;
-    };
-
-    window.sendMsg = async () => {
-        const i = document.getElementById('chat-in'); if(!i.value) return;
-        await call('/messages', 'POST', {recipient:curChat, text:i.value});
-        i.value = ""; window.openChat(curChat);
-    };
-
-    window.saveSettings = async () => {
-        const nick = document.getElementById('set-nick').value;
-        const wall = document.getElementById('set-wall').value;
-        if(nick) await call('/users/update', 'POST', {displayName: nick});
-        if(wall) localStorage.setItem('k_wall', wall);
-        alert("Настройки сохранены!");
-        location.reload();
-    };
-
-    window.saveBanner = async (el) => {
-        const f = el.files[0]; if(!f) return;
-        const img = await window.pack(f);
-        localStorage.setItem('k_banner', img);
-        alert("Баннер загружен!");
-    };
-
-    window.setAccent = (c) => { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('k_accent', c); };
-    window.setBlur = (val) => { document.documentElement.style.setProperty('--blur', val + 'px'); localStorage.setItem('k_blur', val); };
-    window.toggleTheme = () => {
-        const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', next); localStorage.setItem('k_theme', next);
-    };
-    window.pack = (f) => new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = e => r(e.target.result); });
-    window.logOut = () => { localStorage.clear(); location.reload(); };
-
-    if(token) {
-        document.getElementById('scr-auth').classList.add('hidden');
-        document.getElementById('scr-app').classList.remove('hidden');
-        window.switchTab('feed');
-    }
-
-    window.setAccent(localStorage.getItem('k_accent') || '#ff0000');
-    window.setBlur(localStorage.getItem('k_blur') || '15');
-    document.body.setAttribute('data-theme', localStorage.getItem('k_theme') || 'dark');
-    document.getElementById('set-wall').value = localStorage.getItem('k_wall') || '';
-    document.getElementById('blur-range').value = localStorage.getItem('k_blur') || '15';
-</script>
-</body>
-</html>
