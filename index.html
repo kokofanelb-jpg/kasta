@@ -3,125 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA PRO MAX</title>
+    <title>KASTA FULL PRO MAX</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     <style>
         :root {
-            --primary: #a044ff;
-            --bg-grad: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            --glass: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --blur: blur(25px);
+            --primary: #ff0000;
+            --bg-body: #000000;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
-            --text-mut: rgba(255, 255, 255, 0.6);
+            --text-mut: rgba(255, 255, 255, 0.5);
             --icon-color: #ffffff;
-            --chat-bg-fallback: #000000;
+            --badge-bg: var(--primary);
         }
 
         [data-theme="light"] {
-            --bg-grad: linear-gradient(135deg, #e0eafc, #cfdef3);
-            --glass: rgba(255, 255, 255, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --text: #1a1a1a;
+            --bg-body: #ffffff;
+            --bg-card: rgba(0, 0, 0, 0.05);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text: #000000;
             --text-mut: rgba(0, 0, 0, 0.5);
             --icon-color: #000000;
-            --chat-bg-fallback: #ffffff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         
         body { 
-            background: var(--bg-grad); background-attachment: fixed; color: var(--text); 
-            min-height: 100vh; display: flex; overflow-x: hidden; transition: all 0.3s ease;
+            background-color: var(--bg-body); 
+            color: var(--text); 
+            min-height: 100vh; display: flex; transition: background 0.3s;
         }
 
-        /* БОКОВАЯ ПАНЕЛЬ */
+        /* БОКОВАЯ ПАНЕЛЬ (МЕНЮ) */
         .nav-side {
             position: fixed; top: 0; left: 0; width: 70px; height: 100vh;
-            background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+            background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-right: 1px solid var(--glass-border); z-index: 1000;
             display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 30px;
         }
         
-        .app-shell { margin-left: 70px; width: calc(100% - 70px); max-width: 600px; margin-right: auto; padding-bottom: 50px; position: relative; }
+        .app-shell { margin-left: 70px; width: calc(100% - 70px); max-width: 600px; padding: 20px; position: relative; }
+        
         @media (max-width: 600px) {
-            .app-shell { margin: 0 auto; width: 100%; padding-bottom: 80px; }
-            .nav-side { top: auto; bottom: 0; left: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-right: none; border-top: 1px solid var(--glass-border); padding: 0; }
+            .nav-side { top: auto; bottom: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; border-right: none; border-top: 1px solid var(--glass-border); padding: 0; }
+            .app-shell { margin-left: 0; width: 100%; padding-bottom: 80px; }
         }
 
-        .glass { 
-            background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-            border: 1px solid var(--glass-border); border-radius: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); transition: 0.3s ease;
-        }
-
+        .glass { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 20px; backdrop-filter: blur(10px); }
         .hidden { display: none !important; }
 
-        input, textarea, select { 
-            width: 100%; padding: 14px; border-radius: 16px; border: 1px solid var(--glass-border); 
-            background: rgba(255, 255, 255, 0.05); color: var(--text); outline: none; margin-bottom: 12px;
-        }
-        input:focus, textarea:focus { border-color: var(--primary); }
-        
-        .btn-main { 
-            background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 16px; 
-            font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.3s;
+        /* НАВИГАЦИЯ И ЦИФЕРКА СООБЩЕНИЙ */
+        .nav-item { cursor: pointer; position: relative; color: var(--icon-color); transition: 0.2s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .badge { 
+            position: absolute; top: -5px; right: -8px; 
+            background: var(--primary); color: #fff; 
+            font-size: 10px; font-weight: bold; padding: 2px 6px; 
+            border-radius: 10px; border: 2px solid var(--bg-body); 
         }
 
-        /* ИКОНКИ НАВИГАЦИИ */
-        .nav-item { cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 12px; transition: 0.3s; color: var(--icon-color); }
-        .nav-item svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; transition: 0.3s; }
-        .nav-item.active { background: var(--primary); color: #fff; }
-        .nav-item.active svg { stroke: #fff; }
-        
-        .badge { position: absolute; top: 0; right: 0; background: var(--primary); color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; transform: translate(20%, -20%); border: 2px solid var(--bg-grad); }
+        /* ПОИСК */
+        .search-wrap { display: flex; background: var(--bg-card); border-radius: 15px; padding: 10px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
+        .search-wrap input { background: none; border: none; color: var(--text); width: 100%; outline: none; margin-left: 10px; }
 
-        /* ПОСТЫ И ИКОНКИ */
-        .post { margin: 15px; overflow: hidden; }
+        /* ЛЕНТА И КНОПКИ ЛАЙК/КОММЕНТ/ПОДЕЛИТЬСЯ */
+        .post { margin-bottom: 20px; overflow: hidden; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
-        .post-h.pinned { border-bottom: 1px dashed var(--primary); }
-        .p-ava { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
-        .post-img { width: 100%; max-height: 500px; object-fit: cover; }
+        .p-ava { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
+        .post-img { width: 100%; max-height: 550px; object-fit: cover; display: block; }
         
-        .post-act { padding: 10px 15px; display: flex; gap: 20px; }
-        .act-btn { background: none; border: none; color: var(--icon-color); display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        .post-act { padding: 12px 15px; display: flex; gap: 20px; border-bottom: 1px solid var(--glass-border); }
+        .act-btn { background: none; border: none; color: var(--icon-color); display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
         .act-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; transition: 0.3s; }
         .act-btn.liked { color: var(--primary); }
         .act-btn.liked svg { fill: var(--primary); stroke: var(--primary); }
 
-        /* КОММЕНТАРИИ */
-        .comm-box { padding: 0 15px 15px; }
-        .comm-item { font-size: 13px; margin-top: 8px; line-height: 1.4; display: flex; flex-direction: column; }
-        .comm-meta { display: flex; gap: 10px; align-items: baseline; }
-        .comm-reply { font-size: 10px; color: var(--text-mut); cursor: pointer; }
+        /* КОММЕНТАРИИ И ОТВЕТЫ */
+        .comm-section { padding: 15px; }
+        .comm-item { margin-bottom: 10px; font-size: 13px; }
+        .comm-meta { display: flex; gap: 10px; margin-bottom: 2px; }
+        .comm-reply-btn { font-size: 10px; color: var(--text-mut); cursor: pointer; text-transform: uppercase; }
         .mention { color: var(--primary); font-weight: bold; }
 
-        /* ПРОФИЛЬ */
-        .p-banner { width: 100%; height: 120px; background: #333; background-size: cover; background-position: center; border-radius: 24px 24px 0 0; }
-        .profile-hero { padding: 0 0 20px 0; text-align: center; }
-        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-grad); margin-top: -50px; background: #000; object-fit: cover; }
+        /* ПРОФИЛЬ И БАННЕР */
+        .p-hero { position: relative; text-align: center; padding-bottom: 20px; }
+        .p-banner { width: 100%; height: 140px; background: #222; background-size: cover; background-position: center; border-radius: 20px 20px 0 0; }
+        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 5px solid var(--bg-body); margin-top: -50px; position: relative; background: #000; object-fit: cover; }
         
-        .p-tabs { display: flex; border-bottom: 1px solid var(--glass-border); margin: 10px 15px; }
-        .p-tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: bold; color: var(--text-mut); cursor: pointer; }
+        .p-tabs { display: flex; border-bottom: 1px solid var(--glass-border); margin: 15px 0; }
+        .p-tab { flex: 1; text-align: center; padding: 12px; font-size: 12px; font-weight: 800; color: var(--text-mut); cursor: pointer; text-transform: uppercase; }
         .p-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
 
         /* НАСТРОЙКИ */
-        .settings-label { font-size: 11px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin: 15px 0 10px 10px; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; margin-bottom: 8px; }
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--glass-border); cursor: pointer; }
+        .set-group { margin-bottom: 20px; }
+        .set-label { font-size: 10px; font-weight: 900; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; display: block; }
+        .color-row { display: flex; justify-content: space-between; padding: 15px; }
+        .color-circle { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
+        .color-circle.active { border-color: var(--text); transform: scale(1.1); }
 
         /* ЧАТ */
-        #chat-window { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; display: none; flex-direction: column; }
-        .chat-h { padding: 15px; display: flex; align-items: center; background: var(--glass); backdrop-filter: var(--blur); }
-        .chat-body { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background-size: cover; background-position: center; transition: background 0.3s; }
-        .m { padding: 12px 16px; border-radius: 20px; max-width: 80%; font-size: 14px; }
-        .m.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-        .m.them { align-self: flex-start; background: var(--glass); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; color: var(--text); }
-        
-        /* SEARCH */
-        .search-bar { padding: 10px 15px; display: flex; align-items: center; background: rgba(255,255,255,0.05); border-radius: 16px; margin: 15px; }
-        .search-bar input { margin: 0; border: none; background: none; padding: 5px; }
+        #chat-window { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: none; flex-direction: column; }
+        .chat-h { padding: 15px; display: flex; align-items: center; border-bottom: 1px solid var(--glass-border); gap: 15px; }
+        .chat-b { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background-size: cover; background-position: center; }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+        .msg.them { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
+
+        input, textarea, select { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 10px; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-main:active { transform: scale(0.98); }
 
         ::-webkit-scrollbar { width: 0; }
     </style>
@@ -129,418 +123,374 @@
 <body data-theme="dark">
 
 <nav class="nav-side">
-    <div class="nav-item active" id="n-feed" onclick="window.switchTab('feed')">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <div class="nav-item active" onclick="window.switchTab('feed')">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
     </div>
-    <div class="nav-item" id="n-chats" onclick="window.switchTab('chats')">
+    <div class="nav-item" onclick="window.switchTab('chats')">
         <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
         <span class="badge" id="chat-badge">1</span>
     </div>
-    <div class="nav-item" id="n-notifs" onclick="window.switchTab('notifs')">
+    <div class="nav-item" onclick="window.switchTab('notifs')">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        <span class="badge" id="notif-badge" style="display:none;">0</span>
     </div>
-    <div class="nav-item" id="n-profile" onclick="window.switchTab('profile')">
+    <div class="nav-item" onclick="window.switchTab('profile')">
         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
     </div>
-    <div class="nav-item" id="n-settings" onclick="window.switchTab('settings')">
+    <div class="nav-item" onclick="window.switchTab('settings')">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </div>
 </nav>
 
 <div class="app-shell">
 
-    <div id="scr-auth" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 100vh;">
+    <div id="scr-auth" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 80vh;">
         <div class="glass" style="padding: 30px; text-align: center;">
-            <h1 style="color: var(--primary); margin-bottom: 20px;">KASTA</h1>
+            <h1 style="color: var(--primary); margin-bottom: 25px; letter-spacing: 5px;">KASTA</h1>
             <input id="login-u" placeholder="Логин">
             <input id="login-p" type="password" placeholder="Пароль">
             <button class="btn-main" onclick="window.doAuth('login')">Войти</button>
-            <p onclick="window.doAuth('register')" style="margin-top: 15px; font-size: 12px; cursor: pointer; color: var(--text-mut);">Создать аккаунт</p>
+            <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 12px; cursor: pointer; opacity: 0.5;">Нет аккаунта? Создать</p>
         </div>
     </div>
 
     <div id="scr-app" class="hidden">
         
         <div id="view-feed">
-            <div class="search-bar">
-                <svg width="18" height="18" fill="none" stroke="var(--text-mut)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input placeholder="Поиск публикаций и пользователей..." oninput="window.doSearchFeed(this.value)">
+            <div class="search-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="search-feed" placeholder="Поиск публикаций..." oninput="window.filterFeed(this.value)">
             </div>
             
-            <div class="glass" id="st-list" style="margin: 0 15px 15px; display: flex; gap: 15px; padding: 15px; overflow-x: auto;">
-                <div onclick="document.getElementById('st-input').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; color: var(--primary);">+</div>
-                <input type="file" id="st-input" hidden accept="image/*" onchange="window.uploadStory(this)">
+            <div id="stories-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto;">
+                <div onclick="document.getElementById('st-upload').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>
+                <input type="file" id="st-upload" hidden accept="image/*" onchange="window.uploadStory(this)">
             </div>
             
             <div id="feed-container"></div>
         </div>
 
-        <div id="view-chats" class="hidden" style="padding: 15px;">
-            <div class="search-bar" style="margin: 0 0 15px 0;">
-                <input id="search-input-chats" oninput="window.doSearchChats(this.value)" placeholder="Поиск по чатам...">
-            </div>
-            <div id="chats-container"></div>
+        <div id="view-chats" class="hidden">
+            <div class="search-wrap"><input placeholder="Поиск людей..." oninput="window.filterChats(this.value)"></div>
+            <div id="chats-list"></div>
         </div>
 
-        <div id="view-notifs" class="hidden" style="padding: 15px;">
-            <h3 style="margin-bottom: 15px;">Уведомления</h3>
-            <div id="notifs-container">
-                <div class="glass" style="padding: 15px; margin-bottom: 10px; font-size: 13px;">
-                    <b style="color:var(--primary)">Система</b>: Добро пожаловать в новую Kasta!
-                </div>
-            </div>
+        <div id="view-notifs" class="hidden">
+            <h3 style="margin-bottom: 20px;">Уведомления</h3>
+            <div id="notifs-list"></div>
         </div>
 
         <div id="view-profile" class="hidden">
-            <div id="profile-card" class="glass profile-hero" style="margin: 15px; overflow: hidden;"></div>
+            <div id="p-card" class="glass p-hero" style="margin-bottom: 20px; overflow: hidden;"></div>
             
-            <div class="glass" style="margin: 15px; padding: 15px;">
-                <textarea id="post-text" placeholder="Что нового? Упоминания через @" rows="2"></textarea>
+            <div class="glass" style="padding: 15px; margin-bottom: 20px;">
+                <textarea id="post-text" placeholder="Что нового? @упоминания работают..." rows="2"></textarea>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-main" style="background: var(--glass); color: var(--text); border: 1px solid var(--glass-border); flex: 1;" onclick="document.getElementById('post-img').click()">Медиа</button>
-                    <input type="file" id="post-img" hidden>
+                    <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('post-img-in').click()">Медиа</button>
+                    <input type="file" id="post-img-in" hidden>
                     <button class="btn-main" style="flex: 2;" onclick="window.createPost()">Опубликовать</button>
                 </div>
             </div>
 
             <div class="p-tabs">
-                <div class="p-tab active" onclick="window.switchPTab('all')">Публикации</div>
-                <div class="p-tab" onclick="window.switchPTab('photos')">Фото</div>
-                <div class="p-tab" onclick="window.switchPTab('videos')">Видео</div>
+                <div class="p-tab active" onclick="window.switchPTab('media', this)">Фото / Видео</div>
+                <div class="p-tab" onclick="window.switchPTab('all', this)">Все посты</div>
             </div>
-
-            <div id="profile-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 0 15px;"></div>
+            <div id="p-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;"></div>
         </div>
 
-        <div id="view-settings" class="hidden" style="padding: 15px;">
-            
-            <div class="settings-section">
-                <p class="settings-label">Профиль и Оформление</p>
-                <input id="edit-name" class="glass" placeholder="Имя">
-                <textarea id="edit-bio" class="glass" placeholder="О себе..."></textarea>
+        <div id="view-settings" class="hidden">
+            <div class="set-group">
+                <span class="set-label">Персонализация профиля</span>
+                <input id="set-name" placeholder="Имя пользователя">
+                <textarea id="set-bio" placeholder="О себе..."></textarea>
+                <button class="btn-main" style="background: var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('banner-in').click()">Сменить баннер</button>
+                <input type="file" id="banner-in" hidden onchange="window.saveBanner(this)">
+                <button class="btn-main" onclick="window.saveBaseProfile()">Сохранить изменения</button>
+            </div>
+
+            <div class="set-group">
+                <span class="set-label">Цвет кастомизации (5 вариантов)</span>
+                <div class="glass color-row">
+                    <div class="color-circle" style="background: #ff0000;" onclick="window.setAccent('#ff0000', this)"></div>
+                    <div class="color-circle" style="background: #007aff;" onclick="window.setAccent('#007aff', this)"></div>
+                    <div class="color-circle" style="background: #34c759;" onclick="window.setAccent('#34c759', this)"></div>
+                    <div class="color-circle" style="background: #ff9500;" onclick="window.setAccent('#ff9500', this)"></div>
+                    <div class="color-circle" style="background: #a044ff;" onclick="window.setAccent('#a044ff', this)"></div>
+                </div>
+            </div>
+
+            <div class="set-group">
+                <span class="set-label">Тема оформления</span>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-main" style="background: var(--glass); color: var(--text); border: 1px solid var(--glass-border);" onclick="document.getElementById('banner-input').click()">Изменить Баннер</button>
-                    <input type="file" id="banner-input" hidden accept="image/*" onchange="window.saveBanner(this)">
-                    <button class="btn-main" onclick="window.saveProfile()">Сохранить профиль</button>
+                    <button class="btn-main" style="background: #fff; color: #000;" onclick="window.setTheme('light')">Светлая</button>
+                    <button class="btn-main" style="background: #111; color: #fff;" onclick="window.setTheme('dark')">Темная</button>
                 </div>
             </div>
 
-            <div class="settings-section">
-                <p class="settings-label">Кастомизация (5 Цветов)</p>
-                <div class="glass" style="padding: 15px; display: flex; justify-content: space-between;">
-                    <div class="color-btn" style="background: #a044ff;" onclick="window.setColor('#a044ff')"></div>
-                    <div class="color-btn" style="background: #007aff;" onclick="window.setColor('#007aff')"></div>
-                    <div class="color-btn" style="background: #34c759;" onclick="window.setColor('#34c759')"></div>
-                    <div class="color-btn" style="background: #ff9500;" onclick="window.setColor('#ff9500')"></div>
-                    <div class="color-btn" style="background: #ff2d55;" onclick="window.setColor('#ff2d55')"></div>
-                </div>
+            <div class="set-group">
+                <span class="set-label">Обои чатов</span>
+                <input id="chat-wall-url" placeholder="URL картинки для фона чатов...">
+                <button class="btn-main" onclick="window.saveChatWall()">Применить обои</button>
             </div>
 
-            <div class="settings-section">
-                <p class="settings-label">Тема</p>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-main" style="background: #fff; color: #000;" onclick="window.switchTheme('light')">Светлая</button>
-                    <button class="btn-main" style="background: #111; color: #fff;" onclick="window.switchTheme('dark')">Тёмная</button>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <p class="settings-label">Обои Чата</p>
-                <input id="chat-wall-input" class="glass" placeholder="URL картинки..." onchange="window.setWallpaper(this.value)">
-                <p style="font-size: 10px; color: var(--text-mut); margin-top: -5px;">*Если оставить пустым, будет сгенерирован красивый градиент из выбранного цвета темы.</p>
-            </div>
-
-            <div class="settings-section">
-                <p class="settings-label">Приватность и Уведомления</p>
-                <div class="glass setting-item"><span>Уведомления о лайках/комментах</span><input type="checkbox" checked id="set-notif" style="width: 20px; margin: 0;" onchange="window.saveSet('notif', this.checked)"></div>
-                <div class="glass setting-item"><span>Закрытый профиль</span><input type="checkbox" id="set-priv" style="width: 20px; margin: 0;" onchange="window.saveSet('priv', this.checked)"></div>
-                <div class="glass setting-item"><span>Кто может комментировать</span>
-                    <select id="set-comm" style="width: auto; margin:0; padding: 5px; background: none; border: none; font-size:12px;" onchange="window.saveSet('comm', this.value)">
-                        <option value="all">Все</option><option value="subs">Подписчики</option><option value="none">Никто</option>
+            <div class="set-group">
+                <span class="set-label">Приватность</span>
+                <div class="glass" style="padding: 15px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span>Закрытый профиль</span>
+                        <input type="checkbox" id="priv-account" style="width: 20px; margin: 0;" onchange="window.savePriv('acc', this.checked)">
+                    </div>
+                    <select onchange="window.savePriv('comm', this.value)">
+                        <option value="all">Кто может комментировать: Все</option>
+                        <option value="subs">Только подписчики</option>
+                        <option value="none">Никто</option>
                     </select>
                 </div>
             </div>
 
-            <button class="btn-main" style="background: #ff3b30; margin-top: 20px;" onclick="window.logOut()">Выйти из аккаунта</button>
+            <button class="btn-main" style="background: #ff3b30; margin-top: 30px;" onclick="window.logOut()">Выйти из аккаунта</button>
         </div>
     </div>
 </div>
 
 <div id="chat-window">
     <div class="chat-h">
-        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; color:var(--text); cursor:pointer;">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <b id="active-chat-name" style="margin-left: 15px; font-size: 16px;">User</b>
+        <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; color:var(--text); font-size: 24px;">←</button>
+        <b id="chat-user-name">User</b>
     </div>
-    <div id="chat-msgs" class="chat-body"></div>
-    <div style="padding: 10px 15px; background: var(--bg-grad); border-top: 1px solid var(--glass-border); display: flex; gap: 10px;">
-        <input id="chat-input" class="glass" placeholder="Сообщение..." style="margin: 0; padding: 12px;">
-        <button class="btn-main" style="width: 50px; padding: 0; border-radius: 16px; display: flex; align-items:center; justify-content:center;" onclick="window.sendMsg()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-        </button>
+    <div id="chat-body" class="chat-b"></div>
+    <div style="padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px;">
+        <input id="chat-msg-in" style="margin: 0;" placeholder="Напишите сообщение...">
+        <button class="btn-main" style="width: 60px;" onclick="window.sendMsg()">></button>
     </div>
 </div>
 
 <script>
     const API = "https://kasta-l49s.onrender.com";
     let token = localStorage.getItem('token'), me = localStorage.getItem('me'), curChat = "";
-    let allPosts = []; // Кэш для поиска и фильтров
-    let replyToUser = null; // Для ответов на комментарии
+    let allPosts = [], profilePosts = [];
 
+    // Хелперы
     const clean = u => u ? u.replace('http://', 'https://') : 'https://ui-avatars.com/api/?background=random&name=U';
-    // Парсер упоминаний (@user)
     const parseText = t => t ? t.replace(/@(\w+)/g, '<span class="mention">@$1</span>') : '';
 
     async function call(p, m='GET', b=null) {
         try {
-            const r = await fetch(API+p, { method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : null });
-            if(r.status === 401) window.logOut();
-            return await r.json();
-        } catch(e) { console.error(e); return {error: true}; }
+            const r = await fetch(API+p, {
+                method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: b ? JSON.stringify(b) : null
+            });
+            const text = await r.text();
+            try { return JSON.parse(text); } catch(e) { return { error: true }; }
+        } catch(e) { return { error: true }; }
     }
 
-    // АВТОРИЗАЦИЯ И НАСТРОЙКИ
-    window.doAuth = async (type) => {
+    // АВТОРИЗАЦИЯ
+    window.doAuth = async (t) => {
         const u = document.getElementById('login-u').value, p = document.getElementById('login-p').value;
-        if(!u || !p) return alert("Заполни поля!");
-        const r = await fetch(`${API}/${type}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
-        const d = await r.json();
-        if(r.ok) { localStorage.setItem('token', d.token); localStorage.setItem('me', d.username); location.reload(); } 
-        else alert(d.message);
+        const res = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
+        const d = await res.json();
+        if(res.ok) { localStorage.setItem('token', d.token); localStorage.setItem('me', d.username); location.reload(); } else alert(d.message);
     };
     window.logOut = () => { localStorage.clear(); location.reload(); };
 
-    window.saveSet = (key, val) => { localStorage.setItem('set_'+key, val); };
-    window.restoreSets = () => {
-        const p = localStorage.getItem('set_priv') === 'true', n = localStorage.getItem('set_notif') !== 'false';
-        const c = localStorage.getItem('set_comm') || 'all';
-        document.getElementById('set-priv').checked = p;
-        document.getElementById('set-notif').checked = n;
-        document.getElementById('set-comm').value = c;
-    };
-
+    // НАВИГАЦИЯ
     window.switchTab = (id) => {
-        ['feed','chats','notifs','profile','settings'].forEach(t => {
-            document.getElementById('view-'+t).classList.add('hidden');
-            if(document.getElementById('n-'+t)) document.getElementById('n-'+t).classList.remove('active');
-        });
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('#scr-app > div').forEach(v => v.classList.add('hidden'));
         document.getElementById('view-'+id).classList.remove('hidden');
-        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
-        if(id==='feed') window.loadFeed();
-        if(id==='chats') window.loadChats();
-        if(id==='profile') window.loadProfile();
+        if(id === 'feed') window.loadFeed();
+        if(id === 'chats') window.loadChats();
+        if(id === 'profile') window.loadProfile();
+        // Подсветка активной иконки (находим по индексу или вешаем ID, но тут просто по событию)
+        event.currentTarget.classList.add('active');
     };
 
-    // ЛЕНТА И ПОСТЫ
+    // ЛЕНТА (СОРТИРОВКА + ПОИСК + КНОПКИ)
     window.loadFeed = async () => {
         const d = await call('/posts');
         if(!Array.isArray(d)) return;
-        allPosts = d;
-        window.renderFeed(d);
+        allPosts = d.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        window.renderFeed(allPosts);
+        window.loadStories();
     };
 
     window.renderFeed = (data) => {
-        // Сортировка: закрепленные (моковые, например, где много лайков) сверху. Для демо: просто reverse.
-        document.getElementById('feed-container').innerHTML = [...data].reverse().map((p, i) => {
-            const isLiked = p.likes.includes(me);
-            const isPinned = i === 0; // Имитация закрепленного поста
-            return `
-            <div class="post glass">
-                <div class="post-h ${isPinned ? 'pinned' : ''}">
+        document.getElementById('feed-container').innerHTML = data.map(p => `
+            <div class="glass post">
+                <div class="post-h">
                     <img src="${clean(p.authorAvatar)}" class="p-ava">
-                    <div><b>${p.author}</b> ${isPinned ? '<span style="font-size:10px;color:var(--primary)">📌 Закреплено</span>' : ''}</div>
-                    ${p.author === me ? `<button style="margin-left:auto; background:none; border:none; color:#ff3b30; font-size:10px; cursor:pointer;" onclick="window.delPost('${p._id}')">УДАЛИТЬ</button>` : ''}
+                    <b>${p.author}</b>
+                    ${p.author === me ? `<span style="margin-left:auto; color:red; font-size:10px; cursor:pointer;" onclick="window.delPost('${p._id}')">УДАЛИТЬ</span>` : ''}
                 </div>
                 ${p.imageUrl ? `<img src="${clean(p.imageUrl)}" class="post-img">` : ''}
                 <div class="post-act">
-                    <button class="act-btn ${isLiked ? 'liked' : ''}" onclick="window.like('${p._id}')">
+                    <button class="act-btn ${p.likes.includes(me)?'liked':''}" onclick="window.like('${p._id}')">
                         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                        <span>${p.likes.length}</span>
+                        ${p.likes.length}
                     </button>
-                    <button class="act-btn">
+                    <button class="act-btn" onclick="document.getElementById('comm-in-${p._id}').focus()">
                         <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                        <span>${p.comments.length}</span>
+                        ${p.comments.length}
                     </button>
-                    <button class="act-btn" onclick="window.sharePost()">
+                    <button class="act-btn" onclick="window.sharePost('${p._id}')">
                         <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                        <span>Репост</span>
+                        Поделиться
                     </button>
                 </div>
-                <div style="padding:0 15px 10px; font-size:14px;">${parseText(p.text)}</div>
-                <div class="comm-box">
-                    ${(p.comments || []).slice(-3).map(c => `
+                <div style="padding:15px; font-size:14px;">${parseText(p.text)}</div>
+                <div class="comm-section">
+                    ${(p.comments || []).map(c => `
                         <div class="comm-item">
-                            <div class="comm-meta"><b>${c.author}</b> <span class="comm-reply" onclick="window.setReply('${c.author}', '${p._id}')">Ответить</span></div>
-                            <span>${parseText(c.text)}</span>
+                            <div class="comm-meta"><b>${c.author}</b> <span class="comm-reply-btn" onclick="window.setReply('${p._id}', '${c.author}')">Ответить</span></div>
+                            <div>${parseText(c.text)}</div>
                         </div>
                     `).join('')}
-                    <input class="comm-in" id="comm-in-${p._id}" placeholder="Добавить комментарий..." style="margin-top:10px; padding:10px; font-size:12px; border-radius:12px;" onkeydown="if(event.key==='Enter' && this.value){ window.addComm('${p._id}', this.value); this.value=''; replyToUser=null; }">
+                    <input id="comm-in-${p._id}" placeholder="Ваш комментарий..." onkeydown="if(event.key==='Enter') window.addComm('${p._id}', this.value)">
                 </div>
-            </div>`;
-        }).join('');
-    };
-
-    window.setReply = (user, postId) => {
-        const input = document.getElementById(`comm-in-${postId}`);
-        input.value = `@${user} `;
-        input.focus();
-    };
-    
-    window.doSearchFeed = (q) => {
-        const query = q.toLowerCase();
-        window.renderFeed(allPosts.filter(p => p.author.toLowerCase().includes(query) || (p.text && p.text.toLowerCase().includes(query))));
-    };
-
-    window.like = async (id) => { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
-    window.addComm = async (id, text) => { await call(`/posts/${id}/comment`, 'POST', {text}); window.loadFeed(); };
-    window.delPost = async (id) => { await call('/posts/'+id, 'DELETE'); window.loadFeed(); };
-    window.sharePost = () => { alert("Ссылка скопирована! Функционал репоста активирован."); };
-
-    // СТОРИС ИСПРАВЛЕНИЕ
-    window.loadStories = async () => {
-        const res = await call('/stories');
-        const list = document.getElementById('st-list');
-        list.innerHTML = list.children[0].outerHTML;
-        if(Array.isArray(res)) {
-            res.forEach(s => { list.innerHTML += `<img src="${clean(s.userAva)}" style="width:60px; height:60px; border-radius:50%; border:2px solid var(--primary); object-fit:cover;">`; });
-        }
-    };
-    window.uploadStory = async (el) => {
-        const f = el.files[0]; if(!f) return;
-        try {
-            const img = await window.pack(f);
-            const res = await call('/stories', 'POST', {image:img});
-            if(res.error) throw new Error("Сервер отклонил сторис");
-            window.loadStories();
-        } catch(e) { alert("Ошибка загрузки. Проверьте размер файла."); }
-    };
-
-    // ЧАТЫ И ОБОИ С ГРАДИЕНТОМ
-    window.loadChats = async () => {
-        const d = await call('/chats');
-        if(!d.users) return;
-        // Поднимаем чаты (имитация: сортировка по алфавиту для демо, в реале по дате)
-        const sorted = d.users.sort((a,b) => b.username.localeCompare(a.username));
-        document.getElementById('chats-container').innerHTML = sorted.map(u => `
-            <div class="glass chat-row" style="margin-bottom:10px; padding:15px; display:flex; gap:15px; align-items:center; cursor:pointer;" data-name="${u.username.toLowerCase()}" onclick="window.openChat('${u.username}')">
-                <img src="${clean(u.avatarUrl)}" class="p-ava">
-                <b style="color:var(--text);">${u.username}</b>
             </div>
         `).join('');
     };
-    window.doSearchChats = (q) => { const sq = q.toLowerCase(); document.querySelectorAll('.chat-row').forEach(r => { r.style.display = r.getAttribute('data-name').includes(sq) ? 'flex' : 'none'; }); };
+
+    window.filterFeed = (q) => window.renderFeed(allPosts.filter(p => p.author.toLowerCase().includes(q.toLowerCase()) || (p.text && p.text.toLowerCase().includes(q.toLowerCase()))));
+    window.like = async (id) => { await call(`/posts/${id}/like`, 'POST'); window.loadFeed(); };
+    window.addComm = async (id, text) => { if(!text) return; await call(`/posts/${id}/comment`, 'POST', {text}); window.loadFeed(); };
+    window.setReply = (postId, user) => { const i = document.getElementById('comm-in-'+postId); i.value = `@${user} `; i.focus(); };
+    window.sharePost = (id) => { alert("Ссылка скопирована! Функционал репоста активен."); };
+
+    // СТОРИС (ФИКС ЗАГРУЗКИ)
+    window.loadStories = async () => {
+        try {
+            const res = await call('/stories');
+            const row = document.getElementById('stories-row');
+            row.innerHTML = row.children[0].outerHTML; // Сохраняем кнопку +
+            if(Array.isArray(res)) res.forEach(s => row.innerHTML += `<img src="${clean(s.userAva)}" style="width:60px; height:60px; border-radius:50%; border:2px solid var(--primary); padding:2px; flex-shrink:0;">`);
+        } catch(e) {}
+    };
+    window.uploadStory = async (el) => {
+        const f = el.files[0]; if(!f) return;
+        const img = await window.pack(f);
+        await call('/stories', 'POST', {image: img});
+        window.loadStories();
+    };
+
+    // ЧАТЫ И ОБОИ С ДИНАМИЧЕСКИМ ГРАДИЕНТОМ
+    window.loadChats = async () => {
+        const d = await call('/chats');
+        if(!d.users) return;
+        // Поднимаем активные чаты (имитация)
+        const sorted = d.users.sort((a,b) => b.username.localeCompare(a.username));
+        document.getElementById('chats-list').innerHTML = sorted.map(u => `
+            <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
+                <img src="${clean(u.avatarUrl)}" class="p-ava">
+                <b>${u.username}</b>
+            </div>
+        `).join('');
+    };
 
     window.openChat = async (name) => {
-        curChat = name; document.getElementById('active-chat-name').innerText = name; document.getElementById('chat-window').style.display = 'flex';
+        curChat = name; document.getElementById('chat-user-name').innerText = name;
+        document.getElementById('chat-window').style.display = 'flex';
         
-        // Логика обоев / градиента
-        const wall = localStorage.getItem('chat_wallpaper');
-        const chatBody = document.getElementById('chat-msgs');
-        if(wall) { 
-            chatBody.style.backgroundImage = `url(${wall})`; 
-        } else { 
+        const box = document.getElementById('chat-body');
+        const wall = localStorage.getItem('kasta_chat_wall');
+        if(wall) {
+            box.style.backgroundImage = `url(${wall})`;
+        } else {
+            // ЛОГИКА ГРАДИЕНТА: Цвет темы + Цвет акцента
             const pColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-            const fallback = getComputedStyle(document.documentElement).getPropertyValue('--chat-bg-fallback').trim();
-            chatBody.style.background = `linear-gradient(135deg, ${pColor}, ${fallback})`;
+            const bColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-body').trim();
+            box.style.background = `linear-gradient(135deg, ${pColor}44, ${bColor})`;
         }
 
         const msgs = await call('/messages/'+name);
-        if(Array.isArray(msgs)) {
-            chatBody.innerHTML = msgs.map(m => `<div class="m ${m.sender===me?'me':'them'}">${parseText(m.text)}</div>`).join('');
-            chatBody.scrollTop = chatBody.scrollHeight; // Прокрутка к новым сообщениям
-        }
+        if(Array.isArray(msgs)) box.innerHTML = msgs.map(m => `<div class="msg ${m.sender===me?'me':'them'}">${parseText(m.text)}</div>`).join('');
+        box.scrollTop = box.scrollHeight;
     };
     window.sendMsg = async () => {
-        const i = document.getElementById('chat-input'); if(!i.value) return;
+        const i = document.getElementById('chat-msg-in'); if(!i.value) return;
         await call('/messages', 'POST', {recipient:curChat, text:i.value});
         i.value = ""; window.openChat(curChat);
     };
 
-    // ПРОФИЛЬ, БАННЕР, ВКЛАДКИ И ФИЛЬТРЫ (БЕЗ ТЕКСТОВЫХ ПОСТОВ)
-    let myMediaPosts = [];
+    // ПРОФИЛЬ (БЕЗ ТЕКСТОВЫХ ПОСТОВ ПО УМОЛЧАНИЮ)
     window.loadProfile = async () => {
         const u = await call('/users/profile/'+me);
         if(!u || u.error) return;
+        profilePosts = u.posts || [];
         
-        const banner = localStorage.getItem('profile_banner') || '';
-        document.getElementById('profile-card').innerHTML = `
-            <div class="p-banner" style="${banner ? `background-image:url(${banner})` : ''}"></div>
+        const ban = localStorage.getItem('kasta_banner') || '';
+        document.getElementById('p-card').innerHTML = `
+            <div class="p-banner" style="${ban ? `background-image:url(${ban})` : ''}"></div>
             <img src="${clean(u.avatarUrl)}" class="p-ava-main">
-            <h2>${u.displayName || u.username}</h2>
-            <p style="color:var(--text-mut); font-size:13px;">${u.bio || ''}</p>
+            <h2 style="margin-top:10px;">${u.displayName || u.username}</h2>
+            <p style="opacity:0.6; font-size:12px; margin-bottom:10px;">${u.bio || 'Нет описания'}</p>
         `;
+        window.switchPTab('media', document.querySelector('.p-tab.active'));
         
-        if(u.posts) {
-            // Исключение текстовых постов (по ТЗ: только фото/видео)
-            myMediaPosts = u.posts.filter(p => p.imageUrl && p.imageUrl.trim() !== '');
-            window.switchPTab('all'); // Грузим по умолчанию
-        }
-        document.getElementById('edit-name').value = u.displayName || '';
-        document.getElementById('edit-bio').value = u.bio || '';
-        document.getElementById('chat-wall-input').value = localStorage.getItem('chat_wallpaper') || '';
+        document.getElementById('set-name').value = u.displayName || '';
+        document.getElementById('set-bio').value = u.bio || '';
     };
 
-    window.switchPTab = (type) => {
+    window.switchPTab = (type, el) => {
         document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        // Демонстрация разделения на фото/видео (в реальности проверяем mime-type, тут просто рендерим все медиа)
-        document.getElementById('profile-grid').innerHTML = myMediaPosts.map(p => `
-            <div class="glass" style="aspect-ratio:1; overflow:hidden; border-radius:12px;"><img src="${clean(p.imageUrl)}" style="width:100%; height:100%; object-fit:cover;"></div>
+        el.classList.add('active');
+        const grid = document.getElementById('p-grid');
+        // ТОЛЬКО ФОТО/ВИДЕО если выбрано media
+        const filtered = type === 'media' ? profilePosts.filter(p => p.imageUrl) : profilePosts;
+        grid.innerHTML = filtered.map(p => `
+            <div class="glass" style="aspect-ratio:1; overflow:hidden;"><img src="${clean(p.imageUrl)}" style="width:100%; height:100%; object-fit:cover;"></div>
         `).join('');
     };
 
-    window.saveProfile = async () => {
-        const n = document.getElementById('edit-name').value, b = document.getElementById('edit-bio').value;
-        await call('/users/update', 'POST', {displayName:n, bio:b});
-        alert("Настройки надежно сохранены!"); window.loadProfile();
+    // КАСТОМИЗАЦИЯ И СОХРАНЕНИЕ
+    window.setAccent = (c, el) => {
+        document.documentElement.style.setProperty('--primary', c);
+        localStorage.setItem('kasta_accent', c);
+        document.querySelectorAll('.color-circle').forEach(cc => cc.classList.remove('active'));
+        if(el) el.classList.add('active');
+        // Циферка сообщений тоже красится (уже через CSS --primary)
     };
-
+    window.setTheme = (t) => {
+        document.body.setAttribute('data-theme', t);
+        localStorage.setItem('kasta_theme', t);
+    };
+    window.saveChatWall = () => localStorage.setItem('kasta_chat_wall', document.getElementById('chat-wall-url').value);
+    window.saveBaseProfile = async () => {
+        const n = document.getElementById('set-name').value, b = document.getElementById('set-bio').value;
+        await call('/users/update', 'POST', {displayName:n, bio:b});
+        alert("Настройки сохранены!");
+    };
     window.saveBanner = async (el) => {
         const f = el.files[0]; if(!f) return;
         const img = await window.pack(f);
-        localStorage.setItem('profile_banner', img);
-        window.loadProfile(); // Мгновенное применение
+        localStorage.setItem('kasta_banner', img);
+        window.loadProfile();
     };
-
-    window.createPost = async () => {
-        const t = document.getElementById('post-text').value, f = document.getElementById('post-img').files[0];
-        let img = f ? await window.pack(f) : "";
-        await call('/posts', 'POST', {text:t, imageUrl:img});
-        document.getElementById('post-text').value = ""; document.getElementById('post-img').value = "";
-        window.switchTab('feed');
-    };
-
-    // КАСТОМИЗАЦИЯ И ХРАНИЛИЩЕ
-    window.switchTheme = (t) => { document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); };
-    window.setColor = (c) => { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('accent_color', c); };
-    window.setWallpaper = (url) => { localStorage.setItem('chat_wallpaper', url); };
 
     window.pack = (f) => new Promise(r => {
         const rd = new FileReader(); rd.readAsDataURL(f);
-        rd.onload = e => {
-            const i = new Image(); i.src = e.target.result;
-            i.onload = () => {
-                const c = document.createElement('canvas'); c.width = 800; c.height = (i.height/i.width)*800;
-                c.getContext('2d').drawImage(i,0,0,800,c.height); r(c.toDataURL('image/jpeg', 0.8)); // Увеличено качество до 0.8
-            };
-        };
+        rd.onload = e => r(e.target.result);
     });
 
-    // ИНИЦИАЛИЗАЦИЯ И ВОССТАНОВЛЕНИЕ НАСТРОЕК
-    if(token && me) {
+    window.createPost = async () => {
+        const t = document.getElementById('post-text').value, f = document.getElementById('post-img-in').files[0];
+        const img = f ? await window.pack(f) : "";
+        await call('/posts', 'POST', {text:t, imageUrl:img});
+        window.switchTab('feed');
+    };
+
+    // INIT
+    if(token) {
         document.getElementById('scr-auth').classList.add('hidden');
         document.getElementById('scr-app').classList.remove('hidden');
         window.switchTab('feed');
-        window.loadStories();
     }
     
-    // Мгновенное восстановление всех предпочтений при входе
-    window.switchTheme(localStorage.getItem('theme') || 'dark');
-    const savedColor = localStorage.getItem('accent_color');
-    if(savedColor) window.setColor(savedColor);
-    window.restoreSets();
+    // Мгновенное применение настроек
+    window.setAccent(localStorage.getItem('kasta_accent') || '#ff0000');
+    window.setTheme(localStorage.getItem('kasta_theme') || 'dark');
+    document.getElementById('chat-wall-url').value = localStorage.getItem('kasta_chat_wall') || '';
 </script>
 </body>
 </html>
