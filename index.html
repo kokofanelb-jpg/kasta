@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA ULTIMATE v7</title>
+    <title>KASTA ULTIMATE FIX</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     <style>
@@ -16,8 +16,6 @@
             --border: rgba(255, 255, 255, 0.5);
             --glass: blur(25px);
             --shadow: 0 8px 32px rgba(0,0,0,0.1);
-            --del-bg: #000;
-            --del-txt: #fff;
         }
 
         [data-theme="dark"] {
@@ -26,18 +24,14 @@
             --text: #ffffff;
             --text-mut: #b0b3b8;
             --border: rgba(255, 255, 255, 0.1);
-            --del-bg: #fff;
-            --del-txt: #000;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); overflow-x: hidden; transition: 0.3s; display: flex; justify-content: center; }
+        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
 
-        /* ЦЕНТРАЛИЗАЦИЯ */
-        .app-wrapper {
+        .app-shell {
             width: 100%;
             max-width: 550px;
-            min-height: 100vh;
             position: relative;
             padding-bottom: 100px;
         }
@@ -53,316 +47,335 @@
 
         .hidden { display: none !important; }
 
-        /* ИСТОРИИ */
-        .stories-bar { display: flex; gap: 12px; padding: 15px; overflow-x: auto; scrollbar-width: none; margin-top: 10px; }
-        .stories-bar::-webkit-scrollbar { display: none; }
-        .story-node { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
-        .ring { 
-            width: 68px; height: 68px; border-radius: 50%; padding: 3px; 
-            border: 2px solid var(--primary); margin: 0 auto 5px; transition: 0.3s;
-        }
-        .ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #ddd; }
-        .s-name { font-size: 11px; font-weight: 500; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        /* STORIES */
+        .stories-container { display: flex; gap: 12px; padding: 15px; overflow-x: auto; scrollbar-width: none; margin: 10px 0; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .st-node { flex-shrink: 0; width: 75px; text-align: center; cursor: pointer; }
+        .st-ring { width: 68px; height: 68px; border-radius: 50%; padding: 3px; border: 2px solid var(--primary); margin: 0 auto 5px; }
+        .st-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #ccc; }
 
-        /* ПОСТЫ */
-        .post { margin: 15px; overflow: hidden; }
-        .post-h { padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
+        /* POSTS */
+        .post { margin: 15px; overflow: hidden; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .post-h { padding: 12px 15px; display: flex; align-items: center; gap: 12px; }
         .p-ava { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
-        .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
-        .post-act { padding: 12px 15px; display: flex; gap: 15px; align-items: center; }
-        .act-btn { background: none; border: none; cursor: pointer; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 5px; font-size: 16px; }
-        .post-desc { padding: 0 15px 10px; font-size: 14px; }
-        .comm-sect { padding: 15px; border-top: 1px solid var(--border); margin-top: 5px; }
+        .post-img { width: 100%; display: block; max-height: 550px; object-fit: cover; }
+        .post-act { padding: 12px 15px; display: flex; gap: 18px; }
+        .act-btn { background: none; border: none; color: var(--text); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 16px; }
+        .btn-del { background: #000; color: #fff; border: none; padding: 5px 12px; border-radius: 10px; font-size: 11px; margin-left: auto; cursor: pointer; }
+        [data-theme="dark"] .btn-del { background: #fff; color: #000; }
 
-        /* МЕНЮ */
-        .nav { 
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); 
-            width: 92%; max-width: 480px; height: 65px; 
-            display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
+        /* PROFILE */
+        .prof-top { padding: 30px 20px; text-align: center; }
+        .prof-ava { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--primary); padding: 4px; margin-bottom: 15px; }
+        .prof-stats { display: flex; justify-content: center; gap: 30px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .prof-stats b { display: block; font-size: 18px; }
+        .prof-stats span { font-size: 12px; color: var(--text-mut); }
+
+        /* NAV */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 480px; height: 70px;
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
         }
-        .nav-item { cursor: pointer; color: var(--text-mut); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.3s; font-size: 10px; font-weight: 600; flex: 1; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item b { font-size: 22px; }
+        .nav-link { cursor: pointer; color: var(--text-mut); text-align: center; transition: 0.3s; flex: 1; }
+        .nav-link.active { color: var(--primary); transform: translateY(-4px); }
+        .nav-link i { display: block; font-style: normal; font-size: 24px; margin-bottom: 2px; }
+        .nav-link span { font-size: 10px; font-weight: bold; }
 
-        /* ЧАТ */
-        #chat-win { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 550px; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .msg-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; }
-        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; }
-        .msg.them { align-self: flex-start; background: var(--surface); }
+        /* CHAT */
+        #chat-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
+        .msg-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg-bubble { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .msg-me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+        .msg-them { align-self: flex-start; background: var(--surface); border-bottom-left-radius: 4px; }
 
-        /* ИНПУТЫ */
-        input, textarea { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 12px; outline: none; }
-        .btn { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-del { background: var(--del-bg); color: var(--del-txt); border: none; padding: 6px 12px; border-radius: 10px; font-size: 11px; cursor: pointer; margin-left: auto; }
-
-        /* ПРОФИЛЬ */
-        .p-top { padding: 30px 20px; text-align: center; }
-        .p-big-ava { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); padding: 4px; }
-        .p-stat { display:flex; justify-content:center; gap:20px; margin-top:15px; }
-        .p-stat div { text-align:center; font-size: 12px; color: var(--text-mut); }
-        .p-stat b { display:block; color: var(--text); font-size: 16px; }
+        /* UI ELEMENTS */
+        input, textarea { width: 100%; padding: 15px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text); outline: none; margin-bottom: 12px; }
+        .main-btn { background: var(--primary); color: #fff; border: none; padding: 16px; border-radius: 18px; font-weight: bold; cursor: pointer; width: 100%; }
+        .comm-input { font-size: 13px; padding: 10px 15px; margin: 0; border: none; background: rgba(0,0,0,0.05); }
+        [data-theme="dark"] .comm-input { background: rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
 
-    <div class="app-wrapper">
-        <div id="scr-auth" style="display:flex; align-items:center; min-height:100vh;">
-            <div class="glass" style="padding:40px; width:90%; margin:auto; text-align:center;">
-                <h1 style="font-size:38px; color:var(--primary); margin-bottom:10px;">KASTA</h1>
-                <input id="auth-u" placeholder="Логин">
-                <input id="auth-p" type="password" placeholder="Пароль">
-                <button class="btn" style="width:100%" onclick="handleAuth('login')">Войти</button>
-                <button class="btn" style="width:100%; background:none; color:var(--text); margin-top:10px;" onclick="handleAuth('register')">Регистрация</button>
-            </div>
-        </div>
-
-        <div id="scr-app" class="hidden">
-            
-            <div id="view-feed">
-                <div class="stories-bar glass" id="st-list">
-                    <div class="story-node" onclick="document.getElementById('st-up').click()">
-                        <div class="ring" style="border-style:dashed; border-color:var(--text-mut); display:flex; align-items:center; justify-content:center; font-size:30px;">+</div>
-                        <span class="s-name">Твоя</span>
-                        <input type="file" id="st-up" hidden accept="image/*" onchange="upStory(this)">
-                    </div>
-                </div>
-                <div id="f-list"></div>
-            </div>
-
-            <div id="view-chats" class="hidden">
-                <div class="glass" style="margin:15px; padding:12px 20px; display:flex; align-items:center; gap:10px;">
-                    <span>🔍</span><input oninput="searchUsers(this.value)" placeholder="Поиск друзей..." style="margin:0; border:none; background:none;">
-                </div>
-                <div id="ch-list"></div>
-            </div>
-
-            <div id="view-profile" class="hidden">
-                <div id="p-ui" class="p-top glass" style="margin-top:10px;"></div>
-                
-                <div class="glass" style="margin:15px; padding:20px;">
-                    <textarea id="post-t" placeholder="Что нового?"></textarea>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <input type="file" id="post-f" hidden accept="image/*">
-                        <button class="btn" style="background:none; color:var(--primary); padding:0; width:auto;" onclick="document.getElementById('post-f').click()">🖼️ Фото</button>
-                        <button class="btn" style="padding:8px 20px; width:auto;" onclick="sendPost()">Опубликовать</button>
-                    </div>
-                </div>
-                <div id="p-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; padding:0 15px;"></div>
-            </div>
-
-            <div id="view-settings" class="hidden">
-                <div class="glass" style="margin:15px; padding:25px;">
-                    <h3>Настройки</h3>
-                    <input id="set-n" placeholder="Имя">
-                    <textarea id="set-b" placeholder="О себе (Bio)"></textarea>
-                    <button class="btn" style="width:100%" onclick="saveSets()">Сохранить профиль</button>
-                    
-                    <div style="display:flex; gap:10px; margin-top:20px;">
-                        <button class="btn" style="flex:1; background:#fff; color:#000;" onclick="theme('light')">Светлая</button>
-                        <button class="btn" style="flex:1; background:#000; color:#fff;" onclick="theme('dark')">Темная</button>
-                    </div>
-                    <button class="btn" style="width:100%; background:#ff3b30; margin-top:20px;" onclick="logout()">Выйти</button>
-                </div>
-            </div>
-
-            <nav class="nav glass">
-                <div class="nav-item active" id="nav-feed" onclick="tab('feed')"><b>🏠</b><span>Лента</span></div>
-                <div class="nav-item" id="nav-chats" onclick="tab('chats')"><b>💬</b><span>Чаты</span></div>
-                <div class="nav-item" id="nav-profile" onclick="tab('profile')"><b>👤</b><span>Профиль</span></div>
-                <div class="nav-item" id="nav-settings" onclick="tab('settings')"><b>⚙️</b><span>Опции</span></div>
-            </nav>
+<div class="app-shell">
+    <div id="page-auth" style="display:flex; align-items:center; min-height:100vh;">
+        <div class="glass" style="padding:40px; width:90%; margin:auto; text-align:center;">
+            <h1 style="font-size:45px; color:var(--primary); margin-bottom:10px; letter-spacing:-2px;">KASTA</h1>
+            <p style="margin-bottom:30px; opacity:0.6;">Premium Network</p>
+            <input id="in-u" placeholder="Ваш никнейм">
+            <input id="in-p" type="password" placeholder="Ваш пароль">
+            <button class="main-btn" onclick="auth('login')">Войти</button>
+            <p onclick="auth('register')" style="margin-top:20px; font-size:13px; cursor:pointer; text-decoration:underline;">Зарегистрироваться</p>
         </div>
     </div>
 
-    <div id="chat-win">
-        <div class="glass" style="padding:15px; display:flex; align-items:center; gap:15px; border-radius:0;">
-            <button onclick="document.getElementById('chat-win').style.display='none'" style="background:none; border:none; font-size:24px; color:var(--text);">←</button>
-            <b id="ch-target">Имя</b>
+    <div id="page-app" class="hidden">
+        
+        <div id="sec-feed">
+            <div class="stories-container glass" id="stories-list">
+                <div class="st-node" onclick="document.getElementById('st-file').click()">
+                    <div class="st-ring" style="border-style:dashed; border-color:var(--text-mut); display:flex; align-items:center; justify-content:center; font-size:30px;">+</div>
+                    <span style="font-size:10px;">Стори</span>
+                    <input type="file" id="st-file" hidden accept="image/*" onchange="uploadSt(this)">
+                </div>
+            </div>
+            <div id="feed-items"></div>
         </div>
-        <div id="msg-box" class="msg-list"></div>
-        <div class="glass" style="padding:15px; display:flex; gap:10px; border-radius:0;">
-            <input id="msg-in" placeholder="Сообщение..." style="margin:0;">
-            <button class="btn" style="width:auto;" onclick="sendMsg()">➤</button>
+
+        <div id="sec-chats" class="hidden">
+            <div class="glass" style="margin:15px; padding:15px;">
+                <input id="user-search" oninput="searchUsers(this.value)" placeholder="🔍 Найти друзей..." style="margin:0;">
+            </div>
+            <div id="chat-list"></div>
         </div>
-    </div>
 
-    <script>
-        const API = "https://kasta-l49s.onrender.com";
-        let token = localStorage.getItem('token'), me = localStorage.getItem('me'), activeCh = "";
-
-        function fix(u) { return u ? u.replace('http://', 'https://') : 'https://ui-avatars.com/api/?background=random&name=U'; }
-
-        async function call(path, method='GET', body=null) {
-            const h = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-            try {
-                const r = await fetch(API+path, { method, headers: h, body: body ? JSON.stringify(body) : null });
-                if(r.status === 401) logout();
-                return await r.json();
-            } catch(e) { return { error: true }; }
-        }
-
-        // AUTH
-        async function handleAuth(t) {
-            const u = document.getElementById('auth-u').value, p = document.getElementById('auth-p').value;
-            const r = await fetch(`${API}/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
-            const d = await r.json();
-            if(r.ok) { localStorage.setItem('token', d.token); localStorage.setItem('me', d.username); location.reload(); }
-            else alert(d.message);
-        }
-        function logout() { localStorage.clear(); location.reload(); }
-
-        // TAB SYSTEM (FIXED ID ERROR)
-        function tab(id) {
-            ['feed', 'chats', 'profile', 'settings'].forEach(v => {
-                const screen = document.getElementById('view-' + v);
-                const navItem = document.getElementById('nav-' + v);
-                if(screen) screen.classList.add('hidden');
-                if(navItem) navItem.classList.remove('active');
-            });
+        <div id="sec-profile" class="hidden">
+            <div id="profile-head" class="glass prof-top" style="margin-top:10px;"></div>
             
-            const target = document.getElementById('view-' + id);
-            const targetNav = document.getElementById('nav-' + id);
-            if(target) target.classList.remove('hidden');
-            if(targetNav) targetNav.classList.add('active');
-
-            if(id === 'feed') { loadFeed(); loadSt(); }
-            if(id === 'chats') loadChats();
-            if(id === 'profile') openMe();
-        }
-
-        // FEED, LIKES, COMMENTS, DELETE
-        async function loadFeed() {
-            const pp = await call('/posts');
-            if(!Array.isArray(pp)) return;
-            document.getElementById('f-list').innerHTML = pp.reverse().map(p => `
-                <div class="post glass">
-                    <div class="post-h">
-                        <img src="${fix(p.authorAvatar)}" class="p-ava">
-                        <b>${p.author}</b>
-                        ${p.author === me ? `<button class="btn-del" onclick="delPost('${p._id}')">Удалить</button>` : ''}
-                    </div>
-                    ${p.imageUrl ? `<img src="${fix(p.imageUrl)}" class="post-img">` : ''}
-                    <div class="post-act">
-                        <button class="act-btn" onclick="like('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
-                        <button class="act-btn">💬 ${p.comments.length}</button>
-                    </div>
-                    <div class="post-desc"><b>${p.author}</b> ${p.text || ''}</div>
-                    <div class="comm-sect">
-                        <input placeholder="Написать комментарий..." onkeydown="if(event.key==='Enter') addComm('${p._id}', this.value)" style="margin:0; font-size:12px; padding:10px;">
-                    </div>
+            <div class="glass" style="margin:15px; padding:20px;">
+                <textarea id="post-text" placeholder="О чем вы думаете?" rows="2"></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <button class="act-btn" onclick="document.getElementById('post-file').click()">🖼️ Фото</button>
+                    <input type="file" id="post-file" hidden accept="image/*">
+                    <button class="main-btn" style="width:auto; padding:10px 25px;" onclick="createPost()">Пост</button>
                 </div>
+            </div>
+            <div id="profile-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:3px; padding:0 15px;"></div>
+        </div>
+
+        <div id="sec-settings" class="hidden">
+            <div class="glass" style="margin:15px; padding:30px;">
+                <h3>Настройки профиля</h3>
+                <div style="margin:20px 0;">
+                    <input id="set-display-name" placeholder="Отображаемое имя">
+                    <textarea id="set-bio" placeholder="Расскажите о себе (Bio)"></textarea>
+                    <button class="main-btn" onclick="saveSettings()">Сохранить изменения</button>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="main-btn" style="background:#fff; color:#000;" onclick="switchTheme('light')">Светлая</button>
+                    <button class="main-btn" style="background:#111; color:#fff;" onclick="switchTheme('dark')">Темная</button>
+                </div>
+                <button class="main-btn" style="background:#ff3b30; margin-top:30px;" onclick="logOut()">Выйти из аккаунта</button>
+            </div>
+        </div>
+
+        <nav class="bottom-nav glass">
+            <div class="nav-link active" id="nav-feed" onclick="tab('feed')"><i>🏠</i><span>Лента</span></div>
+            <div class="nav-link" id="nav-chats" onclick="tab('chats')"><i>💬</i><span>Чаты</span></div>
+            <div class="nav-link" id="nav-profile" onclick="tab('profile')"><i>👤</i><span>Профиль</span></div>
+            <div class="nav-link" id="nav-settings" onclick="tab('settings')"><i>⚙️</i><span>Опции</span></div>
+        </nav>
+    </div>
+</div>
+
+<div id="chat-ui">
+    <div class="glass" style="padding:15px; display:flex; align-items:center; gap:15px; border-radius:0;">
+        <button onclick="document.getElementById('chat-ui').style.display='none'" style="background:none; border:none; font-size:30px; color:var(--text);">←</button>
+        <b id="chat-user-name">Чат</b>
+    </div>
+    <div id="chat-messages" class="msg-area"></div>
+    <div class="glass" style="padding:15px; display:flex; gap:10px; border-radius:0;">
+        <input id="chat-input" placeholder="Сообщение..." style="margin:0;">
+        <button class="main-btn" style="width:auto; padding:0 20px;" onclick="sendMsg()">➤</button>
+    </div>
+</div>
+
+<script>
+    const API = "https://kasta-l49s.onrender.com";
+    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), activeChat = "";
+
+    function safeImg(url) { 
+        if(!url) return 'https://ui-avatars.com/api/?background=random&name=U';
+        return url.replace('http://', 'https://'); 
+    }
+
+    async function call(path, method='GET', body=null) {
+        const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        try {
+            const res = await fetch(API+path, { method, headers, body: body ? JSON.stringify(body) : null });
+            if(res.status === 401) logOut();
+            return await res.json();
+        } catch(e) { return { error: true }; }
+    }
+
+    // AUTH
+    async function auth(type) {
+        const u = document.getElementById('in-u').value, p = document.getElementById('in-p').value;
+        if(!u || !p) return alert("Заполни поля!");
+        const res = await fetch(`${API}/${type}`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({username:u, password:p})
+        });
+        const d = await res.json();
+        if(res.ok) {
+            localStorage.setItem('token', d.token); localStorage.setItem('me', d.username);
+            location.reload();
+        } else alert(d.message);
+    }
+    function logOut() { localStorage.clear(); location.reload(); }
+
+    // TABS
+    function tab(id) {
+        ['feed', 'chats', 'profile', 'settings'].forEach(s => {
+            const el = document.getElementById('sec-' + s);
+            const nav = document.getElementById('nav-' + s);
+            if(el) el.classList.add('hidden');
+            if(nav) nav.classList.remove('active');
+        });
+
+        const target = document.getElementById('sec-' + id);
+        const targetNav = document.getElementById('nav-' + id);
+        if(target) target.classList.remove('hidden');
+        if(targetNav) targetNav.classList.add('active');
+
+        if(id === 'feed') { loadFeed(); loadStories(); }
+        if(id === 'chats') loadChats();
+        if(id === 'profile') openProfile();
+    }
+
+    // FEED & POSTS
+    async function loadFeed() {
+        const pp = await call('/posts');
+        if(!Array.isArray(pp)) return;
+        document.getElementById('feed-items').innerHTML = pp.reverse().map(p => `
+            <div class="post glass">
+                <div class="post-h">
+                    <img src="${safeImg(p.authorAvatar)}" class="p-ava">
+                    <b>${p.author}</b>
+                    ${p.author === me ? `<button class="btn-del" onclick="delPost('${p._id}')">Удалить</button>` : ''}
+                </div>
+                ${p.imageUrl ? `<img src="${safeImg(p.imageUrl)}" class="post-img">` : ''}
+                <div class="post-act">
+                    <button class="act-btn" onclick="likePost('${p._id}')">${p.likes.includes(me)?'❤️':'🤍'} ${p.likes.length}</button>
+                    <button class="act-btn">💬 ${p.comments.length}</button>
+                </div>
+                <div style="padding:0 15px 10px; font-size:14px;"><b>${p.author}</b> ${p.text || ''}</div>
+                <input class="comm-input" placeholder="Написать комментарий..." onkeydown="if(event.key==='Enter') addComment('${p._id}', this.value)">
+            </div>
+        `).join('');
+    }
+
+    window.delPost = async (id) => { if(confirm("Удалить?")) { await call('/posts/'+id, 'DELETE'); loadFeed(); } }
+    window.likePost = async (id) => { await call(`/posts/${id}/like`, 'POST'); loadFeed(); }
+    window.addComment = async (id, txt) => { if(!txt) return; await call(`/posts/${id}/comment`, 'POST', {text:txt}); loadFeed(); }
+
+    // STORIES
+    async function loadStories() {
+        try {
+            const res = await call('/stories');
+            const box = document.getElementById('stories-list');
+            box.innerHTML = box.children[0].outerHTML;
+            if(Array.isArray(res)) {
+                res.forEach(s => {
+                    box.innerHTML += `<div class="st-node"><div class="st-ring"><img src="${safeImg(s.userAva)}"></div><span style="font-size:10px;">${s.username}</span></div>`;
+                });
+            }
+        } catch(e) {}
+    }
+
+    async function uploadSt(el) {
+        const f = el.files[0]; if(!f) return;
+        const img = await compressImg(f);
+        await call('/stories', 'POST', {image:img});
+        loadStories();
+    }
+
+    // PROFILE
+    async function openProfile() {
+        if(!me) return;
+        const u = await call('/users/profile/'+me);
+        if(!u || u.error) return;
+
+        document.getElementById('profile-head').innerHTML = `
+            <img src="${safeImg(u.avatarUrl)}" class="prof-ava">
+            <h2>${u.displayName || u.username}</h2>
+            <p style="opacity:0.6; font-size:13px;">@${u.username}</p>
+            <div style="margin:10px 0; font-size:14px; padding:0 20px;">${u.bio || 'Описания нет'}</div>
+            <div class="prof-stats">
+                <div><b>${u.posts ? u.posts.length : 0}</b><span>Посты</span></div>
+                <div><b>${u.subscribersCount || 0}</b><span>Друзья</span></div>
+            </div>
+        `;
+
+        if(u.posts) {
+            document.getElementById('profile-grid').innerHTML = u.posts.map(p => `
+                <img src="${safeImg(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px;">
             `).join('');
         }
+        document.getElementById('set-display-name').value = u.displayName || '';
+        document.getElementById('set-bio').value = u.bio || '';
+    }
 
-        async function delPost(id) { if(confirm("Удалить пост?")) { await call('/posts/'+id, 'DELETE'); loadFeed(); } }
-        async function like(id) { await call(`/posts/${id}/like`, 'POST'); loadFeed(); }
-        async function addComm(id, txt) { if(!txt) return; await call(`/posts/${id}/comment`, 'POST', {text:txt}); loadFeed(); }
+    async function saveSettings() {
+        const n = document.getElementById('set-display-name').value;
+        const b = document.getElementById('set-bio').value;
+        await call('/users/update', 'POST', { displayName: n, bio: b });
+        alert("Сохранено!"); tab('profile');
+    }
 
-        // STORIES (FIXED 404)
-        async function loadSt() {
-            try {
-                const res = await call('/stories');
-                const bar = document.getElementById('st-list');
-                bar.innerHTML = bar.children[0].outerHTML;
-                if(Array.isArray(res)) {
-                    res.forEach(s => {
-                        bar.innerHTML += `<div class="story-node"><div class="ring"><img src="${fix(s.userAva)}"></div><span class="s-name">${s.username}</span></div>`;
-                    });
-                }
-            } catch(e) {}
-        }
+    // CHATS
+    async function loadChats() {
+        const d = await call('/chats');
+        if(d.error) return;
+        document.getElementById('chat-list').innerHTML = d.users.map(u => `
+            <div class="glass" style="margin:10px 15px; padding:15px; display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="openChat('${u.username}')">
+                <img src="${safeImg(u.avatarUrl)}" class="p-ava">
+                <b>${u.username}</b>
+            </div>
+        `).join('');
+    }
 
-        async function upStory(el) {
-            const f = el.files[0]; if(!f) return;
-            const img = await compress(f);
-            await call('/stories', 'POST', {image:img});
-            loadSt();
-        }
-
-        // PROFILE & SETTINGS
-        async function openMe() {
-            const u = await call('/users/profile/'+me);
-            if(u.error) return;
-            document.getElementById('p-ui').innerHTML = `
-                <img src="${fix(u.avatarUrl)}" class="p-big-ava">
-                <h2>${u.displayName || u.username}</h2>
-                <div style="font-size:14px; margin:10px 0;">${u.bio || 'Нет описания'}</div>
-                <div class="p-stat">
-                    <div><b>${u.posts.length}</b>Посты</div>
-                    <div><b>${u.subscribersCount || 0}</b>Друзья</div>
-                </div>
-            `;
-            document.getElementById('p-grid').innerHTML = u.posts.map(p => `
-                <img src="${fix(p.imageUrl)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px;">
+    window.openChat = async (name) => {
+        activeChat = name;
+        document.getElementById('chat-user-name').innerText = name;
+        document.getElementById('chat-ui').style.display = 'flex';
+        const msgs = await call('/messages/'+name);
+        if(Array.isArray(msgs)) {
+            document.getElementById('chat-messages').innerHTML = msgs.map(m => `
+                <div class="msg-bubble ${m.sender===me?'msg-me':'msg-them'}">${m.text}</div>
             `).join('');
-            document.getElementById('set-n').value = u.displayName || '';
-            document.getElementById('set-b').value = u.bio || '';
+            const b = document.getElementById('chat-messages'); b.scrollTop = b.scrollHeight;
         }
+    }
 
-        async function saveSets() {
-            const n = document.getElementById('set-n').value, b = document.getElementById('set-b').value;
-            await call('/users/update', 'POST', {displayName:n, bio:b});
-            alert("Обновлено!"); tab('profile');
-        }
+    window.sendMsg = async () => {
+        const i = document.getElementById('chat-input'); if(!i.value) return;
+        await call('/messages', 'POST', { recipient: activeChat, text: i.value });
+        i.value = ""; openChat(activeChat);
+    }
 
-        // CHATS
-        async function loadChats() {
-            const d = await call('/chats');
-            if(d.error) return;
-            document.getElementById('ch-list').innerHTML = d.users.map(u => `
-                <div class="glass" style="margin:10px 15px; padding:15px; display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openChat('${u.username}')">
-                    <img src="${fix(u.avatarUrl)}" class="p-ava">
-                    <b>${u.username}</b>
-                </div>
-            `).join('');
-        }
+    async function createPost() {
+        const t = document.getElementById('post-text').value, f = document.getElementById('post-file').files[0];
+        let img = f ? await compressImg(f) : "";
+        await call('/posts', 'POST', { text: t, imageUrl: img });
+        document.getElementById('post-text').value = ""; tab('profile');
+    }
 
-        async function openChat(name) {
-            activeCh = name;
-            document.getElementById('ch-target').innerText = name;
-            document.getElementById('chat-win').style.display = 'flex';
-            const msgs = await call('/messages/'+name);
-            document.getElementById('msg-box').innerHTML = msgs.map(m => `<div class="msg ${m.sender===me?'me':'them'}">${m.text}</div>`).join('');
-            const b = document.getElementById('msg-box'); b.scrollTop = b.scrollHeight;
-        }
-
-        async function sendMsg() {
-            const i = document.getElementById('msg-in'); if(!i.value) return;
-            await call('/messages', 'POST', {recipient:activeCh, text:i.value});
-            i.value = ""; openChat(activeCh);
-        }
-
-        async function sendPost() {
-            const t = document.getElementById('post-t').value, f = document.getElementById('post-f').files[0];
-            let img = f ? await compress(f) : "";
-            await call('/posts', 'POST', {text:t, imageUrl:img});
-            document.getElementById('post-t').value = ""; tab('profile');
-        }
-
-        function compress(f) {
-            return new Promise(r => {
-                const rd = new FileReader(); rd.readAsDataURL(f);
-                rd.onload = e => {
-                    const i = new Image(); i.src = e.target.result;
-                    i.onload = () => {
-                        const c = document.createElement('canvas');
-                        c.width = 800; c.height = (i.height/i.width)*800;
-                        c.getContext('2d').drawImage(i,0,0,800,c.height);
-                        r(c.toDataURL('image/jpeg', 0.6));
-                    };
+    function compressImg(f) {
+        return new Promise(r => {
+            const rd = new FileReader(); rd.readAsDataURL(f);
+            rd.onload = e => {
+                const i = new Image(); i.src = e.target.result;
+                i.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = 800; c.height = (i.height/i.width)*800;
+                    c.getContext('2d').drawImage(i,0,0,800,c.height);
+                    r(c.toDataURL('image/jpeg', 0.6));
                 };
-            });
-        }
+            };
+        });
+    }
 
-        function theme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('th', t); }
-        theme(localStorage.getItem('th') || 'light');
+    function switchTheme(t) { document.body.setAttribute('data-theme', t); localStorage.setItem('th', t); }
+    switchTheme(localStorage.getItem('th') || 'light');
 
-        if(token) {
-            document.getElementById('scr-auth').classList.add('hidden');
-            document.getElementById('scr-app').classList.remove('hidden');
-            tab('feed');
-        }
-    </script>
+    if(token && me) {
+        document.getElementById('page-auth').classList.add('hidden');
+        document.getElementById('page-app').classList.remove('hidden');
+        tab('feed');
+    }
+</script>
 </body>
 </html>
