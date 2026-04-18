@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA</title>
+    <title>KASTA - PRO MAX</title>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
     <style>
+        /* ИЗНАЧАЛЬНО СВЕТЛАЯ ТЕМА И ГОЛУБОЙ АКЦЕНТ */
         :root {
-            --primary: #ff0000;
-            --bg-body: #080808;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text: #ffffff;
-        }
-
-        [data-theme="light"] {
+            --primary: #007aff;
             --bg-body: #f0f2f5;
             --bg-card: rgba(255, 255, 255, 0.8);
             --glass-border: rgba(0, 0, 0, 0.1);
             --text: #1a1a1a;
+        }
+
+        /* ТЕМНАЯ ТЕМА */
+        [data-theme="dark"] {
+            --bg-body: #080808;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
@@ -45,17 +47,17 @@
         .hidden { display: none !important; }
 
         .nav-item { cursor: pointer; color: var(--text); opacity: 0.4; transition: 0.3s; padding: 12px; border-radius: 15px; }
-        .nav-item.active { opacity: 1; color: var(--primary); background: rgba(255,255,255,0.05); }
+        .nav-item.active { opacity: 1; color: var(--primary); background: rgba(128,128,128,0.1); }
         .nav-item svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
 
         /* ПОСТЫ И КОММЕНТЫ */
         .post { margin-bottom: 25px; overflow: hidden; position: relative; }
         .post-h { padding: 15px; display: flex; align-items: center; gap: 12px; }
-        .p-ava { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; background: #222; }
+        .p-ava { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; background: var(--bg-card); }
         .post-meta { display: flex; flex-direction: column; }
         .post-time { font-size: 11px; opacity: 0.5; margin-top: 2px; }
-        .post-del { position: absolute; right: 15px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
-        .post-del:hover { opacity: 1; color: red; }
+        .post-del { position: absolute; right: 15px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.2s; color: var(--text); }
+        .post-del:hover { opacity: 1; color: #ff3b30; }
 
         .media-box { width: 100%; background: #000; }
         .media-box img, .media-box video { width: 100%; display: block; max-height: 550px; object-fit: contain; }
@@ -67,11 +69,11 @@
         .act-btn.liked svg { fill: var(--primary); }
 
         .comments-section { padding: 15px; font-size: 14px; }
-        .comment-item { margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--glass-border); }
+        .comment-item { margin-bottom: 8px; background: rgba(128,128,128,0.1); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--glass-border); color: var(--text); }
         
         /* ПРОФИЛЬ И БАННЕР */
         .p-banner { width: 100%; height: 160px; background-color: var(--primary); background-size: cover; background-position: center; border-radius: 20px 20px 0 0; }
-        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-body); margin-top: -50px; object-fit: cover; background: #222; position: relative; z-index: 2; }
+        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-body); margin-top: -50px; object-fit: cover; background: var(--bg-card); position: relative; z-index: 2; }
         .audio-player { width: 90%; margin: 15px auto; border-radius: 15px; outline: none; }
 
         .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -81,18 +83,21 @@
         /* ЧАТЫ */
         #chat-window { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: none; flex-direction: column; }
         .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background-size: cover; background-position: center; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; backdrop-filter: blur(5px); display: flex; flex-direction: column; }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 15px; backdrop-filter: blur(5px); display: flex; flex-direction: column; color: #fff; }
         .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
-        .msg.me { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-        .msg.them { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
+        .msg.me { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
+        .msg.them { align-self: flex-start; background: rgba(128,128,128,0.5); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
 
-        /* ИНПУТЫ И КНОПКИ */
+        /* ИНПУТЫ И КНОПКИ (Исправлено для тем) */
         input:not([type="file"], [type="range"]), textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text); outline: none; margin-bottom: 12px; }
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; text-align: center; }
+        ::placeholder { color: var(--text); opacity: 0.5; }
+        
+        .btn-main { background: var(--primary); color: #ffffff; border: none; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; text-align: center; }
         .btn-main:active { transform: scale(0.98); }
+        .btn-sec { background: var(--bg-card); color: var(--text); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; text-align: center; margin-bottom: 10px; }
         
         /* СТОРИС */
-        .story-ring { border: 2px solid var(--primary); padding: 2px; border-radius: 50%; width: 64px; height: 64px; object-fit: cover; cursor: pointer; }
+        .story-ring { border: 2px solid var(--primary); padding: 2px; border-radius: 50%; width: 64px; height: 64px; object-fit: cover; cursor: pointer; background: var(--bg-card); }
         
         /* FULLSCREEN STORY VIEWER */
         #story-viewer { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
@@ -109,7 +114,7 @@
         .arch-del { position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
 <nav class="nav-side">
     <div class="nav-item active" onclick="window.switchTab('feed', event)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></div>
@@ -126,7 +131,7 @@
                 <input id="login-u" placeholder="Логин">
                 <input id="login-p" type="password" placeholder="Пароль">
                 <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
-                <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer;">Регистрация</p>
+                <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer; color: var(--text);">Регистрация</p>
             </div>
         </div>
 
@@ -141,19 +146,19 @@
             </div>
 
             <div id="view-chats" class="hidden">
-                <h2 style="margin-bottom: 20px;">Чаты</h2>
+                <h2 style="margin-bottom: 20px; color: var(--text);">Чаты</h2>
                 <div id="chats-list"></div>
             </div>
 
             <div id="view-profile" class="hidden">
                 <div id="p-card" class="glass" style="text-align: center; margin-bottom: 20px; padding-bottom: 20px;"></div>
                 
-                <button class="btn-main" style="background: var(--bg-card); margin-bottom: 20px; font-size: 14px;" onclick="window.openArchive()">📦 Архив Историй</button>
+                <button class="btn-sec" onclick="window.openArchive()">📦 Архив Историй</button>
                 
                 <div class="glass" style="padding: 15px; margin-bottom: 20px;">
                     <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-main" style="background: var(--bg-card); flex: 1;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
+                        <button class="btn-sec" style="flex: 1; margin: 0;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
                         <input type="file" id="post-media" hidden accept="image/*,video/*">
                         <button class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
                     </div>
@@ -165,32 +170,32 @@
                 <div class="glass" style="padding: 20px;">
                     <h3 style="margin-bottom: 20px; color: var(--primary);">Настройки профиля</h3>
                     
-                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('ava-in').click()">📸 ДОБАВИТЬ АВАТАРКУ</button>
+                    <button class="btn-sec" onclick="document.getElementById('ava-in').click()">📸 ДОБАВИТЬ АВАТАРКУ</button>
                     <input type="file" id="ava-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'ava')">
 
-                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('banner-in').click()">🖼 ЗАГРУЗИТЬ БАННЕР</button>
+                    <button class="btn-sec" onclick="document.getElementById('banner-in').click()">🖼 ЗАГРУЗИТЬ БАННЕР</button>
                     <input type="file" id="banner-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'banner')">
                     
-                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('audio-in').click()">🎵 ДОБАВИТЬ ПЕСНЮ В ПРОФИЛЬ</button>
+                    <button class="btn-sec" onclick="document.getElementById('audio-in').click()">🎵 ДОБАВИТЬ ПЕСНЮ В ПРОФИЛЬ</button>
                     <input type="file" id="audio-in" hidden accept="audio/*" onchange="window.saveLocalFile(this, 'audio')">
 
-                    <p style="font-size: 12px; margin: 20px 0 8px;">ЦВЕТ АКЦЕНТА</p>
+                    <p style="font-size: 12px; margin: 20px 0 8px; color: var(--text);">ЦВЕТ АКЦЕНТА</p>
                     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                        <div style="width:30px; height:30px; background:#ff0000; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff0000')"></div>
                         <div style="width:30px; height:30px; background:#007aff; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#007aff')"></div>
+                        <div style="width:30px; height:30px; background:#ff0000; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff0000')"></div>
                         <div style="width:30px; height:30px; background:#34c759; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#34c759')"></div>
                         <div style="width:30px; height:30px; background:#ff9500; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#ff9500')"></div>
                         <div style="width:30px; height:30px; background:#af52de; border-radius:50%; cursor:pointer;" onclick="window.setAccent('#af52de')"></div>
                     </div>
 
-                    <p style="font-size: 12px; margin-bottom: 8px;">ИМЯ В ПРОФИЛЕ</p>
+                    <p style="font-size: 12px; margin-bottom: 8px; color: var(--text);">ИМЯ В ПРОФИЛЕ</p>
                     <input id="set-nick" placeholder="Изменить ник">
                     
-                    <p style="font-size: 12px; margin: 10px 0 8px;">ОБОИ В ЧАТАХ (ФОТО)</p>
-                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 10px;" onclick="document.getElementById('wall-in').click()">📱 ЗАГРУЗИТЬ ОБОИ ЧАТА</button>
+                    <p style="font-size: 12px; margin: 10px 0 8px; color: var(--text);">ОБОИ В ЧАТАХ (ФОТО)</p>
+                    <button class="btn-sec" onclick="document.getElementById('wall-in').click()">📱 ЗАГРУЗИТЬ ОБОИ ЧАТА</button>
                     <input type="file" id="wall-in" hidden accept="image/*" onchange="window.saveLocalFile(this, 'wall')">
                     
-                    <button class="btn-main" style="background:var(--bg-card); margin-bottom: 20px;" onclick="window.toggleTheme()">Сменить тему (Светлая/Темная)</button>
+                    <button class="btn-sec" onclick="window.toggleTheme()">Сменить тему (Светлая/Темная)</button>
 
                     <button class="btn-main" onclick="window.saveSettings()">СОХРАНИТЬ ИМЯ</button>
                     <button class="btn-main" style="background: #ff3b30; margin-top: 20px;" onclick="window.logOut()">ВЫЙТИ</button>
@@ -203,12 +208,12 @@
 <div id="chat-window">
     <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px; background: var(--bg-card); backdrop-filter: blur(10px);">
         <button onclick="document.getElementById('chat-window').style.display='none'" style="background:none; border:none; color:var(--text); font-size: 24px; cursor:pointer;">←</button>
-        <b id="chat-user">Чат</b>
+        <b id="chat-user" style="color: var(--text);">Чат</b>
     </div>
     <div id="chat-msgs" class="chat-body"></div>
     <div style="padding: 15px; display: flex; gap: 10px; background: var(--bg-card); backdrop-filter: blur(10px);">
         <input id="chat-in" style="margin: 0;" placeholder="Сообщение...">
-        <button class="btn-main" style="width: 60px;" onclick="window.sendMsg()">></button>
+        <button class="btn-main" style="width: 60px; padding: 0;" onclick="window.sendMsg()">></button>
     </div>
 </div>
 
@@ -216,86 +221,92 @@
     <button id="sv-close" onclick="document.getElementById('story-viewer').style.display='none'; document.getElementById('sv-vid').pause();">×</button>
     <div id="sv-author"></div>
     <img id="sv-img" class="sv-media hidden" src="">
-    <video id="sv-vid" class="sv-media hidden" controls autoplay></video>
+    <video id="sv-vid" class="sv-media hidden" controls autoplay playsinline></video>
     <div id="sv-caption" class="hidden"></div>
 </div>
 
 <div id="archive-modal">
     <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 15px; background: var(--bg-card);">
         <button onclick="document.getElementById('archive-modal').style.display='none'" style="background:none; border:none; color:var(--text); font-size: 24px; cursor:pointer;">←</button>
-        <b>Архив историй</b>
+        <b style="color: var(--text);">Архив историй</b>
     </div>
     <div id="archive-grid" class="archive-grid"></div>
 </div>
 
 <script>
-    const API = "https://kasta-l49s.onrender.com";
-    let token = localStorage.getItem('token'), me = localStorage.getItem('me'), curChat = "";
-    let myPosts = [];
+    // Надежное объявление глобальных функций
+    window.API = "https://kasta-l49s.onrender.com";
+    window.token = localStorage.getItem('token');
+    window.me = localStorage.getItem('me');
+    window.curChat = "";
+    window.myPosts = [];
 
-    // Безопасное сохранение (у браузеров лимит 5мб на localStorage)
-    const setSafeData = (key, val) => {
+    window.setSafeData = function(key, val) {
         try { localStorage.setItem(key, val); return true; }
         catch(e) { alert("Ошибка! Файл слишком большой. Выбери файл поменьше (до 3МБ)."); return false; }
     };
 
-    const sec = (u) => { if (!u) return ''; if (u.startsWith('http://')) return u.replace('http://', 'https://'); return u; };
-    const isVid = (u) => u && (u.includes('.mp4') || u.includes('.webm') || u.startsWith('data:video'));
+    window.sec = function(u) { if (!u) return ''; if (u.startsWith('http://')) return u.replace('http://', 'https://'); return u; };
+    window.isVid = function(u) { return u && (u.includes('.mp4') || u.includes('.webm') || u.startsWith('data:video')); };
     
-    // ДОБЫВАЕМ АВАТАРКУ ИЛИ СТАНДАРТНУЮ
-    const getAva = (n) => {
-        const local = localStorage.getItem(`k_ava_${n}`);
-        return local ? local : `https://ui-avatars.com/api/?name=${n}&background=random&color=fff&size=128`;
+    window.getAva = function(n) {
+        const local = localStorage.getItem('k_ava_' + n);
+        return local ? local : 'https://ui-avatars.com/api/?name=' + n + '&background=random&color=fff&size=128';
     };
     
-    const formatTime = (d) => {
+    window.formatTime = function(d) {
         const date = new Date(d);
         return date.toLocaleString('ru-RU', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
     };
 
-    async function call(p, m='GET', b=null) {
+    window.call = async function(p, m='GET', b=null) {
         try {
-            const r = await fetch(API+p, { method: m, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : null });
+            const r = await fetch(window.API + p, { 
+                method: m, 
+                headers: { 'Authorization': 'Bearer ' + window.token, 'Content-Type': 'application/json' }, 
+                body: b ? JSON.stringify(b) : null 
+            });
             if (!r.ok) return { error: true, status: r.status };
-            // Обработка DELETE запроса (он может не возвращать JSON)
             if (m === 'DELETE') return { success: true };
             return await r.json();
         } catch(e) { return { error: true, message: e.message }; }
-    }
-
-    window.doAuth = async (t) => {
-        const u = document.getElementById('login-u').value, p = document.getElementById('login-p').value;
-        const d = await call(`/${t}`, 'POST', {username:u, password:p});
-        if(!d.error) { localStorage.setItem('token', d.token); localStorage.setItem('me', d.username); location.reload(); } 
-        else alert(d.message || "Ошибка авторизации");
     };
 
-    window.switchTab = (id, e) => {
+    window.doAuth = async function(t) {
+        const u = document.getElementById('login-u').value;
+        const p = document.getElementById('login-p').value;
+        const d = await window.call('/' + t, 'POST', {username:u, password:p});
+        if(!d.error && d.token) { 
+            localStorage.setItem('token', d.token); 
+            localStorage.setItem('me', d.username); 
+            location.reload(); 
+        } else {
+            alert(d.message || "Ошибка авторизации");
+        }
+    };
+
+    window.switchTab = function(id, e) {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if(e && e.currentTarget) e.currentTarget.classList.add('active');
         document.querySelectorAll('#scr-app > div').forEach(v => v.classList.add('hidden'));
-        document.getElementById('view-'+id).classList.remove('hidden');
+        document.getElementById('view-' + id).classList.remove('hidden');
         if(id === 'feed') window.loadFeed();
         if(id === 'chats') window.loadChats();
         if(id === 'profile') window.loadProfile();
     };
 
-    // ЗАГРУЗКА ЛЕНТЫ (Сначала новые + Время + Кнопка удаления)
-    window.loadFeed = async () => {
-        const d = await call('/posts');
+    window.loadFeed = async function() {
+        const d = await window.call('/posts');
         if(!d || d.error || !Array.isArray(d)) return;
         
-        // ЖЕСТКАЯ СОРТИРОВКА: Новые сверху
         const sortedPosts = [...d].reverse();
         
         document.getElementById('feed-cont').innerHTML = sortedPosts.map(p => {
             const commentsHtml = (p.comments || []).map(c => `<div class="comment-item"><b>${c.author}:</b> ${c.text}</div>`).join('');
-            const safeAva = sec(getAva(p.author));
-            const safeImg = sec(p.imageUrl);
-            const timeStr = p.createdAt ? formatTime(p.createdAt) : formatTime(Date.now());
-            
-            // КНОПКА УДАЛЕНИЯ ТОЛЬКО ДЛЯ СВОИХ ПОСТОВ
-            const delBtn = p.author === me ? `<button class="post-del" onclick="window.delPost('${p._id}')">🗑</button>` : '';
+            const safeAva = window.sec(window.getAva(p.author));
+            const safeImg = window.sec(p.imageUrl);
+            const timeStr = p.createdAt ? window.formatTime(p.createdAt) : window.formatTime(Date.now());
+            const delBtn = p.author === window.me ? `<button class="post-del" onclick="window.delPost('${p._id}')">🗑</button>` : '';
 
             return `
             <div class="glass post" id="post-${p._id}">
@@ -307,9 +318,9 @@
                         <span class="post-time">${timeStr}</span>
                     </div>
                 </div>
-                ${safeImg ? `<div class="media-box">${isVid(safeImg) ? `<video src="${safeImg}" controls></video>` : `<img src="${safeImg}">`}</div>` : ''}
+                ${safeImg ? `<div class="media-box">${window.isVid(safeImg) ? `<video src="${safeImg}" controls></video>` : `<img src="${safeImg}">`}</div>` : ''}
                 <div class="post-act">
-                    <button class="act-btn ${p.likes.includes(me)?'liked':''}" onclick="window.like('${p._id}')">
+                    <button class="act-btn ${p.likes.includes(window.me)?'liked':''}" onclick="window.like('${p._id}')">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         ${p.likes.length}
                     </button>
@@ -322,7 +333,7 @@
                     <p style="margin-bottom: 10px; font-size: 15px;">${p.text || ''}</p>
                     <div style="margin-bottom: 10px;">${commentsHtml}</div>
                     <div style="display:flex; gap:10px;">
-                        <input id="comm-in-${p._id}" placeholder="Добавить комментарий..." style="margin:0; padding:10px;">
+                        <input id="comm-in-${p._id}" placeholder="Комментарий..." style="margin:0; padding:10px;">
                         <button class="btn-main" style="width:70px; padding:0;" onclick="window.addComm('${p._id}')">OK</button>
                     </div>
                 </div>
@@ -331,11 +342,211 @@
         window.loadStories();
     };
 
-    // ФУНКЦИЯ УДАЛЕНИЯ ПОСТОВ
-    window.delPost = async (id) => {
+    window.delPost = async function(id) {
         if(!confirm("Удалить этот пост навсегда?")) return;
-        await call(`/posts/${id}`, 'DELETE');
-        // Если сервак не умеет удалять, просто прячем визуально, чтобы интерфейс не бесил
-        const el = document.getElementById(`post-${id}`);
+        await window.call('/posts/' + id, 'DELETE');
+        const el = document.getElementById('post-' + id);
         if(el) el.remove(); 
         window.loadFeed();
+    };
+
+    window.loadStories = async function() {
+        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        const list = document.getElementById('st-list');
+        list.innerHTML = "";
+        const now = Date.now();
+        const activeStories = local.filter(s => now - s.id < 86400000); 
+
+        activeStories.forEach(i => {
+            const safeAva = window.sec(window.getAva(i.author));
+            const preview = window.isVid(i.imageUrl) ? safeAva : i.imageUrl;
+            list.innerHTML += `<img src="${preview}" class="story-ring" onclick="window.viewStory('${i.imageUrl}', '${i.caption || ''}', '${i.author}')">`;
+        });
+    };
+
+    window.uploadSt = async function(el) {
+        const f = el.files[0]; if(!f) return;
+        const img = await window.pack(f);
+        const caption = prompt("Добавьте подпись к истории (или оставьте пустым):");
+        
+        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        local.push({ id: Date.now(), author: window.me, imageUrl: img, caption: caption });
+        window.setSafeData('local_stories', JSON.stringify(local));
+        window.loadFeed();
+    };
+
+    window.viewStory = function(url, caption, author) {
+        const viewer = document.getElementById('story-viewer');
+        const imgEl = document.getElementById('sv-img');
+        const vidEl = document.getElementById('sv-vid');
+        const capEl = document.getElementById('sv-caption');
+
+        imgEl.classList.add('hidden'); vidEl.classList.add('hidden');
+        if (window.isVid(url)) { vidEl.src = window.sec(url); vidEl.classList.remove('hidden'); vidEl.play(); } 
+        else { imgEl.src = window.sec(url); imgEl.classList.remove('hidden'); }
+        
+        if(caption && caption !== "null") { capEl.innerText = caption; capEl.classList.remove('hidden'); } 
+        else { capEl.classList.add('hidden'); }
+        
+        document.getElementById('sv-author').innerHTML = `<img src="${window.sec(window.getAva(author))}" style="width:35px; border-radius:50%; border:2px solid var(--primary)"> ${author}`;
+        viewer.style.display = 'flex';
+    };
+
+    window.openArchive = function() {
+        const grid = document.getElementById('archive-grid');
+        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        const myStories = local.filter(s => s.author === window.me).reverse();
+        
+        grid.innerHTML = myStories.length === 0 ? "<p style='padding: 20px; opacity: 0.5'>Архив пуст.</p>" : myStories.map(s => `
+            <div class="arch-item">
+                ${window.isVid(s.imageUrl) ? `<video src="${s.imageUrl}"></video>` : `<img src="${s.imageUrl}">`}
+                <button class="arch-del" onclick="window.delStory(${s.id})">УДАЛИТЬ</button>
+            </div>
+        `).join('');
+        document.getElementById('archive-modal').style.display = 'flex';
+    };
+
+    window.delStory = function(id) {
+        if(!confirm("Удалить историю?")) return;
+        let local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        window.setSafeData('local_stories', JSON.stringify(local.filter(s => s.id !== id)));
+        window.openArchive(); window.loadFeed();
+    };
+
+    window.addComm = async function(id) { 
+        const inp = document.getElementById('comm-in-'+id); 
+        if(!inp.value) return; 
+        await window.call('/posts/'+id+'/comment', 'POST', {text: inp.value}); 
+        inp.value = ""; 
+        window.loadFeed(); 
+    };
+
+    window.like = async function(id) { 
+        await window.call('/posts/'+id+'/like', 'POST'); 
+        window.loadFeed(); 
+    };
+
+    window.loadProfile = async function() {
+        const u = await window.call('/users/profile/' + window.me);
+        if(!u || u.error) return;
+        
+        const banner = localStorage.getItem('k_banner_' + window.me) || '';
+        const audio = localStorage.getItem('k_audio_' + window.me);
+        const safeAva = window.sec(window.getAva(window.me));
+        
+        let audioHtml = audio ? `<audio controls class="audio-player" src="${audio}"></audio>` : '';
+
+        document.getElementById('p-card').innerHTML = `
+            <div class="p-banner" style="background-image: ${banner ? `url(${banner})` : 'none'}"></div>
+            <img src="${safeAva}" class="p-ava-main">
+            <h2 style="margin-top:10px;">${u.displayName || window.me}</h2>
+            <p style="opacity:0.5; margin-bottom: 10px;">@${window.me}</p>
+            ${audioHtml}
+        `;
+        
+        window.myPosts = u.posts || [];
+        const mediaPosts = window.myPosts.filter(p => p.imageUrl);
+        document.getElementById('p-grid').innerHTML = mediaPosts.length === 0 ? "<p style='grid-column: span 3; text-align: center; opacity: 0.5; padding: 20px;'>Нет фото/видео</p>" : mediaPosts.map(p => `
+            <div class="grid-item">${window.isVid(p.imageUrl) ? `<video src="${window.sec(p.imageUrl)}"></video>` : `<img src="${window.sec(p.imageUrl)}">`}</div>
+        `).join('');
+    };
+
+    window.createPost = async function() {
+        const t = document.getElementById('post-text').value;
+        const f = document.getElementById('post-media').files[0];
+        let img = ""; 
+        if(f) img = await window.pack(f);
+        await window.call('/posts', 'POST', {text:t, imageUrl:img});
+        document.getElementById('post-text').value = "";
+        window.switchTab('feed');
+    };
+
+    window.loadChats = async function() {
+        const d = await window.call('/chats');
+        if(!d || !d.users) return;
+        document.getElementById('chats-list').innerHTML = d.users.map(u => `
+            <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
+                <img src="${window.sec(window.getAva(u.username))}" style="width:40px; height:40px; object-fit:cover; border-radius:50%; background: var(--bg-card);">
+                <b>${u.username}</b>
+            </div>
+        `).join('');
+    };
+
+    window.openChat = async function(n) {
+        window.curChat = n; 
+        document.getElementById('chat-user').innerText = n;
+        document.getElementById('chat-window').style.display = 'flex';
+        const box = document.getElementById('chat-msgs');
+        
+        const wall = localStorage.getItem('k_wall');
+        if (wall) {
+            box.style.backgroundImage = `url(${wall})`;
+        } else {
+            box.style.background = `linear-gradient(135deg, var(--bg-body), rgba(0, 122, 255, 0.1))`;
+        }
+        
+        const m = await window.call('/messages/' + n);
+        if(Array.isArray(m)) {
+            box.innerHTML = m.map(msg => {
+                const t = msg.createdAt ? window.formatTime(msg.createdAt) : window.formatTime(Date.now());
+                return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">${msg.text} <span class="msg-time">${t}</span></div>`;
+            }).join('');
+        } else box.innerHTML = '';
+        box.scrollTop = box.scrollHeight;
+    };
+
+    window.sendMsg = async function() { 
+        const i = document.getElementById('chat-in'); 
+        if(!i.value) return; 
+        await window.call('/messages', 'POST', {recipient: window.curChat, text: i.value}); 
+        i.value = ""; 
+        window.openChat(window.curChat); 
+    };
+
+    window.saveLocalFile = async function(el, type) {
+        const f = el.files[0]; if(!f) return;
+        const b64 = await window.pack(f);
+        if(type === 'ava') { window.setSafeData('k_ava_' + window.me, b64); alert("Аватарка обновлена!"); }
+        if(type === 'banner') { window.setSafeData('k_banner_' + window.me, b64); alert("Баннер обновлен!"); }
+        if(type === 'audio') { window.setSafeData('k_audio_' + window.me, b64); alert("Песня загружена!"); }
+        if(type === 'wall') { window.setSafeData('k_wall', b64); alert("Обои для чата загружены!"); }
+    };
+
+    window.saveSettings = async function() {
+        const nick = document.getElementById('set-nick').value;
+        if(nick) await window.call('/users/update', 'POST', {displayName: nick});
+        alert("Имя сохранено!"); location.reload();
+    };
+
+    window.setAccent = function(c) { 
+        document.documentElement.style.setProperty('--primary', c); 
+        localStorage.setItem('k_accent', c); 
+    };
+    
+    window.toggleTheme = function() { 
+        const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; 
+        document.body.setAttribute('data-theme', next); 
+        localStorage.setItem('k_theme', next); 
+    };
+    
+    window.pack = function(f) { 
+        return new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = e => r(e.target.result); }); 
+    };
+    
+    window.logOut = function() { 
+        localStorage.clear(); 
+        location.reload(); 
+    };
+
+    // INIT
+    if(window.token) { 
+        document.getElementById('scr-auth').classList.add('hidden'); 
+        document.getElementById('scr-app').classList.remove('hidden'); 
+        window.switchTab('feed'); 
+    }
+
+    window.setAccent(localStorage.getItem('k_accent') || '#007aff');
+    document.body.setAttribute('data-theme', localStorage.getItem('k_theme') || 'light');
+</script>
+</body>
+</html>
