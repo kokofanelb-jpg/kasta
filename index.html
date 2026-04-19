@@ -120,7 +120,6 @@
         #story-viewer { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
         .sv-media { max-width: 100%; max-height: 80vh; object-fit: contain; }
         
-        /* Зоны клика для историй */
         .story-tap-zone { position: absolute; top: 0; bottom: 0; width: 50%; z-index: 3001; }
         #tap-left { left: 0; }
         #tap-right { right: 0; }
@@ -167,7 +166,7 @@
                 <input id="login-p" type="password" placeholder="Пароль">
                 <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
                 <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer; color: var(--text);">Регистрация</p>
-                <div id="auth-loader" class="hidden loading-text" style="margin-top: 15px;"><div class="spinner"></div>Связь с сервером...</div>
+                <div id="auth-loader" class="hidden loading-text" style="margin-top: 15px;"><div class="spinner"></div>Связь с сервером (если спит - 2 мин)...</div>
             </div>
         </div>
 
@@ -188,18 +187,18 @@
             </div>
 
             <div id="view-profile" class="hidden fade-in">
-                <div id="p-card" class="glass" style="text-align: center; padding-bottom: 20px;"></div>
+                <div id="p-card" class="glass" style="text-align: center; margin-bottom: 20px; padding-bottom: 20px;"></div>
                 
-                <div id="p-bio-card" class="glass hidden" style="margin-top: 15px; padding: 15px; font-size: 14px; opacity: 0.9; text-align: center;"></div>
+                <div id="p-bio-card" class="glass hidden" style="margin-bottom: 20px; padding: 15px; font-size: 14px; opacity: 0.9; text-align: center;"></div>
 
-                <div style="margin-top: 20px;">
+                <div style="margin-bottom: 20px;">
                     <button class="btn-sec" onclick="window.openArchive()">📦 Архив Историй</button>
-                    <div class="glass" style="padding: 15px; margin-bottom: 20px;">
+                    <div class="glass" style="padding: 15px;">
                         <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn-sec" style="flex: 1; margin: 0;" onclick="document.getElementById('post-media').click()">МЕДИА</button>
+                            <button class="btn-sec" style="flex: 1; margin: 0;" onclick="document.getElementById('post-media').click()">МЕДИА (До 5)</button>
                             <input type="file" id="post-media" hidden multiple accept="image/*,video/*">
-                            <button class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
+                            <button id="pub-btn" class="btn-main" style="flex: 1;" onclick="window.createPost()">ОПУБЛИКОВАТЬ</button>
                         </div>
                     </div>
                 </div>
@@ -299,7 +298,7 @@
 
     window.setSafeData = function(key, val) {
         try { localStorage.setItem(key, val); return true; }
-        catch(e) { alert("Файл слишком большой. Попробуй сжать."); return false; }
+        catch(e) { alert("Файл слишком большой. Выбери файл поменьше."); return false; }
     };
 
     window.sec = function(u) { if (!u) return ''; if (u.startsWith('http://')) return u.replace('http://', 'https://'); return u; };
@@ -315,6 +314,7 @@
         return date.toLocaleString('ru-RU', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
     };
 
+    // Надежный перехват ошибок CORS и падений
     window.call = async function(p, m='GET', b=null) {
         try {
             const r = await fetch(window.API + p, { 
@@ -328,7 +328,10 @@
             const text = await r.text();
             try { return text ? JSON.parse(text) : { success: true }; } 
             catch(e) { return { success: true, text: text }; }
-        } catch(e) { return { error: true, message: e.message }; }
+        } catch(e) { 
+            console.error("Fetch error/CORS:", e);
+            return { error: true, message: "Ошибка соединения с сервером (CORS или сервер спит)." }; 
+        }
     };
 
     window.doAuth = async function(t) {
@@ -337,11 +340,13 @@
         const p = document.getElementById('login-p').value;
         const d = await window.call('/' + t, 'POST', {username:u, password:p});
         document.getElementById('auth-loader').classList.add('hidden');
-        if(!d.error && d.token) { 
+        if(d && !d.error && d.token) { 
             localStorage.setItem('token', d.token); 
             localStorage.setItem('me', d.username); 
             location.reload(); 
-        } else alert("Ошибка авторизации");
+        } else {
+            alert(d ? (d.message || "Ошибка авторизации") : "Сервер недоступен");
+        }
     };
 
     window.switchTab = function(id, e) {
@@ -371,7 +376,6 @@
             if (mediaArr.length === 1) {
                 mediaHtml = `<div class="media-box">${window.isVid(mediaArr[0]) ? `<video src="${window.sec(mediaArr[0])}" controls></video>` : `<img src="${window.sec(mediaArr[0])}">`}</div>`;
             } else if (mediaArr.length > 1) {
-                // КАРУСЕЛЬ
                 let dots = mediaArr.map((_, i) => `<div class="dot ${i===0?'active':''}"></div>`).join('');
                 mediaHtml = `
                 <div class="media-box" onscroll="window.updateDots(this)">
@@ -429,11 +433,11 @@
 
     window.loadFeed = async function() {
         const container = document.getElementById('feed-cont');
-        if(container.innerHTML === "") container.innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка постов...</div>`;
+        if(container.innerHTML === "") container.innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка постов...<br><span style="font-size:10px; opacity:0.6;">(Если сервер спит, жди до 2 мин)</span></div>`;
         
         const d = await window.call('/posts');
         if(!d || d.error || !Array.isArray(d)) {
-            container.innerHTML = `<div class="loading-text">Ошибка ленты. Проверьте сервер.</div>`;
+            container.innerHTML = `<div class="loading-text">Не удалось загрузить ленту (CORS / Сервер спит).<br><span style="font-size:10px; opacity:0.6;">(Подробности: ${d?d.message:'Нет ответа'})</span></div>`;
             return;
         }
         
@@ -453,16 +457,14 @@
         
         if(!text && files.length === 0) return;
         
-        const btn = event.currentTarget;
-        btn.innerText = "СЖАТИЕ И ЗАГРУЗКА...";
+        const btn = document.getElementById('pub-btn');
+        btn.innerText = "ЗАГРУЗКА...";
         btn.disabled = true;
 
         let mediaData = null;
         if(files.length > 0) {
             let b64Arr = [];
-            for(let i=0; i<Math.min(files.length, 5); i++) {
-                b64Arr.push(await window.pack(files[i]));
-            }
+            for(let i=0; i<Math.min(files.length, 5); i++) { b64Arr.push(await window.pack(files[i])); }
             mediaData = b64Arr.length > 1 ? JSON.stringify(b64Arr) : b64Arr[0];
         }
 
@@ -539,9 +541,7 @@
         if(window.storyQueueIndex >= window.storyQueue.length) {
             window.closeStory(); return;
         }
-        if(window.storyQueueIndex < 0) {
-            window.storyQueueIndex = 0; // Защита
-        }
+        if(window.storyQueueIndex < 0) window.storyQueueIndex = 0;
         
         const s = window.storyQueue[window.storyQueueIndex];
         
@@ -619,7 +619,7 @@
         
         const postDiv = document.getElementById('post-'+id);
         const cCount = postDiv.querySelector('.c-count');
-        cCount.innerText = parseInt(cCount.innerText) + 1;
+        if(cCount) cCount.innerText = parseInt(cCount.innerText) + 1;
 
         window.call('/posts/'+id+'/comment', 'POST', {text: text}); 
     };
@@ -646,7 +646,8 @@
         const banner = localStorage.getItem('k_banner_' + window.me) || '';
         const audio = localStorage.getItem('k_audio_' + window.me);
         const bio = localStorage.getItem('k_bio_' + window.me) || '';
-        const safeAva = window.sec(window.getAva(window.me));
+        // ВАЖНО: Аватарку теперь достаем из backend, если он ее отдает, иначе берем локальную/генерацию
+        const safeAva = window.sec(u.avatarUrl || window.getAva(window.me)); 
         
         let audioHtml = '';
         if(audio) {
@@ -744,6 +745,8 @@
         else box.style.background = `linear-gradient(135deg, var(--bg-body), rgba(0, 122, 255, 0.1))`;
 
         box.innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка переписки...</div>`;
+        
+        // Фоновый запрос
         const m = await window.call('/messages/' + n);
         localStorage.setItem('k_chat_last_time_' + n, Date.now());
 
@@ -771,6 +774,7 @@
         const box = document.getElementById('chat-msgs');
         const t = Date.now();
 
+        // Оптимистичный UI
         box.innerHTML += `<div class="msg me" style="opacity: 0.9;">
                             ${text} 
                             <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
@@ -781,6 +785,72 @@
 
         await window.call('/messages', 'POST', {recipient: window.curChat, receiver: window.curChat, text: text}); 
         
+        // Фоновое обновление (чтобы галочки перекрасились в прочитанные)
         setTimeout(async () => {
             if(document.getElementById('chat-window').style.display === 'flex' && window.curChat) {
-                const m
+                const m = await window.call('/messages/' + window.curChat);
+                if(Array.isArray(m)) {
+                    box.innerHTML = m.map(msg => {
+                        const msgTime = msg.createdAt || Date.now();
+                        return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">
+                                    ${msg.text} 
+                                    <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
+                                        <span class="msg-time" style="margin:0;">${window.formatTime(msgTime)}</span>${window.getCheckmarks(msg.sender === window.me, msgTime)}
+                                    </div>
+                                </div>`;
+                    }).join('');
+                    box.scrollTop = box.scrollHeight;
+                }
+            }
+        }, 3500); 
+    };
+
+    window.saveLocalFile = async function(el, type) {
+        const f = el.files[0]; if(!f) return;
+        const b64 = await window.pack(f);
+        if(type === 'ava') {
+            window.setSafeData('k_ava_' + window.me, b64);
+            // Пытаемся отправить и на сервер, чтобы другие видели
+            window.call('/users/update', 'POST', { avatarUrl: b64 }).catch(()=>{});
+        }
+        if(type === 'banner') {
+            window.setSafeData('k_banner_' + window.me, b64);
+            window.call('/users/update', 'POST', { bannerUrl: b64 }).catch(()=>{});
+        }
+        if(type === 'audio') window.setSafeData('k_audio_' + window.me, b64);
+        if(type === 'wall') window.setSafeData('k_wall', b64);
+        alert("Обновлено!");
+        window.loadProfile();
+    };
+
+    window.saveSettings = async function() {
+        const nick = document.getElementById('set-nick').value;
+        const bio = document.getElementById('set-bio').value;
+        
+        if(nick) await window.call('/users/update', 'POST', {displayName: nick});
+        if(bio) localStorage.setItem('k_bio_' + window.me, bio);
+        
+        alert("Сохранено!"); 
+        window.switchTab('profile');
+    };
+
+    window.setAccent = function(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('k_accent', c); window.loadStories(); };
+    window.toggleTheme = function() { 
+        const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; 
+        document.body.setAttribute('data-theme', next); localStorage.setItem('k_theme', next); 
+    };
+    
+    window.pack = function(f) { return new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = e => r(e.target.result); }); };
+    window.logOut = function() { localStorage.clear(); location.reload(); };
+
+    // СТАРТ ПРИЛОЖЕНИЯ
+    if(window.token) { 
+        document.getElementById('scr-auth').classList.add('hidden'); 
+        document.getElementById('scr-app').classList.remove('hidden'); 
+        window.switchTab('feed'); 
+    }
+    window.setAccent(localStorage.getItem('k_accent') || '#007aff');
+    document.body.setAttribute('data-theme', localStorage.getItem('k_theme') || 'light');
+</script>
+</body>
+</html>
