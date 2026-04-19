@@ -104,6 +104,11 @@
         .arch-item { position: relative; border-radius: 15px; overflow: hidden; height: 250px; background: #222; }
         .arch-item img, .arch-item video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .arch-del { position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border: none; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+
+        /* ИНДИКАТОР ЗАГРУЗКИ */
+        .loading-text { text-align: center; padding: 30px; opacity: 0.6; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body data-theme="light">
@@ -124,6 +129,7 @@
                 <input id="login-p" type="password" placeholder="Пароль">
                 <button class="btn-main" onclick="window.doAuth('login')">ВОЙТИ</button>
                 <p onclick="window.doAuth('register')" style="margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer; color: var(--text);">Регистрация</p>
+                <div id="auth-loader" class="hidden loading-text" style="margin-top: 15px;"><div class="spinner"></div>Связь с сервером (может занять 2 минуты)...</div>
             </div>
         </div>
 
@@ -253,6 +259,7 @@
         return date.toLocaleString('ru-RU', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
     };
 
+    // Обновленная функция вызова с защитой от сбоев парсинга JSON
     window.call = async function(p, m='GET', b=null) {
         try {
             const r = await fetch(window.API + p, { 
@@ -262,14 +269,19 @@
             });
             if (!r.ok) return { error: true, status: r.status };
             if (m === 'DELETE') return { success: true };
-            return await r.json();
+            
+            const text = await r.text();
+            try { return text ? JSON.parse(text) : { success: true }; } 
+            catch(e) { return { success: true, text: text }; }
         } catch(e) { return { error: true, message: e.message }; }
     };
 
     window.doAuth = async function(t) {
+        document.getElementById('auth-loader').classList.remove('hidden');
         const u = document.getElementById('login-u').value;
         const p = document.getElementById('login-p').value;
         const d = await window.call('/' + t, 'POST', {username:u, password:p});
+        document.getElementById('auth-loader').classList.add('hidden');
         if(!d.error && d.token) { 
             localStorage.setItem('token', d.token); 
             localStorage.setItem('me', d.username); 
@@ -288,13 +300,18 @@
     };
 
     window.loadFeed = async function() {
-        const d = await window.call('/posts');
-        if(!d || d.error || !Array.isArray(d)) return;
+        const container = document.getElementById('feed-cont');
+        container.innerHTML = `<div class="loading-text"><div class="spinner"></div>Синхронизация постов... (если сервер спит, это займет 1-3 минуты)</div>`;
         
-        // НОВЫЕ СВЕРХУ
+        const d = await window.call('/posts');
+        if(!d || d.error || !Array.isArray(d)) {
+            container.innerHTML = `<div class="loading-text">Не удалось загрузить ленту</div>`;
+            return;
+        }
+        
         const sortedPosts = [...d].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
-        document.getElementById('feed-cont').innerHTML = sortedPosts.map(p => {
+        container.innerHTML = sortedPosts.map(p => {
             const commentsHtml = (p.comments || []).map(c => `<div class="comment-item"><b>${c.author}:</b> ${c.text}</div>`).join('');
             const safeAva = window.sec(window.getAva(p.author));
             const safeImg = window.sec(p.imageUrl);
@@ -313,9 +330,9 @@
                 </div>
                 ${safeImg ? `<div class="media-box">${window.isVid(safeImg) ? `<video src="${safeImg}" controls></video>` : `<img src="${safeImg}">`}</div>` : ''}
                 <div class="post-act">
-                    <button class="act-btn ${p.likes.includes(window.me)?'liked':''}" onclick="window.like('${p._id}')">
+                    <button class="act-btn ${p.likes && p.likes.includes(window.me)?'liked':''}" onclick="window.like('${p._id}')">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        ${p.likes.length}
+                        ${(p.likes || []).length}
                     </button>
                     <button class="act-btn" onclick="document.getElementById('comm-in-${p._id}').focus()">
                         <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -341,7 +358,6 @@
         window.loadFeed();
     };
 
-    // --- ИСТОРИИ И АРХИВ ---
     window.loadStories = async function() {
         const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
         const list = document.getElementById('st-list');
@@ -398,7 +414,6 @@
         window.openArchive(); window.loadFeed();
     };
 
-    // --- ЛАЙКИ И КОММЕНТАРИИ ---
     window.addComm = async function(id) { 
         const inp = document.getElementById('comm-in-'+id); 
         if(!inp.value) return; 
@@ -412,8 +427,8 @@
         window.loadFeed(); 
     };
 
-    // --- ПРОФИЛЬ ---
     window.loadProfile = async function() {
+        document.getElementById('p-card').innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка профиля...</div>`;
         const u = await window.call('/users/profile/' + window.me);
         if(!u || u.error) return;
         
@@ -450,10 +465,13 @@
         window.switchTab('feed');
     };
 
-    // --- ЧАТЫ ---
     window.loadChats = async function() {
+        document.getElementById('chats-list').innerHTML = `<div class="loading-text"><div class="spinner"></div>Поиск чатов...</div>`;
         const d = await window.call('/chats');
-        if(!d || !d.users) return;
+        if(!d || !d.users) {
+            document.getElementById('chats-list').innerHTML = `<div class="loading-text">Пусто</div>`;
+            return;
+        }
         document.getElementById('chats-list').innerHTML = d.users.map(u => `
             <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
                 <img src="${window.sec(window.getAva(u.username))}" style="width:40px; height:40px; object-fit:cover; border-radius:50%; background: var(--bg-card);">
@@ -470,12 +488,13 @@
         const box = document.getElementById('chat-msgs');
         const wall = localStorage.getItem('k_wall');
         
-        // ФОН ЧАТА ИЛИ ГРАДИЕНТ
         if (wall) {
             box.style.backgroundImage = `url(${wall})`;
         } else {
             box.style.background = `linear-gradient(135deg, var(--bg-body), rgba(0, 122, 255, 0.1))`;
         }
+
+        box.innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка переписки...</div>`;
 
         const m = await window.call('/messages/' + n);
         if(Array.isArray(m)) {
@@ -483,18 +502,39 @@
                 const t = msg.createdAt ? window.formatTime(msg.createdAt) : window.formatTime(Date.now());
                 return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">${msg.text} <span class="msg-time">${t}</span></div>`;
             }).join('');
+        } else {
+            box.innerHTML = '';
         }
         box.scrollTop = box.scrollHeight;
     };
 
+    // Исправлено: Оптимистичный UI (сообщение появляется мгновенно)
     window.sendMsg = async function() { 
         const i = document.getElementById('chat-in'); 
-        if(!i.value) return; 
-        await window.call('/messages', 'POST', {recipient: window.curChat, text: i.value}); 
-        i.value = ""; window.openChat(window.curChat); 
+        const text = i.value;
+        if(!text) return; 
+
+        // 1. Мгновенно показываем сообщение на экране
+        i.value = ""; 
+        const box = document.getElementById('chat-msgs');
+        const t = window.formatTime(Date.now());
+        box.innerHTML += `<div class="msg me" style="opacity: 0.7;">${text} <span class="msg-time">${t} (отправка...)</span></div>`;
+        box.scrollTop = box.scrollHeight;
+
+        // 2. Отправляем на сервер (добавил recipient и receiver для надежности API)
+        await window.call('/messages', 'POST', {recipient: window.curChat, receiver: window.curChat, text: text}); 
+        
+        // 3. Тихо обновляем реальный чат с сервера
+        const m = await window.call('/messages/' + window.curChat);
+        if(Array.isArray(m)) {
+            box.innerHTML = m.map(msg => {
+                const timeStr = msg.createdAt ? window.formatTime(msg.createdAt) : window.formatTime(Date.now());
+                return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">${msg.text} <span class="msg-time">${timeStr}</span></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
     };
 
-    // --- НАСТРОЙКИ ---
     window.saveLocalFile = async function(el, type) {
         const f = el.files[0]; if(!f) return;
         const b64 = await window.pack(f);
@@ -525,7 +565,6 @@
     window.pack = function(f) { return new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = e => r(e.target.result); }); };
     window.logOut = function() { localStorage.clear(); location.reload(); };
 
-    // --- СТАРТ ПРИЛОЖЕНИЯ ---
     if(window.token) { 
         document.getElementById('scr-auth').classList.add('hidden'); 
         document.getElementById('scr-app').classList.remove('hidden'); 
