@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASTA</title>
+    <title>KASTA - PERFECTION FIXED</title>
     <link rel="icon" href="data:image/x-icon;base64,">
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
@@ -354,7 +354,7 @@
         if(id === 'profile') window.loadProfile();
     };
 
-    // ГЕНЕРАТОР ПОСТА (ДЛЯ ЛЕНТЫ И ПРОФИЛЯ)
+    // ГЕНЕРАТОР ПОСТА
     window.renderPostHtml = function(p) {
         const safeAva = window.sec(window.getAva(p.author));
         const timeStr = p.createdAt ? window.formatTime(p.createdAt) : window.formatTime(Date.now());
@@ -433,7 +433,7 @@
         
         const d = await window.call('/posts');
         if(!d || d.error || !Array.isArray(d)) {
-            container.innerHTML = `<div class="loading-text">Ошибка ленты</div>`;
+            container.innerHTML = `<div class="loading-text">Ошибка ленты. Проверьте сервер.</div>`;
             return;
         }
         
@@ -454,13 +454,12 @@
         if(!text && files.length === 0) return;
         
         const btn = event.currentTarget;
-        btn.innerText = "ЗАГРУЗКА...";
+        btn.innerText = "СЖАТИЕ И ЗАГРУЗКА...";
         btn.disabled = true;
 
         let mediaData = null;
         if(files.length > 0) {
             let b64Arr = [];
-            // Ограничиваем до 5 файлов
             for(let i=0; i<Math.min(files.length, 5); i++) {
                 b64Arr.push(await window.pack(files[i]));
             }
@@ -609,27 +608,22 @@
         window.openArchive(); window.loadFeed();
     };
 
-    // ОПТИМИСТИЧНЫЕ КОММЕНТЫ
     window.addComm = function(id, btnEl) { 
         const inp = document.getElementById('comm-in-'+id); 
         const text = inp.value;
         if(!text) return; 
         
-        // Оптимистичный UI: добавляем сразу в дом
         const list = document.getElementById('c-list-'+id);
         list.innerHTML += `<div class="comment-item fade-in"><b>${window.me}:</b> ${text}</div>`;
         inp.value = "";
         
-        // Увеличиваем счетчик
         const postDiv = document.getElementById('post-'+id);
         const cCount = postDiv.querySelector('.c-count');
         cCount.innerText = parseInt(cCount.innerText) + 1;
 
-        // Отправляем в фон
         window.call('/posts/'+id+'/comment', 'POST', {text: text}); 
     };
 
-    // ОПТИМИСТИЧНЫЕ ЛАЙКИ
     window.like = function(id, btn) { 
         const isLiked = btn.classList.contains('liked');
         const span = btn.querySelector('.l-count');
@@ -638,7 +632,6 @@
         if (isLiked) { btn.classList.remove('liked'); span.innerText = count - 1; } 
         else { btn.classList.add('liked'); span.innerText = count + 1; }
         
-        // Фон
         window.call('/posts/'+id+'/like', 'POST'); 
     };
 
@@ -655,7 +648,6 @@
         const bio = localStorage.getItem('k_bio_' + window.me) || '';
         const safeAva = window.sec(window.getAva(window.me));
         
-        // Кастомный аудиоплеер
         let audioHtml = '';
         if(audio) {
             audioHtml = `
@@ -676,7 +668,6 @@
             ${audioHtml}
         `;
 
-        // Окошко для био
         const bioCard = document.getElementById('p-bio-card');
         if (bio) { bioCard.innerHTML = `<b>Обо мне:</b><br><span style="opacity:0.8;">${bio}</span>`; bioCard.classList.remove('hidden'); }
         else { bioCard.classList.add('hidden'); }
@@ -684,7 +675,6 @@
         window.myPosts = u.posts || [];
         const sortedMyPosts = window.myPosts.sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
         
-        // Сетка фото
         const mediaPosts = sortedMyPosts.filter(p => p.imageUrl);
         document.getElementById('p-grid').innerHTML = mediaPosts.length === 0 ? "<p style='grid-column: span 3; text-align: center; opacity: 0.5; padding: 20px; color: var(--text);'>Нет фото</p>" : mediaPosts.map(p => {
             let firstImg = p.imageUrl;
@@ -692,11 +682,9 @@
             return `<div class="grid-item">${window.isVid(firstImg) ? `<video src="${window.sec(firstImg)}"></video>` : `<img src="${window.sec(firstImg)}">`}</div>`;
         }).join('');
 
-        // Лента постов пользователя (возвращаем как просили)
         document.getElementById('p-feed-cont').innerHTML = sortedMyPosts.length === 0 ? "<p style='text-align: center; opacity: 0.5;'>Нет постов</p>" : sortedMyPosts.map(window.renderPostHtml).join('');
     };
 
-    // ФУНКЦИИ КАСТОМНОГО ПЛЕЕРА
     window.toggleProfileAudio = function() {
         const audio = document.getElementById('profile-audio-el');
         const btn = document.getElementById('profile-audio-btn');
@@ -795,54 +783,4 @@
         
         setTimeout(async () => {
             if(document.getElementById('chat-window').style.display === 'flex' && window.curChat) {
-                const m = await window.call('/messages/' + window.curChat);
-                if(Array.isArray(m)) {
-                    box.innerHTML = m.map(msg => {
-                        const msgTime = msg.createdAt || Date.now();
-                        return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">
-                                    ${msg.text} 
-                                    <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
-                                        <span class="msg-time" style="margin:0;">${window.formatTime(msgTime)}</span>${window.getCheckmarks(msg.sender === window.me, msgTime)}
-                                    </div>
-                                </div>`;
-                    }).join('');
-                    box.scrollTop = box.scrollHeight;
-                }
-            }
-        }, 3500); 
-    };
-
-    window.saveLocalFile = async function(el, type) {
-        const f = el.files[0]; if(!f) return;
-        const b64 = await window.pack(f);
-        if(type === 'ava') window.setSafeData('k_ava_' + window.me, b64);
-        if(type === 'banner') window.setSafeData('k_banner_' + window.me, b64);
-        if(type === 'audio') window.setSafeData('k_audio_' + window.me, b64);
-        if(type === 'wall') window.setSafeData('k_wall', b64);
-        alert("Обновлено!");
-        window.loadProfile();
-    };
-
-    window.saveSettings = async function() {
-        const nick = document.getElementById('set-nick').value;
-        const bio = document.getElementById('set-bio').value;
-        if(nick) await window.call('/users/update', 'POST', {displayName: nick});
-        if(bio) localStorage.setItem('k_bio_' + window.me, bio);
-        alert("Сохранено!"); window.switchTab('profile');
-    };
-
-    window.setAccent = function(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('k_accent', c); window.loadStories(); };
-    window.toggleTheme = function() { const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', next); localStorage.setItem('k_theme', next); };
-    window.pack = function(f) { return new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = e => r(e.target.result); }); };
-    window.logOut = function() { localStorage.clear(); location.reload(); };
-
-    if(window.token) { 
-        document.getElementById('scr-auth').classList.add('hidden'); 
-        document.getElementById('scr-app').classList.remove('hidden'); 
-        window.switchTab('feed'); 
-    }
-    window.setAccent(localStorage.getItem('k_accent') || '#007aff');
-    document.body.setAttribute('data-theme', localStorage.getItem('k_theme') || 'light');
-</script>
-</body>
-</html>
+                const m
