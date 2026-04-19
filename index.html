@@ -70,7 +70,7 @@
         .comment-item { margin-bottom: 8px; background: rgba(128,128,128,0.1); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--glass-border); color: var(--text); }
         
         .p-banner { width: 100%; height: 160px; background-color: var(--primary); background-size: cover; background-position: center; border-radius: 20px 20px 0 0; }
-        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-body); margin-top: -50px; object-fit: cover; background: var(--bg-card); position: relative; z-index: 2; }
+        .p-ava-main { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--primary); margin-top: -50px; object-fit: cover; background: var(--bg-card); position: relative; z-index: 2; }
         .audio-player { width: 90%; margin: 15px auto; border-radius: 15px; outline: none; }
 
         .p-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -91,13 +91,19 @@
         .btn-main:active { transform: scale(0.98); }
         .btn-sec { background: var(--bg-card); color: var(--text); border: 1px solid var(--glass-border); padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; text-align: center; margin-bottom: 10px; }
         
-        .story-ring { border: 2px solid var(--primary); padding: 2px; border-radius: 50%; width: 64px; height: 64px; object-fit: cover; cursor: pointer; background: var(--bg-card); }
+        /* ИСТОРИИ - ОБНОВЛЕНО */
+        .story-ring { padding: 3px; border-radius: 50%; width: 68px; height: 68px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; border: 3px solid var(--primary); }
+        .story-ring.viewed { border-color: #8e8e93; } /* Серый если просмотрено */
+        .story-ring img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 2px solid var(--bg-card); background: var(--bg-card); }
         
         #story-viewer { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .sv-media { max-width: 100%; max-height: 80vh; object-fit: contain; }
-        #sv-caption { position: absolute; bottom: 40px; width: 90%; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; text-align: center; color: #fff; font-size: 16px; backdrop-filter: blur(10px); }
-        #sv-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; z-index: 3001; }
-        #sv-author { position: absolute; top: 25px; left: 20px; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .sv-media { max-width: 100%; max-height: 80vh; object-fit: contain; cursor: pointer; }
+        #sv-caption { position: absolute; bottom: 40px; width: 90%; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; text-align: center; color: #fff; font-size: 16px; backdrop-filter: blur(10px); z-index: 3002; }
+        #sv-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; z-index: 3003; }
+        #sv-author { position: absolute; top: 25px; left: 20px; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 10px; z-index: 3002; }
+        .story-progress { position: absolute; top: 10px; left: 10px; right: 10px; height: 3px; background: rgba(255,255,255,0.3); z-index: 3002; border-radius: 3px; display: flex; gap: 4px; }
+        .story-progress-bar { flex: 1; height: 100%; background: rgba(255,255,255,0.4); border-radius: 3px; overflow: hidden; }
+        .story-progress-fill { width: 0%; height: 100%; background: #fff; transition: width linear; }
 
         #archive-modal { position: fixed; inset: 0; background: var(--bg-body); z-index: 2500; display: none; flex-direction: column; }
         .archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; overflow-y: auto; }
@@ -109,6 +115,13 @@
         .loading-text { text-align: center; padding: 30px; opacity: 0.6; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .spinner { width: 30px; height: 30px; border: 3px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ТЕЛЕГРАМ ГАЛОЧКИ */
+        .checkmarks { display: inline-flex; align-items: center; margin-left: 6px; color: rgba(255,255,255,0.6); }
+        .checkmarks.read { color: #4ade80; /* Зеленый цвет прочитанного */ }
+        .check-tick { opacity: 0; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .check-tick:nth-child(2) { animation-delay: 0.15s; margin-left: -8px; }
+        @keyframes popIn { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body data-theme="light">
@@ -136,10 +149,10 @@
         <div id="scr-app" class="hidden">
             
             <div id="view-feed">
-                <div id="st-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto;">
+                <div id="st-row" class="glass" style="display: flex; gap: 15px; padding: 15px; margin-bottom: 20px; overflow-x: auto; align-items: center;">
                     <div onclick="document.getElementById('st-in').click()" style="min-width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); font-size: 24px;">+</div>
                     <input type="file" id="st-in" hidden accept="image/*,video/*" onchange="window.uploadSt(this)">
-                    <div id="st-list" style="display: flex; gap: 10px;"></div>
+                    <div id="st-list" style="display: flex; gap: 12px;"></div>
                 </div>
                 <div id="feed-cont"></div>
             </div>
@@ -219,10 +232,11 @@
 </div>
 
 <div id="story-viewer">
-    <button id="sv-close" onclick="document.getElementById('story-viewer').style.display='none'; document.getElementById('sv-vid').pause();">×</button>
+    <div class="story-progress" id="sv-progress"></div>
+    <button id="sv-close" onclick="window.closeStory()">×</button>
     <div id="sv-author"></div>
-    <img id="sv-img" class="sv-media hidden" src="">
-    <video id="sv-vid" class="sv-media hidden" controls autoplay playsinline></video>
+    <img id="sv-img" class="sv-media hidden" src="" onclick="window.playNextStory()">
+    <video id="sv-vid" class="sv-media hidden" playsinline onclick="window.playNextStory()"></video>
     <div id="sv-caption" class="hidden"></div>
 </div>
 
@@ -240,6 +254,9 @@
     window.me = localStorage.getItem('me');
     window.curChat = "";
     window.myPosts = [];
+    window.storyTimeout = null;
+    window.storyQueue = [];
+    window.storyQueueIndex = 0;
 
     window.setSafeData = function(key, val) {
         try { localStorage.setItem(key, val); return true; }
@@ -309,9 +326,16 @@
             return;
         }
         
-        const sortedPosts = [...d].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const now = Date.now();
+        // Удаляем старые посты: фильтруем посты моложе 48 часов (48 * 60 * 60 * 1000 = 172800000 мс)
+        const activePosts = [...d].filter(p => {
+            const pTime = p.createdAt ? new Date(p.createdAt).getTime() : now;
+            return (now - pTime) < 172800000;
+        });
+
+        const sortedPosts = activePosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
-        container.innerHTML = sortedPosts.map(p => {
+        container.innerHTML = sortedPosts.length === 0 ? "<p style='text-align:center; opacity:0.5;'>Нет постов за последние 48 часов</p>" : sortedPosts.map(p => {
             const commentsHtml = (p.comments || []).map(c => `<div class="comment-item"><b>${c.author}:</b> ${c.text}</div>`).join('');
             const safeAva = window.sec(window.getAva(p.author));
             const safeImg = window.sec(p.imageUrl);
@@ -358,41 +382,129 @@
         window.loadFeed();
     };
 
+    // ОБНОВЛЕННАЯ ЛОГИКА ИСТОРИЙ
     window.loadStories = async function() {
         const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        const viewed = JSON.parse(localStorage.getItem('k_viewed_stories') || '[]');
         const list = document.getElementById('st-list');
         list.innerHTML = "";
+        
         const now = Date.now();
+        // Удаляем истории старше 24 часов (86400000 мс)
         const activeStories = local.filter(s => now - s.id < 86400000); 
-        activeStories.forEach(i => {
-            const safeAva = window.sec(window.getAva(i.author));
-            const preview = window.isVid(i.imageUrl) ? safeAva : i.imageUrl;
-            list.innerHTML += `<img src="${preview}" class="story-ring" onclick="window.viewStory('${i.imageUrl}', '${i.caption || ''}', '${i.author}')">`;
+        
+        // Группируем по авторам (1 кружок на пользователя)
+        const byAuthor = {};
+        activeStories.forEach(s => {
+            if(!byAuthor[s.author]) byAuthor[s.author] = [];
+            byAuthor[s.author].push(s);
+        });
+
+        Object.keys(byAuthor).forEach(author => {
+            const authorStories = byAuthor[author];
+            const allViewed = authorStories.every(s => viewed.includes(s.id));
+            const safeAva = window.sec(window.getAva(author));
+            
+            list.innerHTML += `
+            <div class="story-ring ${allViewed ? 'viewed' : ''}" onclick="window.startStoryQueue('${author}')">
+                <img src="${safeAva}">
+            </div>`;
         });
     };
 
     window.uploadSt = async function(el) {
         const f = el.files[0]; if(!f) return;
         const img = await window.pack(f);
-        const caption = prompt("Подпись:");
+        const caption = prompt("Подпись (необязательно):");
         const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
         local.push({ id: Date.now(), author: window.me, imageUrl: img, caption: caption });
         window.setSafeData('local_stories', JSON.stringify(local));
         window.loadFeed();
     };
 
-    window.viewStory = function(url, caption, author) {
-        const viewer = document.getElementById('story-viewer');
-        const imgEl = document.getElementById('sv-img');
+    // Запуск просмотра всех историй пользователя
+    window.startStoryQueue = function(author) {
+        const local = JSON.parse(localStorage.getItem('local_stories') || '[]');
+        const now = Date.now();
+        window.storyQueue = local.filter(s => s.author === author && (now - s.id < 86400000));
+        window.storyQueueIndex = 0;
+        
+        if(window.storyQueue.length > 0) {
+            document.getElementById('story-viewer').style.display = 'flex';
+            window.playCurrentStory();
+        }
+    };
+
+    window.playCurrentStory = function() {
+        clearTimeout(window.storyTimeout);
         const vidEl = document.getElementById('sv-vid');
+        vidEl.pause(); vidEl.onended = null;
+        
+        // Если истории закончились
+        if(window.storyQueueIndex >= window.storyQueue.length) {
+            window.closeStory();
+            return;
+        }
+        
+        const s = window.storyQueue[window.storyQueueIndex];
+        
+        // Помечаем как просмотренное
+        let viewed = JSON.parse(localStorage.getItem('k_viewed_stories') || '[]');
+        if(!viewed.includes(s.id)) { 
+            viewed.push(s.id); 
+            localStorage.setItem('k_viewed_stories', JSON.stringify(viewed)); 
+        }
+        
+        const imgEl = document.getElementById('sv-img');
         const capEl = document.getElementById('sv-caption');
+        const progEl = document.getElementById('sv-progress');
+        
         imgEl.classList.add('hidden'); vidEl.classList.add('hidden');
-        if (window.isVid(url)) { vidEl.src = window.sec(url); vidEl.classList.remove('hidden'); vidEl.play(); } 
-        else { imgEl.src = window.sec(url); imgEl.classList.remove('hidden'); }
-        if(caption && caption !== "null") { capEl.innerText = caption; capEl.classList.remove('hidden'); } 
+        
+        // Отрисовка полосочек прогресса (сверху)
+        progEl.innerHTML = window.storyQueue.map((_, i) => `
+            <div class="story-progress-bar">
+                <div class="story-progress-fill" style="width: ${i < window.storyQueueIndex ? '100%' : (i === window.storyQueueIndex ? '0%' : '0%')}"></div>
+            </div>
+        `).join('');
+
+        // Анимация текущей полоски для фото (15 сек)
+        if (!window.isVid(s.imageUrl)) {
+            setTimeout(() => {
+                const currentFill = progEl.children[window.storyQueueIndex].querySelector('.story-progress-fill');
+                currentFill.style.transition = 'width 15s linear';
+                currentFill.style.width = '100%';
+            }, 50);
+        }
+
+        if (window.isVid(s.imageUrl)) { 
+            vidEl.src = window.sec(s.imageUrl); 
+            vidEl.classList.remove('hidden'); 
+            vidEl.play(); 
+            vidEl.onended = window.playNextStory;
+        } else { 
+            imgEl.src = window.sec(s.imageUrl); 
+            imgEl.classList.remove('hidden'); 
+            // Максимум 15 секунд на фото
+            window.storyTimeout = setTimeout(window.playNextStory, 15000);
+        }
+        
+        if(s.caption && s.caption !== "null") { capEl.innerText = s.caption; capEl.classList.remove('hidden'); } 
         else capEl.classList.add('hidden');
-        document.getElementById('sv-author').innerHTML = `<img src="${window.sec(window.getAva(author))}" style="width:35px; border-radius:50%; border:2px solid var(--primary)"> ${author}`;
-        viewer.style.display = 'flex';
+        
+        document.getElementById('sv-author').innerHTML = `<img src="${window.sec(window.getAva(s.author))}" style="width:35px; height:35px; object-fit:cover; border-radius:50%; border:2px solid var(--primary)"> ${s.author}`;
+    };
+
+    window.playNextStory = function() {
+        window.storyQueueIndex++;
+        window.playCurrentStory();
+    };
+
+    window.closeStory = function() {
+        clearTimeout(window.storyTimeout);
+        document.getElementById('story-viewer').style.display='none'; 
+        document.getElementById('sv-vid').pause();
+        window.loadStories(); // Обновляем цвет колец
     };
 
     window.openArchive = function() {
@@ -456,15 +568,7 @@
         `).join('');
     };
 
-    window.createPost = async function() {
-        const t = document.getElementById('post-text').value;
-        const f = document.getElementById('post-media').files[0];
-        let img = ""; if(f) img = await window.pack(f);
-        await window.call('/posts', 'POST', {text:t, imageUrl:img});
-        document.getElementById('post-text').value = "";
-        window.switchTab('feed');
-    };
-
+    // ОБНОВЛЕННАЯ СОРТИРОВКА ЧАТОВ
     window.loadChats = async function() {
         document.getElementById('chats-list').innerHTML = `<div class="loading-text"><div class="spinner"></div>Поиск чатов...</div>`;
         const d = await window.call('/chats');
@@ -472,12 +576,32 @@
             document.getElementById('chats-list').innerHTML = `<div class="loading-text">Пусто</div>`;
             return;
         }
-        document.getElementById('chats-list').innerHTML = d.users.map(u => `
+        
+        // Сортировка по времени последнего сообщения из кэша
+        const chats = d.users.map(u => {
+            const lastTime = parseInt(localStorage.getItem('k_chat_last_time_' + u.username) || '0');
+            return { ...u, lastTime };
+        });
+        chats.sort((a, b) => b.lastTime - a.lastTime);
+
+        document.getElementById('chats-list').innerHTML = chats.map(u => `
             <div class="glass" onclick="window.openChat('${u.username}')" style="padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; cursor:pointer;">
                 <img src="${window.sec(window.getAva(u.username))}" style="width:40px; height:40px; object-fit:cover; border-radius:50%; background: var(--bg-card);">
                 <b style="color: var(--text);">${u.username}</b>
             </div>
         `).join('');
+    };
+
+    // ФУНКЦИЯ ДЛЯ ГАЛОЧЕК
+    window.getCheckmarks = function(isMe, msgTime) {
+        if(!isMe) return '';
+        // Имитация прочтения: если сообщению больше 3 секунд, рисуем две галочки, иначе одну
+        const isRead = (Date.now() - new Date(msgTime).getTime()) > 3000; 
+        
+        const tickSvg = `<svg class="check-tick" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        
+        const checks = isRead ? `${tickSvg}${tickSvg}` : tickSvg;
+        return `<span class="checkmarks ${isRead ? 'read' : ''}">${checks}</span>`;
     };
 
     window.openChat = async function(n) {
@@ -488,19 +612,28 @@
         const box = document.getElementById('chat-msgs');
         const wall = localStorage.getItem('k_wall');
         
-        if (wall) {
-            box.style.backgroundImage = `url(${wall})`;
-        } else {
-            box.style.background = `linear-gradient(135deg, var(--bg-body), rgba(0, 122, 255, 0.1))`;
-        }
+        if (wall) box.style.backgroundImage = `url(${wall})`;
+        else box.style.background = `linear-gradient(135deg, var(--bg-body), rgba(0, 122, 255, 0.1))`;
 
         box.innerHTML = `<div class="loading-text"><div class="spinner"></div>Загрузка переписки...</div>`;
 
         const m = await window.call('/messages/' + n);
+        
+        // Обновляем время последней активности для этого чата
+        localStorage.setItem('k_chat_last_time_' + n, Date.now());
+
         if(Array.isArray(m)) {
             box.innerHTML = m.map(msg => {
-                const t = msg.createdAt ? window.formatTime(msg.createdAt) : window.formatTime(Date.now());
-                return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">${msg.text} <span class="msg-time">${t}</span></div>`;
+                const t = msg.createdAt || Date.now();
+                const timeStr = window.formatTime(t);
+                const checks = window.getCheckmarks(msg.sender === window.me, t);
+                
+                return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">
+                            ${msg.text} 
+                            <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
+                                <span class="msg-time" style="margin:0;">${timeStr}</span>${checks}
+                            </div>
+                        </div>`;
             }).join('');
         } else {
             box.innerHTML = '';
@@ -508,31 +641,52 @@
         box.scrollTop = box.scrollHeight;
     };
 
-    // Исправлено: Оптимистичный UI (сообщение появляется мгновенно)
     window.sendMsg = async function() { 
         const i = document.getElementById('chat-in'); 
         const text = i.value;
         if(!text) return; 
 
-        // 1. Мгновенно показываем сообщение на экране
+        // Обновляем время для сортировки чатов
+        localStorage.setItem('k_chat_last_time_' + window.curChat, Date.now());
+
         i.value = ""; 
         const box = document.getElementById('chat-msgs');
-        const t = window.formatTime(Date.now());
-        box.innerHTML += `<div class="msg me" style="opacity: 0.7;">${text} <span class="msg-time">${t} (отправка...)</span></div>`;
+        const t = Date.now();
+        const timeStr = window.formatTime(t);
+        
+        // 1 галочка (только что отправлено)
+        const checks = window.getCheckmarks(true, t); 
+
+        box.innerHTML += `<div class="msg me" style="opacity: 0.9;">
+                            ${text} 
+                            <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
+                                <span class="msg-time" style="margin:0;">${timeStr}</span>${checks}
+                            </div>
+                          </div>`;
         box.scrollTop = box.scrollHeight;
 
-        // 2. Отправляем на сервер (добавил recipient и receiver для надежности API)
         await window.call('/messages', 'POST', {recipient: window.curChat, receiver: window.curChat, text: text}); 
         
-        // 3. Тихо обновляем реальный чат с сервера
-        const m = await window.call('/messages/' + window.curChat);
-        if(Array.isArray(m)) {
-            box.innerHTML = m.map(msg => {
-                const timeStr = msg.createdAt ? window.formatTime(msg.createdAt) : window.formatTime(Date.now());
-                return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">${msg.text} <span class="msg-time">${timeStr}</span></div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        }
+        // Тихо обновляем чат, чтобы галочки стали двойными
+        setTimeout(async () => {
+            if(document.getElementById('chat-window').style.display === 'flex' && window.curChat) {
+                const m = await window.call('/messages/' + window.curChat);
+                if(Array.isArray(m)) {
+                    box.innerHTML = m.map(msg => {
+                        const msgTime = msg.createdAt || Date.now();
+                        const sTime = window.formatTime(msgTime);
+                        const sChecks = window.getCheckmarks(msg.sender === window.me, msgTime);
+                        return `<div class="msg ${msg.sender === window.me ? 'me' : 'them'}">
+                                    ${msg.text} 
+                                    <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:4px;">
+                                        <span class="msg-time" style="margin:0;">${sTime}</span>${sChecks}
+                                    </div>
+                                </div>`;
+                    }).join('');
+                    box.scrollTop = box.scrollHeight;
+                }
+            }
+        }, 3500); // через 3.5 секунды сымитируем прочтение сервером
     };
 
     window.saveLocalFile = async function(el, type) {
@@ -556,7 +710,7 @@
         window.switchTab('profile');
     };
 
-    window.setAccent = function(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('k_accent', c); };
+    window.setAccent = function(c) { document.documentElement.style.setProperty('--primary', c); localStorage.setItem('k_accent', c); window.loadStories(); };
     window.toggleTheme = function() { 
         const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; 
         document.body.setAttribute('data-theme', next); localStorage.setItem('k_theme', next); 
